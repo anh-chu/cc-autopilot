@@ -261,14 +261,14 @@ function postMissionInboxReport(mission: MissionEntry): void {
     const isComplete = mission.status === "completed";
     const remaining = mission.totalTasks - mission.completedTasks - mission.failedTasks;
     const subject = isComplete
-      ? `Mission complete: ${mission.completedTasks}/${mission.totalTasks} tasks done`
-      : `Mission stalled: ${mission.completedTasks}/${mission.totalTasks} tasks done, ${remaining} remaining`;
+      ? `Project run complete: ${mission.completedTasks}/${mission.totalTasks} tasks done`
+      : `Project run stalled: ${mission.completedTasks}/${mission.totalTasks} tasks done, ${remaining} remaining`;
 
     const lines: string[] = [];
     if (isComplete) {
-      lines.push(`All ${mission.completedTasks} tasks in this mission have been completed.`);
+      lines.push(`All ${mission.completedTasks} tasks in this project run have been completed.`);
     } else {
-      lines.push(`The mission has stalled with ${remaining} task(s) remaining that could not be dispatched.`);
+      lines.push(`The project run has stalled with ${remaining} task(s) remaining that could not be dispatched.`);
     }
 
     if (mission.failedTasks > 0) {

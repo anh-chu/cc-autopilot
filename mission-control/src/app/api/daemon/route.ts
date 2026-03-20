@@ -4,6 +4,7 @@ import { spawn } from "child_process";
 import path from "path";
 import { getDaemonConfig, mutateDaemonConfig } from "@/lib/data";
 import { daemonConfigUpdateSchema, validateBody } from "@/lib/validations";
+import { requireOwner } from "@/lib/owner-guard";
 
 const DATA_DIR = path.resolve(process.cwd(), "data");
 const STATUS_FILE = path.join(DATA_DIR, "daemon-status.json");
@@ -139,6 +140,10 @@ export async function PUT(request: Request) {
   const validation = await validateBody(request, daemonConfigUpdateSchema);
   if (!validation.success) return validation.error;
   const updates = validation.data;
+
+  // Daemon config changes require owner authorization
+  const ownerCheck = await requireOwner(updates as Record<string, unknown>);
+  if (ownerCheck) return ownerCheck;
 
   // SECURITY: Reject attempts to enable skipPermissions via API.
   // This can only be set by manually editing data/daemon-config.json.

@@ -119,7 +119,9 @@ export function buildSafeEnv(opts?: { agentTeams?: boolean }): Record<string, st
   if (process.env.Path) safeEnv.Path = process.env.Path;
 
   // Preserve HOME/USERPROFILE for Claude Code config resolution
-  if (process.env.HOME) safeEnv.HOME = process.env.HOME;
+  // On Windows, HOME is often undefined — fall back to USERPROFILE
+  const home = process.env.HOME || process.env.USERPROFILE;
+  if (home) safeEnv.HOME = home;
   if (process.env.USERPROFILE) safeEnv.USERPROFILE = process.env.USERPROFILE;
 
   // Preserve APPDATA for Windows applications
@@ -139,6 +141,13 @@ export function buildSafeEnv(opts?: { agentTeams?: boolean }): Record<string, st
     if (process.env.WINDIR) safeEnv.WINDIR = process.env.WINDIR;
     if (process.env.COMSPEC) safeEnv.COMSPEC = process.env.COMSPEC;
     if (process.env.PATHEXT) safeEnv.PATHEXT = process.env.PATHEXT;
+  }
+
+  // Claude Code OAuth token — v2.1.71+ stores the active token in this env
+  // var rather than .credentials.json.  The daemon process inherits it from
+  // the user's session; child agent processes need it to authenticate.
+  if (process.env.CLAUDE_CODE_OAUTH_TOKEN) {
+    safeEnv.CLAUDE_CODE_OAUTH_TOKEN = process.env.CLAUDE_CODE_OAUTH_TOKEN;
   }
 
   // Agent Teams: experimental multi-agent coordination

@@ -1,0 +1,97 @@
+{
+  "tasks": [
+    {
+      "id": "ftask_demo_001",
+      "missionId": "fmission_demo_001",
+      "title": "Process launch ad payment",
+      "description": "Process payment for social media advertising campaign",
+      "type": "payment",
+      "serviceId": null,
+      "assignedTo": null,
+      "status": "completed",
+      "approvalRequired": true,
+      "payload": {},
+      "result": {},
+      "attachments": [],
+      "linkedTaskId": null,
+      "blockedBy": [],
+      "rejectionFeedback": "Budget not approved yet — waiting on Q2 allocation before processing any payments.",
+      "createdAt": "2026-03-15T01:06:09.416Z",
+      "updatedAt": "2026-03-15T01:07:52.224Z",
+      "executedAt": "2026-03-15T01:07:44.466Z",
+      "completedAt": "2026-03-15T01:07:52.224Z"
+    },
+    {
+      "id": "ftask_demo_002",
+      "missionId": "fmission_demo_002",
+      "title": "Check Sepolia wallet balance",
+      "description": "Read ETH and USDC balance on Sepolia testnet",
+      "type": "crypto-transfer",
+      "serviceId": "ethereum-wallet",
+      "assignedTo": null,
+      "status": "completed",
+      "approvalRequired": true,
+      "payload": {
+        "operation": "read-balance"
+      },
+      "result": {
+        "address": "0x0000000000000000000000000000000000000000",
+        "network": "sepolia",
+        "ethBalance": "0.05",
+        "ethBalanceWei": "50000000000000000",
+        "usdcBalance": "0.0",
+        "usdcDecimals": 6,
+        "operation": "read-balance"
+      },
+      "attachments": [],
+      "linkedTaskId": null,
+      "blockedBy": [],
+      "rejectionFeedback": null,
+      "approvedBy": "system",
+      "rejectedBy": null,
+      "scheduledFor": null,
+      "createdAt": "2026-03-17T23:17:40.550Z",
+      "updatedAt": "2026-03-17T23:22:43.750Z",
+      "executedAt": "2026-03-17T23:22:43.229Z",
+      "completedAt": "2026-03-17T23:22:43.750Z"
+    },
+    {
+      "id": "ftask_demo_003",
+      "missionId": "fmission_demo_002",
+      "title": "Send 0.001 ETH to test recipient",
+      "description": "Transfer 0.001 Sepolia ETH to a test wallet address",
+      "type": "crypto-transfer",
+      "serviceId": "ethereum-wallet",
+      "assignedTo": null,
+      "status": "completed",
+      "approvalRequired": true,
+      "payload": {
+        "operation": "send-eth",
+        "to": "0x0000000000000000000000000000000000000000",
+        "amount": "0.001"
+      },
+      "result": {
+        "txHash": "0x0000000000000000000000000000000000000000000000000000000000000000",
+        "from": "0x0000000000000000000000000000000000000000",
+        "to": "0x0000000000000000000000000000000000000000",
+        "amountEth": "0.001",
+        "network": "sepolia",
+        "blockNumber": 10466547,
+        "gasUsed": "21000",
+        "operation": "send-eth",
+        "explorerUrl": "https://sepolia.etherscan.io/tx/0x0000000000000000000000000000000000000000000000000000000000000000"
+      },
+      "attachments": [],
+      "linkedTaskId": null,
+      "blockedBy": [],
+      "rejectionFeedback": null,
+      "approvedBy": "system",
+      "rejectedBy": null,
+      "scheduledFor": null,
+      "createdAt": "2026-03-17T23:17:47.021Z",
+      "updatedAt": "2026-03-17T23:24:37.457Z",
+      "executedAt": "2026-03-17T23:24:15.205Z",
+      "completedAt": "2026-03-17T23:24:37.457Z"
+    }
+  ]
+}

@@ -21,7 +21,7 @@ interface ProjectCardLargeProps {
   tasks: Task[];
   goals: Goal[];
   isRunning?: boolean;
-  isMissionActive?: boolean;
+  isProjectRunActive?: boolean;
   onRun?: (projectId: string) => void;
   onStop?: (projectId: string) => void;
   onEdit?: (projectId: string) => void;
@@ -29,7 +29,7 @@ interface ProjectCardLargeProps {
   onDelete?: (projectId: string) => void;
 }
 
-export function ProjectCardLarge({ project, tasks, goals, isRunning, isMissionActive, onRun, onStop, onEdit, onArchive, onDelete }: ProjectCardLargeProps) {
+export function ProjectCardLarge({ project, tasks, goals, isRunning, isProjectRunActive, onRun, onStop, onEdit, onArchive, onDelete }: ProjectCardLargeProps) {
   const projectTasks = tasks.filter((t) => t.projectId === project.id);
   const notStarted = projectTasks.filter((t) => t.kanban === "not-started").length;
   const inProgress = projectTasks.filter((t) => t.kanban === "in-progress").length;
@@ -69,11 +69,11 @@ export function ProjectCardLarge({ project, tasks, goals, isRunning, isMissionAc
               {onRun && hasEligibleTasks && (
                 <RunButton
                   isRunning={isRunning ?? false}
-                  isMissionActive={isMissionActive}
+                  isProjectRunActive={isProjectRunActive}
                   onClick={() => onRun(project.id)}
                   onStop={onStop ? () => onStop(project.id) : undefined}
                   size="md"
-                  title={isMissionActive ? "Mission running — click to stop" : "Launch all mission tasks"}
+                  title={isProjectRunActive ? "Project running — click to stop" : "Run all project tasks"}
                 />
               )}
               <Badge variant="outline" className="text-xs capitalize">
@@ -88,7 +88,7 @@ export function ProjectCardLarge({ project, tasks, goals, isRunning, isMissionAc
                       size="icon"
                       className="h-6 w-6 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity"
                       onClick={(e) => { e.preventDefault(); e.stopPropagation(); }}
-                      aria-label="Mission actions"
+                      aria-label="Project actions"
                     >
                       <MoreHorizontal className="h-3.5 w-3.5" />
                     </Button>

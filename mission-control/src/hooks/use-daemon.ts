@@ -74,7 +74,7 @@ interface DaemonData {
   isRunning: boolean;
   isLoading: boolean;
   error: string | null;
-  start: () => Promise<void>;
+  start: (masterPassword?: string) => Promise<void>;
   stop: () => Promise<void>;
   updateConfig: (updates: Partial<DaemonConfig>) => Promise<void>;
   refetch: () => Promise<void>;
@@ -127,12 +127,14 @@ export function useDaemon(): DaemonData {
     return () => clearInterval(interval);
   }, [refetch]);
 
-  const start = useCallback(async () => {
+  const start = useCallback(async (masterPassword?: string) => {
     try {
+      const payload: Record<string, unknown> = { action: "start" };
+      if (masterPassword) payload.masterPassword = masterPassword;
       const res = await apiFetch("/api/daemon", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ action: "start" }),
+        body: JSON.stringify(payload),
       });
       if (!res.ok) {
         const data = await res.json();
@@ -142,6 +144,7 @@ export function useDaemon(): DaemonData {
       setTimeout(refetch, 2000);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to start daemon");
+      throw err; // Re-throw so the caller can handle it
     }
   }, [refetch]);
 

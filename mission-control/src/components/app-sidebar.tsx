@@ -29,6 +29,10 @@ import {
   Palette,
   HeartPulse,
   Flag,
+  Radio,
+  Lock,
+  KeyRound,
+  Sparkles,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -37,13 +41,17 @@ import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from "@/comp
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ThemeToggle } from "@/components/theme-toggle";
+import { SidebarFooter } from "@/components/sidebar-footer";
 import type { AgentDefinition } from "@/lib/types";
 
 const mainLinks = [
   { href: "/", label: "Command Center", icon: LayoutDashboard },
   { href: "/objectives", label: "Objectives", icon: Crosshair },
-  { href: "/projects", label: "Missions", icon: Rocket },
+  { href: "/projects", label: "Ventures", icon: Sparkles },
+  { href: "/brain-dump", label: "Brain Dump", icon: Lightbulb },
   { href: "/checkpoints", label: "Checkpoints", icon: Flag },
+  { href: "/autopilot", label: "Autopilot", icon: Zap },
+  { href: "/guide", label: "Guide", icon: BookOpen },
 ];
 
 const taskLinks = [
@@ -55,7 +63,15 @@ const commsLinks = [
   { href: "/inbox", label: "Inbox", icon: Inbox, badgeKey: "unreadInbox" as const },
   { href: "/activity", label: "Activity", icon: Activity, badgeKey: null },
   { href: "/decisions", label: "Decisions", icon: HelpCircle, badgeKey: "pendingDecisions" as const },
-  { href: "/brain-dump", label: "Brain Dump", icon: Lightbulb, badgeKey: null },
+];
+
+const fieldOpsLinks = [
+  { href: "/field-ops", label: "Dashboard", icon: Radio },
+  { href: "/field-ops/missions", label: "Missions", icon: Rocket },
+  { href: "/field-ops/services", label: "Services", icon: Globe },
+  { href: "/field-ops/vault", label: "Vault", icon: Lock },
+  { href: "/field-ops/safety", label: "Safety", icon: Shield },
+  { href: "/field-ops/activity", label: "Activity", icon: KeyRound },
 ];
 
 // Dynamic icon lookup by name
@@ -72,12 +88,13 @@ interface AppSidebarProps {
   collapsed: boolean;
   unreadInbox?: number;
   pendingDecisions?: number;
+  pendingFieldApprovals?: number;
   isMobile?: boolean;
   onClose?: () => void;
   agents?: AgentDefinition[];
 }
 
-export function AppSidebar({ collapsed, unreadInbox = 0, pendingDecisions = 0, isMobile = false, onClose, agents = [] }: AppSidebarProps) {
+export function AppSidebar({ collapsed, unreadInbox = 0, pendingDecisions = 0, pendingFieldApprovals = 0, isMobile = false, onClose, agents = [] }: AppSidebarProps) {
   const pathname = usePathname();
   const badges = { unreadInbox, pendingDecisions };
 
@@ -149,6 +166,41 @@ export function AppSidebar({ collapsed, unreadInbox = 0, pendingDecisions = 0, i
                   >
                     <Icon className="h-4 w-4 shrink-0" />
                     <span>{label}</span>
+                  </Link>
+                );
+              })}
+            </nav>
+
+            {/* Field Ops */}
+            <Separator className="mx-2 my-2" />
+            <div className="px-3 pb-1">
+              <p className="text-xs font-semibold uppercase tracking-wider text-sidebar-foreground/50">
+                Field Ops
+              </p>
+            </div>
+            <nav className="space-y-0.5 px-2">
+              {fieldOpsLinks.map(({ href, label, icon: Icon }) => {
+                const isActive = pathname === href || (href !== "/field-ops" && pathname.startsWith(href));
+                const showFieldBadge = href === "/field-ops" && pendingFieldApprovals > 0;
+                return (
+                  <Link
+                    key={href}
+                    href={href}
+                    onClick={onClose}
+                    className={cn(
+                      "flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors",
+                      isActive
+                        ? "bg-sidebar-accent text-sidebar-accent-foreground"
+                        : "text-sidebar-foreground hover:bg-sidebar-accent/50 hover:text-sidebar-accent-foreground"
+                    )}
+                  >
+                    <Icon className="h-4 w-4 shrink-0" />
+                    <span className="flex-1">{label}</span>
+                    {showFieldBadge && (
+                      <Badge className="h-5 min-w-5 justify-center px-1.5 text-xs bg-emerald-500/20 text-emerald-400 border-emerald-500/30">
+                        {pendingFieldApprovals}
+                      </Badge>
+                    )}
                   </Link>
                 );
               })}
@@ -251,12 +303,7 @@ export function AppSidebar({ collapsed, unreadInbox = 0, pendingDecisions = 0, i
           </ScrollArea>
 
           {/* Footer */}
-          <div className="border-t p-3 flex items-center justify-between">
-            <p className="text-xs text-sidebar-foreground/40">
-              Mission Control v0.9
-            </p>
-            <ThemeToggle />
-          </div>
+          <SidebarFooter collapsed={false} />
         </aside>
       </TooltipProvider>
     );
@@ -339,6 +386,67 @@ export function AppSidebar({ collapsed, unreadInbox = 0, pendingDecisions = 0, i
                   <Tooltip key={href}>
                     <TooltipTrigger asChild>{link}</TooltipTrigger>
                     <TooltipContent side="right">{label}</TooltipContent>
+                  </Tooltip>
+                );
+              }
+              return link;
+            })}
+          </nav>
+
+          {/* Field Ops */}
+          <Separator className="mx-2 my-2" />
+          {!collapsed && (
+            <div className="px-3 pb-1">
+              <p className="text-xs font-semibold uppercase tracking-wider text-sidebar-foreground/50">
+                Field Ops
+              </p>
+            </div>
+          )}
+          <nav className="space-y-0.5 px-2">
+            {fieldOpsLinks.map(({ href, label, icon: Icon }) => {
+              const isActive = pathname === href || (href !== "/field-ops" && pathname.startsWith(href));
+              const showFieldBadge = href === "/field-ops" && pendingFieldApprovals > 0;
+              const link = (
+                <Link
+                  key={href}
+                  href={href}
+                  className={cn(
+                    "flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors",
+                    collapsed && "justify-center px-2",
+                    isActive
+                      ? "bg-sidebar-accent text-sidebar-accent-foreground"
+                      : "text-sidebar-foreground hover:bg-sidebar-accent/50 hover:text-sidebar-accent-foreground"
+                  )}
+                >
+                  <Icon className="h-4 w-4 shrink-0" />
+                  {!collapsed && (
+                    <>
+                      <span className="flex-1">{label}</span>
+                      {showFieldBadge && (
+                        <Badge className="h-5 min-w-5 justify-center px-1.5 text-xs bg-emerald-500/20 text-emerald-400 border-emerald-500/30">
+                          {pendingFieldApprovals}
+                        </Badge>
+                      )}
+                    </>
+                  )}
+                </Link>
+              );
+
+              if (collapsed) {
+                return (
+                  <Tooltip key={href}>
+                    <TooltipTrigger asChild>
+                      <div className="relative">
+                        {link}
+                        {showFieldBadge && (
+                          <span className="absolute -top-0.5 -right-0.5 h-2.5 w-2.5 rounded-full bg-emerald-500" />
+                        )}
+                      </div>
+                    </TooltipTrigger>
+                    <TooltipContent side="right">
+                      {label}
+                      {showFieldBadge && ` (${pendingFieldApprovals} pending)`}
+                    </TooltipContent>
                   </Tooltip>
                 );
               }
@@ -516,19 +624,7 @@ export function AppSidebar({ collapsed, unreadInbox = 0, pendingDecisions = 0, i
         </ScrollArea>
 
         {/* Footer */}
-        {!collapsed && (
-          <div className="border-t p-3 flex items-center justify-between">
-            <p className="text-xs text-sidebar-foreground/40">
-              Mission Control v0.9
-            </p>
-            <ThemeToggle />
-          </div>
-        )}
-        {collapsed && (
-          <div className="border-t p-2 flex justify-center">
-            <ThemeToggle />
-          </div>
-        )}
+        <SidebarFooter collapsed={collapsed} />
       </aside>
     </TooltipProvider>
   );

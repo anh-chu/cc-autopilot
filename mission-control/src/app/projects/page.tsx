@@ -21,7 +21,7 @@ export default function ProjectsPage() {
   const { tasks } = useTasks();
   const { goals } = useGoals();
   const { agents } = useAgents();
-  const { isProjectRunning, isMissionActive, runProject, stopProject } = useActiveRuns();
+  const { isProjectRunning, isProjectRunActive, runProject, stopProject } = useActiveRuns();
 
   const [showCreateProject, setShowCreateProject] = useState(false);
   const [editingProject, setEditingProject] = useState<Project | null>(null);
@@ -72,7 +72,7 @@ export default function ProjectsPage() {
   if (loading) {
     return (
       <div className="space-y-6">
-        <BreadcrumbNav items={[{ label: "Missions" }]} />
+        <BreadcrumbNav items={[{ label: "Ventures" }]} />
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           <ProjectCardSkeleton />
           <ProjectCardSkeleton />
@@ -85,7 +85,7 @@ export default function ProjectsPage() {
   if (projectsError) {
     return (
       <div className="space-y-6">
-        <BreadcrumbNav items={[{ label: "Missions" }]} />
+        <BreadcrumbNav items={[{ label: "Ventures" }]} />
         <ErrorState message={projectsError} onRetry={refetchProjects} />
       </div>
     );
@@ -93,12 +93,12 @@ export default function ProjectsPage() {
 
   return (
     <div className="space-y-6">
-      <BreadcrumbNav items={[{ label: "Missions" }]} />
+      <BreadcrumbNav items={[{ label: "Ventures" }]} />
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <h1 className="text-xl font-bold">Missions</h1>
+          <h1 className="text-xl font-bold">Ventures</h1>
           {archivedCount > 0 && (
-            <Tip content="Toggle archived missions">
+            <Tip content="Toggle archived ventures">
               <Button
                 variant="ghost"
                 size="sm"
@@ -111,9 +111,9 @@ export default function ProjectsPage() {
             </Tip>
           )}
         </div>
-        <Tip content="Create a new mission">
+        <Tip content="Create a new venture">
           <Button size="sm" onClick={() => setShowCreateProject(true)} className="gap-1.5">
-            <Plus className="h-3.5 w-3.5" /> New Mission
+            <Plus className="h-3.5 w-3.5" /> New Venture
           </Button>
         </Tip>
       </div>
@@ -121,9 +121,9 @@ export default function ProjectsPage() {
       {visibleProjects.length === 0 ? (
         <EmptyState
           icon={FolderOpen}
-          title="No missions yet"
-          description="Missions help you organize tasks and track progress across workstreams."
-          actionLabel="Create a mission"
+          title="No ventures yet"
+          description="Ventures help you organize tasks and track progress across your businesses and products."
+          actionLabel="Create a venture"
           onAction={() => setShowCreateProject(true)}
         />
       ) : (
@@ -135,7 +135,7 @@ export default function ProjectsPage() {
               tasks={tasks}
               goals={goals}
               isRunning={isProjectRunning(project.id)}
-              isMissionActive={isMissionActive(project.id)}
+              isProjectRunActive={isProjectRunActive(project.id)}
               onRun={runProject}
               onStop={stopProject}
               onEdit={(id) => {
@@ -168,8 +168,8 @@ export default function ProjectsPage() {
       <ConfirmDialog
         open={!!deletingProjectId}
         onOpenChange={(open) => { if (!open) setDeletingProjectId(null); }}
-        title="Delete mission"
-        description="This will permanently delete this mission and unlink all associated tasks. This action cannot be undone."
+        title="Delete venture"
+        description="This will permanently delete this venture and unlink all associated tasks. This action cannot be undone."
         confirmLabel="Delete"
         onConfirm={handleDeleteProject}
       />

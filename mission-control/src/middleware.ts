@@ -24,6 +24,31 @@ function timingSafeEqual(a: string, b: string): boolean {
  * compatible for local-only development with zero configuration).
  */
 export function middleware(request: NextRequest) {
+  // ── CSRF Protection: validate Origin on state-changing requests ──
+  const method = request.method.toUpperCase();
+  if (["POST", "PUT", "DELETE", "PATCH"].includes(method)) {
+    const origin = request.headers.get("origin");
+    const host = request.headers.get("host");
+    // Allow requests with no origin (server-to-server, CLI tools like curl)
+    // But reject requests where origin doesn't match host (cross-site)
+    if (origin && host) {
+      try {
+        const originHost = new URL(origin).host;
+        if (originHost !== host) {
+          return NextResponse.json(
+            { error: "Cross-origin request blocked" },
+            { status: 403 },
+          );
+        }
+      } catch {
+        return NextResponse.json(
+          { error: "Invalid Origin header" },
+          { status: 403 },
+        );
+      }
+    }
+  }
+
   const token = process.env.MC_API_TOKEN;
 
   // No token configured = open access (default local dev experience)

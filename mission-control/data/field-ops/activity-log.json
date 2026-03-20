@@ -1,0 +1,42 @@
+{
+  "events": [
+    {
+      "id": "fevt_demo_001",
+      "type": "service_connected",
+      "serviceId": "twitter",
+      "actor": "me",
+      "summary": "Connected Twitter / X service",
+      "details": "Service installed from catalog and configured with OAuth2 authentication.",
+      "timestamp": "2026-03-11T23:32:30.225Z"
+    },
+    {
+      "id": "fevt_demo_002",
+      "type": "service_connected",
+      "serviceId": "ethereum-wallet",
+      "actor": "me",
+      "summary": "Connected Ethereum / Base Wallet service",
+      "details": "Service installed from catalog and configured with API key authentication on Sepolia testnet.",
+      "timestamp": "2026-03-17T22:15:19.990Z"
+    },
+    {
+      "id": "fevt_demo_003",
+      "type": "task_completed",
+      "taskId": "ftask_demo_002",
+      "missionId": "fmission_demo_002",
+      "actor": "system",
+      "summary": "Checked Sepolia wallet balance",
+      "details": "Read ETH and USDC balance on Sepolia testnet. Balance: 0.05 ETH, 0.0 USDC.",
+      "timestamp": "2026-03-17T23:22:43.750Z"
+    },
+    {
+      "id": "fevt_demo_004",
+      "type": "task_completed",
+      "taskId": "ftask_demo_003",
+      "missionId": "fmission_demo_002",
+      "actor": "system",
+      "summary": "Sent 0.001 ETH to test recipient",
+      "details": "Successfully transferred 0.001 Sepolia ETH. Transaction confirmed on-chain.",
+      "timestamp": "2026-03-17T23:24:37.457Z"
+    }
+  ]
+}

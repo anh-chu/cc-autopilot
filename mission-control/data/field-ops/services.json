@@ -1,0 +1,83 @@
+{
+  "services": [
+    {
+      "id": "twitter",
+      "name": "Twitter / X",
+      "mcpPackage": "@mbelinky/x-mcp-server",
+      "status": "disconnected",
+      "authType": "oauth2",
+      "credentialId": null,
+      "riskLevel": "high",
+      "capabilities": [],
+      "allowedAgents": [],
+      "config": {},
+      "catalogId": "twitter",
+      "installedAt": "2026-03-11T23:32:30.225Z",
+      "lastUsed": null
+    },
+    {
+      "id": "linkedin",
+      "name": "LinkedIn",
+      "mcpPackage": "mcp-linkedin",
+      "status": "disconnected",
+      "authType": "oauth2",
+      "credentialId": null,
+      "riskLevel": "high",
+      "capabilities": [
+        "post-updates",
+        "company-pages",
+        "analytics",
+        "messaging"
+      ],
+      "allowedAgents": [],
+      "config": {},
+      "catalogId": "linkedin",
+      "installedAt": "2026-03-12T00:50:51.952Z",
+      "lastUsed": null
+    },
+    {
+      "id": "ethereum-wallet",
+      "name": "Ethereum / Base Wallet",
+      "mcpPackage": null,
+      "status": "disconnected",
+      "authType": "api-key",
+      "credentialId": null,
+      "riskLevel": "high",
+      "capabilities": [
+        "send-eth",
+        "send-usdc",
+        "read-balance",
+        "erc20-transfers"
+      ],
+      "allowedAgents": [],
+      "config": {
+        "network": "sepolia",
+        "rpcUrl": "https://ethereum-sepolia-rpc.publicnode.com"
+      },
+      "catalogId": "ethereum-wallet",
+      "installedAt": "2026-03-17T22:15:19.990Z",
+      "lastUsed": null
+    },
+    {
+      "id": "stripe",
+      "name": "Stripe",
+      "mcpPackage": "stripe-mcp",
+      "status": "disconnected",
+      "authType": "api-key",
+      "credentialId": null,
+      "riskLevel": "high",
+      "capabilities": [
+        "payment-review",
+        "refunds",
+        "invoices",
+        "disputes",
+        "analytics"
+      ],
+      "allowedAgents": [],
+      "config": {},
+      "catalogId": "stripe",
+      "installedAt": "2026-03-17T23:05:02.412Z",
+      "lastUsed": null
+    }
+  ]
+}

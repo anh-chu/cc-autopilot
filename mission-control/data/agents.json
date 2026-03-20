@@ -52,11 +52,12 @@
         "architecture"
       ],
       "skillIds": [
-        "skill_demo_task_mgmt"
+        "skill_demo_task_mgmt",
+        "skill_field_ops"
       ],
       "status": "active",
       "createdAt": "2026-01-24T22:17:49.775Z",
-      "updatedAt": "2026-01-24T22:17:49.775Z"
+      "updatedAt": "2026-03-16T22:00:00.000Z"
     },
     {
       "id": "marketer",
@@ -72,10 +73,12 @@
         "social-media",
         "positioning"
       ],
-      "skillIds": [],
+      "skillIds": [
+        "skill_field_ops"
+      ],
       "status": "active",
       "createdAt": "2026-01-24T22:17:49.775Z",
-      "updatedAt": "2026-01-24T22:17:49.775Z"
+      "updatedAt": "2026-03-16T22:00:00.000Z"
     },
     {
       "id": "business-analyst",
@@ -91,11 +94,12 @@
         "strategic-planning"
       ],
       "skillIds": [
-        "skill_demo_eisenhower"
+        "skill_demo_eisenhower",
+        "skill_field_ops"
       ],
       "status": "active",
       "createdAt": "2026-01-24T22:17:49.775Z",
-      "updatedAt": "2026-01-24T22:17:49.775Z"
+      "updatedAt": "2026-03-16T22:00:00.000Z"
     },
     {
       "id": "tester",

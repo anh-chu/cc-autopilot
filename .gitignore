@@ -34,5 +34,21 @@ mission-control/data/checkpoints/*.json
 # Cowork session mounts
 /sessions/
 
+# Field Ops (private — credentials, temp configs, attachments)
+mission-control/data/field-ops/.credentials.json
+mission-control/data/field-ops/.tmp/
+mission-control/data/field-ops/attachments/
+
+# Personal data files (use `pnpm seed:demo` to generate sample data)
+mission-control/data/tasks.json
+mission-control/data/tasks-archive.json
+mission-control/data/goals.json
+mission-control/data/projects.json
+mission-control/data/brain-dump.json
+mission-control/data/activity-log.json
+mission-control/data/inbox.json
+mission-control/data/decisions.json
+mission-control/data/missions.json
+
 # Research & marketing files (local only, not pushed to GitHub)
 research/

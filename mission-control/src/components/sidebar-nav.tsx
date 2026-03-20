@@ -20,7 +20,7 @@ const links = [
   { href: "/objectives", label: "Objectives", icon: Target },
   { href: "/brain-dump", label: "Brain Dump", icon: Lightbulb },
   { href: "/projects", label: "Projects", icon: FolderOpen },
-  { href: "/launch", label: "Launch", icon: Zap },
+  { href: "/autopilot", label: "Autopilot", icon: Zap },
 ];
 
 export function SidebarNav() {

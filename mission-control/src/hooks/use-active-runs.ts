@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback, useMemo, useRef } from "react";
-import type { ActiveRun, DecisionItem, MissionRun } from "@/lib/types";
+import type { ActiveRun, DecisionItem, ProjectRun } from "@/lib/types";
 import { showSuccess, showError } from "@/lib/toast";
 import { apiFetch } from "@/lib/api-client";
 
@@ -9,7 +9,7 @@ const POLL_INTERVAL = 3000; // 3 seconds
 
 export function useActiveRuns() {
   const [runs, setRuns] = useState<ActiveRun[]>([]);
-  const [activeMissions, setActiveMissions] = useState<Record<string, MissionRun>>({});
+  const [activeProjectRuns, setActiveProjectRuns] = useState<Record<string, ProjectRun>>({});
   // Track previously-seen run IDs to detect new failures
   const seenRunIds = useRef<Set<string>>(new Set());
   // Skip error toasts on first fetch — existing failures are historical
@@ -58,16 +58,16 @@ export function useActiveRuns() {
         setRuns(newRuns);
       }
 
-      // Process missions
+      // Process project runs
       if (missionsRes.ok) {
         const missionsData = await missionsRes.json();
-        const active: Record<string, MissionRun> = {};
-        for (const m of (missionsData.missions ?? []) as MissionRun[]) {
+        const active: Record<string, ProjectRun> = {};
+        for (const m of (missionsData.missions ?? []) as ProjectRun[]) {
           if (m.status === "running" || m.status === "stalled") {
             active[m.projectId] = m;
           }
         }
-        setActiveMissions(active);
+        setActiveProjectRuns(active);
       }
     } catch {
       // Silently fail on poll errors
@@ -96,10 +96,10 @@ export function useActiveRuns() {
     return ids;
   }, [runs]);
 
-  // A project has a mission if there's an active mission OR running tasks
-  const isMissionActive = useCallback(
-    (projectId: string) => projectId in activeMissions,
-    [activeMissions]
+  // A project has an active run if there's an active project run OR running tasks
+  const isProjectRunActive = useCallback(
+    (projectId: string) => projectId in activeProjectRuns,
+    [activeProjectRuns]
   );
 
   const isTaskRunning = useCallback(
@@ -162,7 +162,7 @@ export function useActiveRuns() {
         });
         if (!res.ok) {
           const data = await res.json();
-          showError(data.error ?? "Failed to start mission");
+          showError(data.error ?? "Failed to start project run");
           return;
         }
         const result = await res.json();
@@ -171,7 +171,7 @@ export function useActiveRuns() {
         const remaining = totalCount - launchedCount;
 
         if (launchedCount > 0) {
-          let msg = `Mission started: ${launchedCount} task${launchedCount !== 1 ? "s" : ""} running`;
+          let msg = `Project run started: ${launchedCount} task${launchedCount !== 1 ? "s" : ""} running`;
           if (remaining > 0) {
             msg += `, ${remaining} queued`;
           }
@@ -181,7 +181,7 @@ export function useActiveRuns() {
         }
         await fetchRuns();
       } catch {
-        showError("Failed to start mission");
+        showError("Failed to start project run");
       }
     },
     [fetchRuns]
@@ -195,14 +195,14 @@ export function useActiveRuns() {
         });
         if (!res.ok) {
           const data = await res.json();
-          showError(data.error ?? "Failed to stop mission");
+          showError(data.error ?? "Failed to stop project run");
           return;
         }
         const result = await res.json();
-        showSuccess(`Mission stopped. ${result.tasksStopped} task${result.tasksStopped !== 1 ? "s" : ""} terminated.`);
+        showSuccess(`Project run stopped. ${result.tasksStopped} task${result.tasksStopped !== 1 ? "s" : ""} terminated.`);
         await fetchRuns();
       } catch {
-        showError("Failed to stop mission");
+        showError("Failed to stop project run");
       }
     },
     [fetchRuns]
@@ -228,20 +228,20 @@ export function useActiveRuns() {
     [fetchRuns]
   );
 
-  const getMission = useCallback(
-    (projectId: string): MissionRun | null => activeMissions[projectId] ?? null,
-    [activeMissions]
+  const getProjectRun = useCallback(
+    (projectId: string): ProjectRun | null => activeProjectRuns[projectId] ?? null,
+    [activeProjectRuns]
   );
 
   return {
     runs,
     runningTaskIds,
     runningProjectIds,
-    activeMissions,
+    activeProjectRuns,
     isTaskRunning,
     isProjectRunning,
-    isMissionActive,
-    getMission,
+    isProjectRunActive,
+    getProjectRun,
     runTask,
     runProject,
     stopProject,

@@ -34,7 +34,7 @@ import { getAgentIcon } from "@/lib/agent-icons";
 import { cn } from "@/lib/utils";
 import { Users, X } from "lucide-react";
 import { RunButton } from "@/components/run-button";
-import { MissionProgress } from "@/components/mission-progress";
+import { ProjectRunProgress } from "@/components/mission-progress";
 
 function DraggableTask({ task, onClick, isRunning, onRun, pendingDecisionTaskIds }: { task: Task; onClick: () => void; isRunning?: boolean; onRun?: (taskId: string) => void; pendingDecisionTaskIds?: Set<string> }) {
   const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({ id: task.id });
@@ -78,7 +78,7 @@ export default function ProjectDetailPage() {
   const { projects, update: updateProject } = useProjects();
   const { agents } = useAgents();
   const { decisions } = useDecisions();
-  const { runs, runningTaskIds, isTaskRunning, runTask, isProjectRunning, isMissionActive, getMission, runProject, stopProject } = useActiveRuns();
+  const { runs, runningTaskIds, isTaskRunning, runTask, isProjectRunning, isProjectRunActive, getProjectRun, runProject, stopProject } = useActiveRuns();
   const pendingDecisionTaskIds = new Set(
     decisions.filter((d) => d.status === "pending" && d.taskId).map((d) => d.taskId as string)
   );
@@ -100,7 +100,7 @@ export default function ProjectDetailPage() {
   if (!project) {
     return (
       <div className="space-y-4">
-        <BreadcrumbNav items={[{ label: "Missions", href: "/projects" }, { label: "Not Found" }]} />
+        <BreadcrumbNav items={[{ label: "Ventures", href: "/projects" }, { label: "Not Found" }]} />
         <p className="text-muted-foreground">Project not found.</p>
       </div>
     );
@@ -171,7 +171,7 @@ export default function ProjectDetailPage() {
 
   return (
     <div className="space-y-4">
-      <BreadcrumbNav items={[{ label: "Missions", href: "/projects" }, { label: project.name }]} />
+      <BreadcrumbNav items={[{ label: "Ventures", href: "/projects" }, { label: project.name }]} />
 
       {/* Project Header */}
       <div className="flex items-center justify-between">
@@ -183,11 +183,11 @@ export default function ProjectDetailPage() {
         <div className="flex items-center gap-2">
           <RunButton
             isRunning={isProjectRunning(projectId)}
-            isMissionActive={isMissionActive(projectId)}
+            isProjectRunActive={isProjectRunActive(projectId)}
             onClick={() => runProject(projectId)}
             onStop={() => stopProject(projectId)}
             size="md"
-            title={isMissionActive(projectId) ? "Mission running — click to stop" : "Run all project tasks"}
+            title={isProjectRunActive(projectId) ? "Project running — click to stop" : "Run all project tasks"}
           />
           <Button size="sm" onClick={() => setShowCreateTask(true)} className="gap-1.5">
             <Plus className="h-3.5 w-3.5" /> Task
@@ -204,10 +204,10 @@ export default function ProjectDetailPage() {
         <span className="text-xs text-muted-foreground tabular-nums">{progress}% · {projectTasks.length} tasks</span>
       </div>
 
-      {/* Mission Progress */}
-      {getMission(projectId) && (
-        <MissionProgress
-          mission={getMission(projectId)!}
+      {/* Project Run Progress */}
+      {getProjectRun(projectId) && (
+        <ProjectRunProgress
+          projectRun={getProjectRun(projectId)!}
           runs={runs}
           onStop={() => stopProject(projectId)}
         />

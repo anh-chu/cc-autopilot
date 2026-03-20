@@ -23,7 +23,7 @@ import { AgentRunner, parseClaudeOutput } from "./runner";
 import { buildTaskPrompt, getTask, isTaskUnblocked, hasPendingDecision } from "./prompt-builder";
 import { loadConfig } from "./config";
 import { logger } from "./logger";
-import type { MissionRun, MissionsFile } from "./types";
+import type { ProjectRun, ProjectRunsFile } from "./types";
 
 // ─── Paths ──────────────────────────────────────────────────────────────────
 
@@ -89,18 +89,18 @@ function pruneOldRuns(data: ActiveRunsData): ActiveRunsData {
   return data;
 }
 
-// ─── Missions File I/O ──────────────────────────────────────────────────────
+// ─── Project Runs File I/O ───────────────────────────────────────────────────
 
-function readMissions(): MissionsFile {
+function readProjectRuns(): ProjectRunsFile {
   try {
     if (!existsSync(MISSIONS_FILE)) return { missions: [] };
-    return JSON.parse(readFileSync(MISSIONS_FILE, "utf-8")) as MissionsFile;
+    return JSON.parse(readFileSync(MISSIONS_FILE, "utf-8")) as ProjectRunsFile;
   } catch {
     return { missions: [] };
   }
 }
 
-function writeMissions(data: MissionsFile): void {
+function writeProjectRuns(data: ProjectRunsFile): void {
   writeFileSync(MISSIONS_FILE, JSON.stringify(data, null, 2), "utf-8");
 }
 
@@ -376,7 +376,7 @@ const MAX_LOOP_ATTEMPTS = 3; // After this many failures, create a decision poin
 /**
  * Post a mission completion/stalled report to inbox.json.
  */
-function postMissionReport(mission: MissionRun): void {
+function postProjectRunReport(mission: ProjectRun): void {
   try {
     const inboxRaw = existsSync(INBOX_FILE)
       ? readFileSync(INBOX_FILE, "utf-8")
@@ -483,7 +483,7 @@ function checkTaskUnblocked(blockedBy: string[]): boolean {
  * Create a decision point when a task has failed too many times (loop detection).
  */
 function checkLoopAndEscalate(
-  mission: MissionRun,
+  mission: ProjectRun,
   taskId: string,
   taskTitle: string,
   agentId: string,
@@ -547,7 +547,7 @@ function checkLoopAndEscalate(
  * After a task finishes (success, fail, or timeout), check if the mission
  * should continue and dispatch the next batch of tasks.
  */
-function handleMissionContinuation(
+function handleProjectRunContinuation(
   missionId: string,
   completedTaskId: string,
   taskResult: {
@@ -558,7 +558,7 @@ function handleMissionContinuation(
     errorMsg: string;
   }
 ): void {
-  const missionsData = readMissions();
+  const missionsData = readProjectRuns();
   const mission = missionsData.missions.find((m) => m.id === missionId);
   if (!mission) return;
   if (mission.status === "completed" || mission.status === "stopped") return;
@@ -609,7 +609,7 @@ function handleMissionContinuation(
     tasksData = JSON.parse(readFileSync(TASKS_FILE, "utf-8"));
   } catch {
     logger.error("run-task", `Mission ${missionId}: could not read tasks.json for continuation`);
-    writeMissions(missionsData);
+    writeProjectRuns(missionsData);
     return;
   }
 
@@ -628,9 +628,9 @@ function handleMissionContinuation(
     // Mission complete!
     mission.status = "completed";
     mission.completedAt = new Date().toISOString();
-    writeMissions(missionsData);
+    writeProjectRuns(missionsData);
     logger.info("run-task", `Mission ${missionId} COMPLETED. All tasks done.`);
-    postMissionReport(mission);
+    postProjectRunReport(mission);
     return;
   }
 
@@ -661,7 +661,7 @@ function handleMissionContinuation(
   const toSpawn = dispatchable.slice(0, slotsAvailable);
 
   // 8. Save updated mission BEFORE spawning (prevents race conditions)
-  writeMissions(missionsData);
+  writeProjectRuns(missionsData);
 
   // 9. Spawn next batch
   if (toSpawn.length > 0) {
@@ -707,7 +707,7 @@ function handleMissionContinuation(
       // Dependencies could resolve from other project tasks — don't stall yet,
       // let the reconciler re-dispatch when dependencies complete
       logger.info("run-task", `Mission ${missionId}: waiting — ${remaining.length} tasks remain with resolvable dependencies`);
-      writeMissions(missionsData);
+      writeProjectRuns(missionsData);
     } else {
       const hasBlockedTasks = remaining.some((t) => {
         const blocked = (t.blockedBy as string[] | undefined) ?? [];
@@ -721,9 +721,9 @@ function handleMissionContinuation(
 
       mission.status = "stalled";
       mission.skippedTasks = remaining.length - dispatchable.length;
-      writeMissions(missionsData);
+      writeProjectRuns(missionsData);
       logger.warn("run-task", `Mission ${missionId}: STALLED — ${remaining.length} tasks remain but none dispatchable (blocked: ${hasBlockedTasks}, decisions: ${hasDecisionTasks}, loop-limit: ${hasLoopLimitTasks})`);
-      postMissionReport(mission);
+      postProjectRunReport(mission);
     }
   }
 }
@@ -1038,7 +1038,7 @@ This is session ${continuationIndex + 1}. Previous session(s) ran out of turns o
     // Chain dispatch: if this task is part of a mission, continue to next batch
     if (missionId) {
       try {
-        handleMissionContinuation(missionId, taskId, {
+        handleProjectRunContinuation(missionId, taskId, {
           status: finalStatus,
           summary: extractSummary(result.stdout),
           agentId: task.assignedTo,
@@ -1068,7 +1068,7 @@ This is session ${continuationIndex + 1}. Previous session(s) ran out of turns o
     // Still try mission continuation on failure
     if (missionId) {
       try {
-        handleMissionContinuation(missionId, taskId, {
+        handleProjectRunContinuation(missionId, taskId, {
           status: "failed",
           summary: "(execution error)",
           agentId: task.assignedTo,

@@ -147,13 +147,13 @@ export function SearchDialog() {
 
         {sortedTasks.length > 0 && sortedProjects.length > 0 && <CommandSeparator />}
 
-        {/* Missions (Projects) */}
+        {/* Ventures (Projects) */}
         {sortedProjects.length > 0 && (
-          <CommandGroup heading="Missions">
+          <CommandGroup heading="Ventures">
             {sortedProjects.map((project) => (
               <CommandItem
                 key={project.id}
-                value={`mission project ${project.name} ${project.description}`}
+                value={`venture project ${project.name} ${project.description}`}
                 onSelect={() => handleSelect("project")}
                 className="flex items-center gap-2"
               >

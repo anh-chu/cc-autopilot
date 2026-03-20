@@ -6,10 +6,10 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Tip } from "@/components/ui/tip";
-import type { MissionRun, ActiveRun } from "@/lib/types";
+import type { ProjectRun, ActiveRun } from "@/lib/types";
 
-interface MissionProgressProps {
-  mission: MissionRun;
+interface ProjectRunProgressProps {
+  projectRun: ProjectRun;
   runs: ActiveRun[];
   onStop: () => void;
 }
@@ -24,13 +24,13 @@ function formatElapsed(startedAt: string): string {
   return `${hours}h ${minutes % 60}m`;
 }
 
-export function MissionProgress({ mission, runs, onStop }: MissionProgressProps) {
-  const { completedTasks, failedTasks, totalTasks, skippedTasks, status, startedAt } = mission;
+export function ProjectRunProgress({ projectRun, runs, onStop }: ProjectRunProgressProps) {
+  const { completedTasks, failedTasks, totalTasks, skippedTasks, status, startedAt } = projectRun;
 
-  // Currently running tasks for this mission
+  // Currently running tasks for this project run
   const runningTasks = useMemo(
-    () => runs.filter((r) => r.status === "running" && r.missionId === mission.id),
-    [runs, mission.id]
+    () => runs.filter((r) => r.status === "running" && r.missionId === projectRun.id),
+    [runs, projectRun.id]
   );
 
   const progress = totalTasks > 0 ? Math.round(((completedTasks + failedTasks) / totalTasks) * 100) : 0;
@@ -57,7 +57,7 @@ export function MissionProgress({ mission, runs, onStop }: MissionProgressProps)
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <Activity className="h-4 w-4 text-primary" />
-            <span className="text-sm font-semibold">Mission Progress</span>
+            <span className="text-sm font-semibold">Run Progress</span>
             <Badge variant="outline" className="gap-1 text-[10px] px-1.5 py-0">
               <div className={`h-1.5 w-1.5 rounded-full ${statusColor} ${status === "running" ? "animate-pulse" : ""}`} />
               {statusLabel}
@@ -71,7 +71,7 @@ export function MissionProgress({ mission, runs, onStop }: MissionProgressProps)
               </span>
             )}
             {isActive && (
-              <Tip content="Stop mission">
+              <Tip content="Stop project run">
                 <Button
                   variant="ghost"
                   size="sm"
@@ -136,7 +136,7 @@ export function MissionProgress({ mission, runs, onStop }: MissionProgressProps)
           <div className="flex items-start gap-2 rounded-md border border-amber-500/20 bg-amber-500/5 px-3 py-2">
             <AlertTriangle className="h-4 w-4 text-amber-500 mt-0.5 shrink-0" />
             <p className="text-xs text-amber-700 dark:text-amber-400">
-              Mission stalled — remaining tasks are blocked by dependencies, pending decisions, or repeated failures.
+              Run stalled — remaining tasks are blocked by dependencies, pending decisions, or repeated failures.
               Check the Decisions page for items that need your input.
             </p>
           </div>

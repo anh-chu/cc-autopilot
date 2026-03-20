@@ -5,9 +5,10 @@ import { logger } from "./logger";
 import { AgentRunner, parseClaudeOutput } from "./runner";
 import { HealthMonitor } from "./health";
 import { buildTaskPrompt, buildScheduledPrompt, getPendingTasks, isTaskUnblocked, hasPendingDecision } from "./prompt-builder";
-import type { DaemonConfig, MissionsFile } from "./types";
+import type { DaemonConfig, ProjectRunsFile } from "./types";
 
 const DATA_DIR = path.resolve(__dirname, "../../data");
+const FIELD_OPS_DIR = path.join(DATA_DIR, "field-ops");
 const MISSIONS_FILE = path.join(DATA_DIR, "missions.json");
 const TASKS_FILE = path.join(DATA_DIR, "tasks.json");
 const ACTIVE_RUNS_FILE = path.join(DATA_DIR, "active-runs.json");
@@ -15,6 +16,7 @@ const DECISIONS_FILE = path.join(DATA_DIR, "decisions.json");
 const WORKSPACE_ROOT = path.resolve(__dirname, "../../..");
 const RETRY_QUEUE_FILE = path.join(DATA_DIR, "daemon-retry-queue.json");
 const MAX_RETRY_DELAY_MINUTES = 60;
+const FIELD_OPS_EXECUTE_URL = "http://localhost:3000/api/field-ops/execute";
 
 // ─── Retry Queue ────────────────────────────────────────────────────────────
 
@@ -34,6 +36,7 @@ export class Dispatcher {
   private runner: AgentRunner;
   private health: HealthMonitor;
   private retryQueue: RetryEntry[] = [];
+  private fieldOpsInFlight: Set<string> = new Set();
 
   constructor(config: DaemonConfig, runner: AgentRunner, health: HealthMonitor) {
     this.config = config;
@@ -165,8 +168,11 @@ export class Dispatcher {
       logger.error("dispatcher", `Poll error: ${err instanceof Error ? err.message : String(err)}`);
     }
 
-    // Also check for running/stalled missions that need continuation
-    this.pollMissions();
+    // Also check for running/stalled project runs that need continuation
+    this.pollProjectRuns();
+
+    // Auto-execute approved field ops tasks
+    this.pollFieldOps();
   }
 
   /**
@@ -316,21 +322,21 @@ export class Dispatcher {
     }
   }
 
-  // ─── Mission Continuation ──────────────────────────────────────────────
+  // ─── Project Run Continuation ───────────────────────────────────────────
 
   /**
-   * Poll for running/stalled missions that have dispatchable tasks but no
+   * Poll for running/stalled project runs that have dispatchable tasks but no
    * live processes. Acts as a daemon-level safety net for chain dispatch.
    */
-  private pollMissions(): void {
+  private pollProjectRuns(): void {
     try {
       if (!existsSync(MISSIONS_FILE)) return;
-      const missionsData: MissionsFile = JSON.parse(readFileSync(MISSIONS_FILE, "utf-8"));
+      const runsFileData: ProjectRunsFile = JSON.parse(readFileSync(MISSIONS_FILE, "utf-8"));
 
-      const activeMissions = missionsData.missions.filter(
+      const activeRuns = runsFileData.missions.filter(
         (m) => m.status === "running" || m.status === "stalled"
       );
-      if (activeMissions.length === 0) return;
+      if (activeRuns.length === 0) return;
 
       // Read state
       const tasksRaw = existsSync(TASKS_FILE) ? readFileSync(TASKS_FILE, "utf-8") : '{"tasks":[]}';
@@ -364,12 +370,12 @@ export class Dispatcher {
 
       let changed = false;
 
-      for (const mission of activeMissions) {
-        // Check if this mission has live processes
-        const missionRuns = runsData.runs.filter(
-          (r) => r.missionId === mission.id && r.status === "running"
+      for (const projectRun of activeRuns) {
+        // Check if this project run has live processes
+        const projectRunProcesses = runsData.runs.filter(
+          (r) => r.missionId === projectRun.id && r.status === "running"
         );
-        const hasLiveProcesses = missionRuns.some((r) => {
+        const hasLiveProcesses = projectRunProcesses.some((r) => {
           if (r.pid <= 0) return true;
           try { process.kill(r.pid, 0); return true; } catch { return false; }
         });
@@ -377,14 +383,14 @@ export class Dispatcher {
         if (hasLiveProcesses) continue;
 
         // No live processes — find dispatchable tasks
-        const projectTasks = tasksData.tasks.filter((t) => t.projectId === mission.projectId);
+        const projectTasks = tasksData.tasks.filter((t) => t.projectId === projectRun.projectId);
         const remaining = projectTasks.filter(
           (t) => t.kanban !== "done" && t.assignedTo && t.assignedTo !== "me" && !t.deletedAt
         );
 
         if (remaining.length === 0) {
-          mission.status = "completed";
-          mission.completedAt = new Date().toISOString();
+          projectRun.status = "completed";
+          projectRun.completedAt = new Date().toISOString();
           changed = true;
           continue;
         }
@@ -401,7 +407,7 @@ export class Dispatcher {
             if (!allDone) return false;
           }
           if (pendingDecisionTaskIds.has(tid)) return false;
-          const attempts = mission.loopDetection?.taskAttempts?.[tid] ?? 0;
+          const attempts = projectRun.loopDetection?.taskAttempts?.[tid] ?? 0;
           if (attempts >= 3) return false;
           return true;
         });
@@ -411,9 +417,9 @@ export class Dispatcher {
           const toSpawn = dispatchable.slice(0, slotsAvailable);
 
           if (toSpawn.length > 0) {
-            // Revive stalled missions
-            if (mission.status === "stalled") {
-              mission.status = "running";
+            // Revive stalled project runs
+            if (projectRun.status === "stalled") {
+              projectRun.status = "running";
               changed = true;
             }
 
@@ -423,8 +429,8 @@ export class Dispatcher {
                 "--import", "tsx",
                 scriptPath,
                 task.id as string,
-                "--source", "mission-chain",
-                "--mission", mission.id,
+                "--source", "project-run-chain",
+                "--mission", projectRun.id,
               ];
               if (this.config.execution.agentTeams) {
                 args.push("--agent-teams");
@@ -437,9 +443,9 @@ export class Dispatcher {
                   shell: false,
                 });
                 child.unref();
-                logger.info("dispatcher", `Mission ${mission.id}: re-dispatched task ${task.id} (pid: ${child.pid})`);
+                logger.info("dispatcher", `ProjectRun ${projectRun.id}: re-dispatched task ${task.id} (pid: ${child.pid})`);
               } catch (err) {
-                logger.error("dispatcher", `Mission ${mission.id}: failed to re-dispatch task ${task.id}: ${err instanceof Error ? err.message : String(err)}`);
+                logger.error("dispatcher", `ProjectRun ${projectRun.id}: failed to re-dispatch task ${task.id}: ${err instanceof Error ? err.message : String(err)}`);
               }
             }
           }
@@ -447,12 +453,125 @@ export class Dispatcher {
       }
 
       if (changed) {
-        writeFileSync(MISSIONS_FILE, JSON.stringify(missionsData, null, 2), "utf-8");
+        writeFileSync(MISSIONS_FILE, JSON.stringify(runsFileData, null, 2), "utf-8");
       }
     } catch (err) {
-      logger.error("dispatcher", `Mission poll error: ${err instanceof Error ? err.message : String(err)}`);
+      logger.error("dispatcher", `Project run poll error: ${err instanceof Error ? err.message : String(err)}`);
     }
   }
+
+  // ─── Field Ops Auto-Execution ─────────────────────────────────────────
+
+  /**
+   * Poll for approved field ops tasks and auto-execute them via the HTTP API.
+   *
+   * Safety constraints:
+   * - Only runs if fieldOps.autoExecute is true (opt-in)
+   * - Respects maxConcurrentExecutions limit
+   * - If requireVaultSession is true, checks vault is unlocked first
+   * - Calls the existing execute API (preserves all security: mutex, state machine, circuit breaker)
+   */
+  private async pollFieldOps(): Promise<void> {
+    const fieldOpsConfig = this.config.fieldOps;
+    if (!fieldOpsConfig?.autoExecute) return;
+
+    try {
+      // Read field tasks
+      const tasksFile = path.join(FIELD_OPS_DIR, "tasks.json");
+      if (!existsSync(tasksFile)) return;
+
+      interface FieldTaskEntry {
+        id: string;
+        title: string;
+        status: string;
+        scheduledFor?: string;
+      }
+
+      const raw = readFileSync(tasksFile, "utf-8");
+      const data = JSON.parse(raw) as { tasks: FieldTaskEntry[] };
+
+      // Filter for approved tasks that aren't already in-flight
+      const now = new Date();
+      const approved = data.tasks.filter(t => {
+        if (t.status !== "approved") return false;
+        if (this.fieldOpsInFlight.has(t.id)) return false;
+        // Phase 5d: respect scheduledFor
+        if (t.scheduledFor && new Date(t.scheduledFor) > now) return false;
+        return true;
+      });
+
+      if (approved.length === 0) return;
+
+      // Check vault session if required
+      if (fieldOpsConfig.requireVaultSession) {
+        try {
+          const vaultRes = await fetch("http://localhost:3000/api/field-ops/vault/session");
+          if (!vaultRes.ok) {
+            logger.debug("dispatcher", "Field Ops: vault session check failed, skipping auto-execution");
+            return;
+          }
+          const vaultData = await vaultRes.json() as { active: boolean };
+          if (!vaultData.active) {
+            logger.debug("dispatcher", "Field Ops: vault locked, skipping auto-execution");
+            return;
+          }
+        } catch {
+          logger.debug("dispatcher", "Field Ops: cannot reach server for vault check, skipping");
+          return;
+        }
+      }
+
+      // Respect concurrency limit
+      const availableSlots = fieldOpsConfig.maxConcurrentExecutions - this.fieldOpsInFlight.size;
+      if (availableSlots <= 0) {
+        logger.debug("dispatcher", `Field Ops: no execution slots (${this.fieldOpsInFlight.size}/${fieldOpsConfig.maxConcurrentExecutions} in-flight)`);
+        return;
+      }
+
+      const toExecute = approved.slice(0, availableSlots);
+      logger.info("dispatcher", `Field Ops: auto-executing ${toExecute.length} approved task(s)`);
+
+      for (const task of toExecute) {
+        this.executeFieldTask(task.id, task.title);
+      }
+    } catch (err) {
+      logger.error("dispatcher", `Field Ops poll error: ${err instanceof Error ? err.message : String(err)}`);
+    }
+  }
+
+  /**
+   * Execute a single field task via the HTTP API.
+   * Tracks in-flight state and logs results.
+   */
+  private async executeFieldTask(taskId: string, title: string): Promise<void> {
+    this.fieldOpsInFlight.add(taskId);
+
+    try {
+      logger.info("dispatcher", `Field Ops: executing "${title}" (${taskId})`);
+
+      const res = await fetch(FIELD_OPS_EXECUTE_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ taskId, actor: "daemon" }),
+      });
+
+      const result = await res.json() as { status?: string; error?: string };
+
+      if (res.ok && result.status === "completed") {
+        logger.info("dispatcher", `Field Ops: "${title}" completed successfully`);
+      } else if (res.ok && result.status === "executing") {
+        logger.info("dispatcher", `Field Ops: "${title}" moved to manual execution (no adapter)`);
+      } else {
+        logger.warn("dispatcher", `Field Ops: "${title}" failed — ${result.error ?? `HTTP ${res.status}`}`);
+      }
+    } catch (err) {
+      logger.error("dispatcher", `Field Ops: execute error for "${title}": ${err instanceof Error ? err.message : String(err)}`);
+    } finally {
+      this.fieldOpsInFlight.delete(taskId);
+    }
+  }
+
+  // ─── Scheduled Commands ─────────────────────────────────────────────────
 
   /**
    * Run a scheduled command (daily-plan, standup, etc.)

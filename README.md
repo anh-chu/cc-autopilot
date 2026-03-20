@@ -1,7 +1,7 @@
 <p align="center">
   <a href="https://github.com/MeisnerDan/mission-control/stargazers"><img src="https://img.shields.io/github/stars/MeisnerDan/mission-control?style=social" alt="GitHub Stars" /></a>&nbsp;
   <img src="https://img.shields.io/github/license/MeisnerDan/mission-control" alt="License" />&nbsp;
-  <img src="https://img.shields.io/badge/version-0.9.1-blue" alt="Version" />&nbsp;
+  <img src="https://img.shields.io/badge/version-0.10-blue" alt="Version" />&nbsp;
   <a href="https://github.com/MeisnerDan/mission-control/actions"><img src="https://img.shields.io/github/actions/workflow/status/MeisnerDan/mission-control/ci.yml?label=build" alt="Build Status" /></a>
 </p>
 
@@ -12,47 +12,56 @@
 <h1 align="center">Mission Control</h1>
 
 <p align="center">
-  <strong>Open-source task management for the agentic era.</strong><br/>
-  The command center for solo entrepreneurs who delegate work to AI agents.
+  <strong>Tame the swarm. Ship what matters.</strong><br/>
+  Open-source command center for solo entrepreneurs who delegate work to AI agents.
 </p>
 
 <p align="center"><img src="mission-control/docs/demo.gif" alt="Mission Control Demo" width="800" /></p>
 
 ---
 
-## Why Mission Control?
+## Why This Exists
 
-AI coding agents (Claude Code, Cursor, Windsurf) are powerful executors — but managing multiple agents across multiple projects is chaos. There's no shared task board, no inbox, no way to see who's working on what or whether they finished.
+Right now, everyone is releasing autonomous AI agents into the wild. It's a Cambrian explosion — agent swarms spinning up, executing tasks, calling APIs, moving money, posting content. It's exhilarating. It's also like herding wild horses. Powerful, untamed, and running in every direction. Credentials are leaking. Agents are operating as black boxes. Nobody can tell you what's actually running, whether it finished, or if it went off the rails three hours ago.
 
-**Mission Control gives your AI agents structure.** Agents get roles, inboxes, and reporting protocols. You delegate work through a visual dashboard, they execute and report back. You stay in control without micromanaging.
+I'm a serial entrepreneur with way more ideas than hours in the day, and nowhere near enough resources to pursue them all traditionally. I built Mission Control because I was drowning — not in work, but in the *chaos* of trying to manage it all. I wanted my time back. Time with my family. Time actually living — not trading my finite heartbeats for a paycheck. AI agents are the greatest force multiplier a solo founder has ever had. But unleashing baby AGIs into the wild without structure? That's not leverage. That's a liability.
+
+**Mission Control is the fenced playground where your AI agents can run wild — but safely.** It's the bridge between you and your swarm. Agents get roles, inboxes, and reporting protocols. You capture a raw idea in the brain dump, agents research it, build the MVP, and Field Ops launches it into the world — with approval workflows and spend limits at every step. You stay in control without micromanaging. You see everything. You ship what matters.
 
 <table>
 <tr>
-<td align="center" width="33%">
+<td align="center" width="25%">
 
 **Prioritize**
 
 Eisenhower matrix tells you what matters. Drag-and-drop tasks between Do, Schedule, Delegate, and Eliminate.
 
 </td>
-<td align="center" width="33%">
+<td align="center" width="25%">
 
 **Delegate**
 
-Assign tasks to AI agents. They get notified, pick up work, and post completion reports to your inbox.
+Assign tasks to AI agents. They pick up work, execute, and post completion reports to your inbox.
 
 </td>
-<td align="center" width="33%">
+<td align="center" width="25%">
 
 **Supervise**
 
 Dashboard, inbox, decisions queue. See every agent's workload, read their reports, answer their questions.
 
 </td>
+<td align="center" width="25%">
+
+**Execute**
+
+Agents don't just manage tasks — they execute real-world actions. Post tweets, send ETH, call APIs. With approval workflows and spend limits.
+
+</td>
 </tr>
 </table>
 
-> **How is this different from Linear, Asana, or Notion?** Mission Control was built **agent-first**. Agents read and write tasks through a token-optimized API, report progress to your inbox, and ask you for decisions. You manage outcomes, not keystrokes. And it runs locally — no cloud dependency, no API keys, no vendor lock-in.
+> **How is this different from Linear, Asana, or Notion?** Those tools were built for humans typing into forms. Mission Control was built **agent-first** — from day one, for a world where AI agents do the work and humans make the decisions. Agents read and write tasks through a token-optimized API, report progress to your inbox, and escalate to you when they need judgment. You manage outcomes, not keystrokes. And it runs locally — no cloud dependency, no API keys leaked to third parties, no vendor lock-in.
 
 ---
 
@@ -62,7 +71,7 @@ Dashboard, inbox, decisions queue. See every agent's workload, read their report
 - **Kanban Board** — Track work through Not Started, In Progress, and Done columns
 - **Goal Hierarchy** — Long-term goals with milestone tracking, progress bars, and linked tasks
 - **Brain Dump** — Capture ideas instantly, triage into tasks later
-- **Agent Crew** — 5 built-in agents + create unlimited custom agents with unique instructions
+- **Agent Crew** — 6 built-in agents + create unlimited custom agents with unique instructions
 - **Skills Library** — Define reusable knowledge modules and inject them into agent prompts
 - **Multi-Agent Tasks** — Assign a lead agent + collaborators for team-based work
 - **Orchestrator** — Run `/orchestrate` to spawn all agents on pending work simultaneously
@@ -83,6 +92,20 @@ Dashboard, inbox, decisions queue. See every agent's workload, read their report
 - **Skills Injection** — Skills from the library are embedded into agent command files bidirectionally (agent→skill and skill→agent)
 - **Accessibility** — ARIA live regions for drag-and-drop screen reader announcements, focus trapping on detail panels
 - **CI Pipeline** — GitHub Actions runs typecheck, lint, build, and tests on every push and PR
+
+### Field Ops — External Action Execution
+- **64-Service Catalog** — Pre-configured services across 16 categories with setup guides
+- **3 Working Adapters** — Twitter/X, Ethereum (+ MetaMask wallet signing), Reddit
+- **Encrypted Vault** — AES-256-GCM encryption with scrypt key derivation
+- **Financial Safety Controls** — Per-service + global spend limits, circuit breaker (master-password-protected)
+- **3 Autonomy Levels** — Manual Approval, Supervised, Full Autonomy
+- **Approval Workflows** — Risk classification + approval queue for high-risk actions
+- **Dry Run Testing** — Validate actions without executing + auto-staleness checks
+- **Mission System** — Group related tasks into missions with progress tracking
+- **Emergency Stop** — Kill switch that instantly halts daemon, pauses missions, and locks the vault
+- **PM2 Support** — Always-on mode with auto-restart on crash (ecosystem.config.js included)
+- **Master-Password-Protected Controls** — Autonomy levels, safety limits, and daemon launch require vault password
+- **Safety Dashboard** — Centralized per-service and global spend limits with circuit breaker
 
 <p align="center">
   <img src="mission-control/docs/screenshots/eisenhower.png" alt="Eisenhower Priority Matrix" width="400" />
@@ -114,6 +137,9 @@ git clone https://github.com/MeisnerDan/mission-control.git
 cd mission-control/mission-control   # repo folder → app folder (where package.json lives)
 pnpm install
 pnpm dev
+
+# Always-on mode (optional, auto-restarts on crash)
+pm2 start ecosystem.config.js
 ```
 
 Open [http://localhost:3000](http://localhost:3000) and click **"Load Demo Data"** to see it in action with sample tasks, agents, and messages.
@@ -213,6 +239,16 @@ GET /api/inbox/respond/status?messageId=msg_123
 POST /api/inbox/respond/stop
 ```
 
+### Field Ops API
+```bash
+POST /api/field-ops/execute          # Execute a field task
+POST /api/field-ops/vault/setup      # Initialize encrypted vault
+GET  /api/field-ops/catalog          # Browse 64-service catalog
+POST /api/field-ops/batch            # Bulk approve/reject up to 50 tasks
+GET  /api/field-ops/safety-limits    # Read spend limits and budgets
+PUT  /api/field-ops/safety-limits    # Update limits (requires master password)
+```
+
 All write endpoints use **Zod validation** (malformed data returns field-level errors) and **async-mutex locking** (concurrent writes from multiple agents queue safely, never corrupt data).
 
 ---
@@ -226,6 +262,7 @@ All write endpoints use **Zod validation** (malformed data returns field-level e
 | **Developer** | Code, bug fixes, testing, deployment | Technical implementation |
 | **Marketer** | Copy, growth strategy, content, SEO | Marketing/content work |
 | **Business Analyst** | Strategy, planning, prioritization, financials | Analysis/strategy work |
+| **Tester** | QA testing, bug reporting, performance analysis | Needs verification/testing |
 | **+ Custom** | Anything you define | Create via `/crew/new` with custom instructions |
 
 Agents are fully editable — change their name, instructions, capabilities, and linked skills at any time through the Crew UI or by editing `data/agents.json` directly.
@@ -285,6 +322,16 @@ mission-control/data/          JSON data files (the shared source of truth)
   missions.json                Continuous mission state (progress, history, loop detection)
   active-runs.json             Live task execution tracking (status, PIDs, errors)
   respond-runs.json            Inbox auto-respond chain tracking (status, PIDs, cost)
+  field-ops/                   Field Ops data (tasks, missions, services, vault, activity)
+    field-tasks.json           External action tasks with approval state machine
+    field-missions.json        Mission groupings
+    services.json              Connected service configurations
+    service-catalog.json       64 pre-configured service definitions
+    safety-limits.json         Spend limits + circuit breaker config
+    approval-config.json       Autonomy levels and risk thresholds
+    templates.json             Reusable task templates
+    activity-log.json          Field Ops audit trail
+mission-control/src/lib/adapters/ Service execution adapters (Twitter, Ethereum, Reddit)
 mission-control/scripts/daemon/ Autonomous agent daemon (node-cron + claude -p)
 mission-control/__tests__/     Automated tests (validation, data, integration, daemon)
 .claude/commands/              Auto-generated slash commands per agent
@@ -298,6 +345,7 @@ docs/                          Business plans and strategies
 - **JSON as IPC** — Humans (web UI) and agents (file reads + API) share the same source of truth. No sync layer needed.
 - **BYOAI** — Works with any agent that can read files: Claude Code, Cursor, Windsurf, or a custom script.
 - **Zod + Mutex** — All API writes are validated with Zod schemas and serialized with async-mutex to prevent data corruption during concurrent multi-agent operations.
+- **Defense in Depth** — Field Ops uses layered security: encrypted vault (AES-256-GCM + scrypt), per-service and global spend limits, autonomy levels, approval workflows, rate limiting, and master-password-protected safety controls. Agents cannot modify security settings.
 
 ### Works With
 
@@ -315,7 +363,7 @@ Mission Control runs locally and integrates with AI coding tools through the fil
 |-------|------------|
 | Framework | [Next.js 15](https://nextjs.org) (App Router) |
 | Language | [TypeScript](https://www.typescriptlang.org) (strict mode) |
-| Styling | [Tailwind CSS v4](https://tailwindcss.com) |
+| Styling | [Tailwind CSS v3](https://tailwindcss.com) |
 | Components | [shadcn/ui](https://ui.shadcn.com) + [Radix UI](https://www.radix-ui.com) |
 | Drag & Drop | [@dnd-kit](https://dndkit.com) |
 | Validation | [Zod](https://zod.dev) |
@@ -333,14 +381,18 @@ Mission Control runs locally and integrates with AI coding tools through the fil
 - [x] Loop detection with automatic escalation
 - [x] Session resilience (auto-continuing agents)
 - [x] Cost & usage tracking
-- [ ] Cloud sync + hosted daemon (access from anywhere, always-on agent execution)
-- [ ] Docker support for one-command setup
+- [x] Field Ops — External action execution with approval workflows
+- [x] Encrypted credential vault (AES-256-GCM)
+- [x] Financial safety controls (spend limits, circuit breaker)
+- [x] 64-service catalog with setup guides
+- [ ] More adapters (Stripe, Slack, GitHub, SendGrid, etc.)
+- [ ] Audit log export (CSV/JSON for compliance)
 - [ ] GitHub Issues sync (import issues as MC tasks)
 - [ ] Mobile-friendly PWA version
 - [ ] Dashboard analytics (velocity charts, burndown, agent utilization)
 - [ ] Plugin system for custom integrations
 
-**Interested in cloud sync?** [Join the waitlist](https://forms.gle/PLACEHOLDER) to get early access when it ships.
+Mission Control already runs 24/7 locally with PM2 (`pm2 start ecosystem.config.js`). **Want a hosted version?** Star the repo — Mission Control Cloud is on the roadmap. The self-hosted version will always remain free and open source.
 
 See [open issues](https://github.com/MeisnerDan/mission-control/issues) for community-requested features and to vote on what matters most.
 
@@ -361,18 +413,20 @@ See **[CONTRIBUTING.md](CONTRIBUTING.md)** for detailed guidelines, code convent
 
 ## Disclaimer
 
-This is a personal project I built to organize my own work and shared because others might find it useful. It is provided **as-is** with no warranties, guarantees, or promises of support. Use it at your own risk. See the [LICENSE](LICENSE) file for full terms.
+I built this for myself — a solo entrepreneur trying to wrangle an ever-growing swarm of AI agents and side projects. I'm sharing it because I think others are drowning in the same chaos. It's provided **as-is**, no warranties or promises of support. Use it at your own risk. See the [LICENSE](LICENSE) file for full terms.
 
 Mission Control is not affiliated with or endorsed by Anthropic. It automates Claude Code (an official Anthropic product) via the `claude -p` CLI — it does not access the Anthropic API directly or use the Agent SDK.
+
+**A note on Field Ops:** These features execute real actions with real consequences — posting to social media, sending cryptocurrency, calling live APIs. Always test with dry runs first. Configure spend limits before enabling autonomy. The safety controls exist for a reason — use them.
 
 ---
 
 ## License
 
-[MIT](LICENSE) — use it however you want.
+[AGPL-3.0](LICENSE) — free to use, modify, and self-host. If you host it as a service, share your changes.
 
 ---
 
 <p align="center">
-  <sub>Built for the agentic era. <strong>Your AI agents have a boss now.</strong></sub>
+  <sub><strong>Tame the swarm. Ship what matters.</strong></sub>
 </p>

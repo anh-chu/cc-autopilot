@@ -12,7 +12,7 @@ interface RunButtonProps {
   disabled?: boolean;
   title?: string;
   /** When true, shows a red stop button instead of a spinning loader */
-  isMissionActive?: boolean;
+  isProjectRunActive?: boolean;
   /** Called when the stop button is clicked */
   onStop?: () => void;
 }
@@ -23,18 +23,18 @@ export function RunButton({
   size = "sm",
   disabled = false,
   title,
-  isMissionActive = false,
+  isProjectRunActive = false,
   onStop,
 }: RunButtonProps) {
   const iconSize = size === "sm" ? "h-3 w-3" : "h-3.5 w-3.5";
   const btnSize = size === "sm" ? "h-6 w-6" : "h-7 w-7";
 
   // Stop mode: show red square when mission is active and onStop is provided
-  const showStop = (isRunning || isMissionActive) && onStop;
+  const showStop = (isRunning || isProjectRunActive) && onStop;
 
   if (showStop) {
     return (
-      <Tip content={title ?? "Stop mission"}>
+      <Tip content={title ?? "Stop run"}>
         <Button
           variant="ghost"
           size="icon"
@@ -43,7 +43,7 @@ export function RunButton({
             "shrink-0 rounded-full transition-colors",
             "text-red-500 hover:text-red-600 hover:bg-red-500/10"
           )}
-          title={title ?? "Stop mission"}
+          title={title ?? "Stop run"}
           onPointerDown={(e) => e.stopPropagation()}
           onClick={(e) => {
             e.stopPropagation();

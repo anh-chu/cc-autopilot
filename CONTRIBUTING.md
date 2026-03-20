@@ -97,4 +97,4 @@ Open a GitHub issue with:
 
 ## License
 
-By contributing, you agree that your contributions will be licensed under the MIT License.
+By contributing, you agree that your contributions will be licensed under the GNU AGPL v3 License.

@@ -1,0 +1,28 @@
+{
+  "missions": [
+    {
+      "id": "fmission_demo_001",
+      "title": "Launch Social Media Campaign",
+      "description": "Post announcements across all social channels for product launch",
+      "status": "active",
+      "autonomyLevel": "approve-all",
+      "linkedProjectId": null,
+      "tasks": [],
+      "createdAt": "2026-03-15T01:02:33.729Z",
+      "updatedAt": "2026-03-15T01:02:33.729Z",
+      "completedAt": null
+    },
+    {
+      "id": "fmission_demo_002",
+      "title": "Sepolia Testnet Transfer",
+      "description": "End-to-end test of Ethereum adapter on Sepolia testnet",
+      "status": "active",
+      "autonomyLevel": "approve-all",
+      "linkedProjectId": null,
+      "tasks": [],
+      "createdAt": "2026-03-17T23:17:34.599Z",
+      "updatedAt": "2026-03-17T23:17:34.599Z",
+      "completedAt": null
+    }
+  ]
+}

@@ -87,11 +87,16 @@ export async function PUT(request: Request) {
     const idx = data.decisions.findIndex((d) => d.id === body.id);
     if (idx === -1) return null;
 
-    const wasAnswered = data.decisions[idx].status === "pending" && body.status === "answered";
+    // Auto-set status to "answered" when an answer is provided
+    const effectiveStatus = body.answer && data.decisions[idx].status === "pending"
+      ? "answered"
+      : (body.status ?? data.decisions[idx].status);
+    const wasAnswered = data.decisions[idx].status === "pending" && effectiveStatus === "answered";
 
     data.decisions[idx] = {
       ...data.decisions[idx],
       ...body,
+      status: effectiveStatus,
       answeredAt: wasAnswered ? new Date().toISOString() : data.decisions[idx].answeredAt,
     };
 

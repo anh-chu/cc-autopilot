@@ -31,6 +31,12 @@ export interface DaemonConfig {
     maxTurnsPerSession: number;
     timeoutPerSessionMinutes: number;
   };
+  fieldOps?: {
+    autoExecute: boolean;
+    pollIntervalMinutes: number;
+    maxConcurrentExecutions: number;
+    requireVaultSession: boolean;
+  };
 }
 
 // ─── Agent Sessions ──────────────────────────────────────────────────────────
@@ -113,11 +119,11 @@ export interface SpawnResult {
   timedOut: boolean;
 }
 
-// ─── Missions (continuous project execution) ─────────────────────────────────
+// ─── Project Runs (continuous project execution) ────────────────────────────
 
-export type MissionStatus = "running" | "completed" | "stopped" | "stalled";
+export type ProjectRunStatus = "running" | "completed" | "stopped" | "stalled";
 
-export interface MissionTaskEntry {
+export interface ProjectRunTaskEntry {
   taskId: string;
   taskTitle: string;
   agentId: string;
@@ -133,10 +139,10 @@ export interface LoopDetectionState {
   taskErrors: Record<string, string[]>;
 }
 
-export interface MissionRun {
+export interface ProjectRun {
   id: string;
   projectId: string;
-  status: MissionStatus;
+  status: ProjectRunStatus;
   startedAt: string;
   stoppedAt: string | null;
   completedAt: string | null;
@@ -145,12 +151,12 @@ export interface MissionRun {
   completedTasks: number;
   failedTasks: number;
   skippedTasks: number;
-  taskHistory: MissionTaskEntry[];
+  taskHistory: ProjectRunTaskEntry[];
   loopDetection: LoopDetectionState;
 }
 
-export interface MissionsFile {
-  missions: MissionRun[];
+export interface ProjectRunsFile {
+  missions: ProjectRun[];
 }
 
 // ─── Claude Code Output Metadata ────────────────────────────────────────────

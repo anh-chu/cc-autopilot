@@ -47,5 +47,11 @@
     "maxContinuations": 2,
     "maxTurnsPerSession": 25,
     "timeoutPerSessionMinutes": 15
+  },
+  "fieldOps": {
+    "autoExecute": false,
+    "pollIntervalMinutes": 5,
+    "maxConcurrentExecutions": 2,
+    "requireVaultSession": true
   }
 }
