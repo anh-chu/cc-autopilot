@@ -51,6 +51,10 @@ PERSONAL_DATA_FILES=(
   "mission-control/data/missions.json"
   "mission-control/data/tasks-archive.json"
   "mission-control/data/respond-runs.json"
+  "mission-control/data/field-ops/activity-log.json"
+  "mission-control/data/field-ops/missions.json"
+  "mission-control/data/field-ops/services.json"
+  "mission-control/data/field-ops/tasks.json"
 )
 
 # Empty schema for each personal data file (used when file is new to public-launch)
@@ -66,6 +70,10 @@ EMPTY_SCHEMAS=(
   ["mission-control/data/missions.json"]='{ "missions": [] }'
   ["mission-control/data/tasks-archive.json"]='{ "tasks": [] }'
   ["mission-control/data/respond-runs.json"]='{ "runs": [] }'
+  ["mission-control/data/field-ops/activity-log.json"]='{ "events": [] }'
+  ["mission-control/data/field-ops/missions.json"]='{ "missions": [] }'
+  ["mission-control/data/field-ops/services.json"]='{ "services": [] }'
+  ["mission-control/data/field-ops/tasks.json"]='{ "tasks": [] }'
 )
 
 # Config/template data files that SHOULD sync from main (not personal)
@@ -74,6 +82,10 @@ SAFE_DATA_FILES=(
   "mission-control/data/skills-library.json"
   "mission-control/data/daemon-config.json"
   "mission-control/data/checkpoints/snap_demo.json"
+  "mission-control/data/field-ops/approval-config.json"
+  "mission-control/data/field-ops/safety-limits.json"
+  "mission-control/data/field-ops/service-catalog.json"
+  "mission-control/data/field-ops/templates.json"
 )
 
 # ─── Preflight checks ────────────────────────────────────────────────────────
