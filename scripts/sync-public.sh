@@ -215,6 +215,66 @@ else
   git commit -m "$COMMIT_MSG" -q
   echo "Committed: $COMMIT_MSG"
 
+  # ── Pre-push safety scan ──────────────────────────────────────────────────
+  # Scan the commit diff for sensitive data patterns before pushing.
+  # Aborts if anything suspicious is found — prevents accidental leaks.
+  echo "Running pre-push safety scan..."
+  DIFF_CONTENT=$(git diff HEAD~1..HEAD -- . ':!*.lock' ':!*.png' ':!*.svg' ':!scripts/sync-public.sh' 2>/dev/null || true)
+  LEAK_FOUND=false
+  LEAK_DETAILS=""
+
+  # Pattern 1: Credential IDs (cred_xxxx)
+  if echo "$DIFF_CONTENT" | grep -qE '^\+.*cred_[a-zA-Z0-9]{6,}'; then
+    LEAK_FOUND=true
+    LEAK_DETAILS+=$'\n  - Credential ID (cred_*) found in diff'
+  fi
+
+  # Pattern 2: Vault internals (hashes, salts, encrypted blobs)
+  if echo "$DIFF_CONTENT" | grep -qE '^\+.*(masterKeyHash|masterKeySalt|encryptedData|"authTag"|"iv")'; then
+    LEAK_FOUND=true
+    LEAK_DETAILS+=$'\n  - Vault encryption data found in diff'
+  fi
+
+  # Pattern 3: Scrypt hashes
+  if echo "$DIFF_CONTENT" | grep -qE '^\+.*scrypt:[a-f0-9]+'; then
+    LEAK_FOUND=true
+    LEAK_DETAILS+=$'\n  - Scrypt hash found in diff'
+  fi
+
+  # Pattern 4: Real API keys/tokens in JSON values (20+ char alphanumeric strings)
+  # Only flag lines that look like key-value pairs with long secret values
+  if echo "$DIFF_CONTENT" | grep -qE '^\+[[:space:]]*"(apiKey|apiSecret|accessToken|accessTokenSecret|clientSecret|apiKeySecret|bearerToken|refreshToken)":[[:space:]]*"[a-zA-Z0-9_-]{20,}"'; then
+    LEAK_FOUND=true
+    LEAK_DETAILS+=$'\n  - API key/token value found in diff'
+  fi
+
+  # Pattern 5: Real email addresses (exclude known safe patterns)
+  REAL_EMAILS=$(echo "$DIFF_CONTENT" | grep -E '^\+.*[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}' | \
+    grep -vE '(noreply@|enteryouremail@|example\.com|youremail\.com|Co-Authored-By)' || true)
+  if [ -n "$REAL_EMAILS" ]; then
+    LEAK_FOUND=true
+    LEAK_DETAILS+=$'\n  - Real email address found in diff'
+  fi
+
+  if [ "$LEAK_FOUND" = true ]; then
+    echo ""
+    echo "❌ SAFETY SCAN FAILED — potential sensitive data detected:$LEAK_DETAILS"
+    echo ""
+    echo "The commit was created but NOT pushed. Review the diff with:"
+    echo "  git diff HEAD~1..HEAD"
+    echo ""
+    echo "To push anyway (if you verified it's safe):"
+    echo "  git push public public-launch:main"
+    echo ""
+    # Return to main before exiting
+    git checkout -f main -q
+    if [ "$STASHED" = true ]; then
+      git stash pop -q
+    fi
+    exit 1
+  fi
+  echo "  ✓ No sensitive data detected"
+
   # Push incrementally (no --force)
   echo "Pushing to public remote..."
   git push public public-launch:main
