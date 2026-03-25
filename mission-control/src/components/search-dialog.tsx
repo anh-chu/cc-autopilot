@@ -96,7 +96,7 @@ export function SearchDialog() {
         router.push("/priority-matrix");
         break;
       case "project":
-        router.push("/projects");
+        router.push("/ventures");
         break;
       case "goal":
         router.push("/objectives");

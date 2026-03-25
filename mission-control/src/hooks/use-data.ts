@@ -227,7 +227,7 @@ export function useGoals() {
 }
 
 export function useProjects() {
-  const { items: projects, ...rest } = useDataResource<Project>("projects", "projects", "Project");
+  const { items: projects, ...rest } = useDataResource<Project>("ventures", "projects", "Project");
   return { projects, ...rest };
 }
 

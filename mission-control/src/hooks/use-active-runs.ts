@@ -157,7 +157,7 @@ export function useActiveRuns() {
   const runProject = useCallback(
     async (projectId: string) => {
       try {
-        const res = await apiFetch(`/api/projects/${projectId}/run`, {
+        const res = await apiFetch(`/api/ventures/${projectId}/run`, {
           method: "POST",
         });
         if (!res.ok) {
@@ -190,7 +190,7 @@ export function useActiveRuns() {
   const stopProject = useCallback(
     async (projectId: string) => {
       try {
-        const res = await apiFetch(`/api/projects/${projectId}/stop`, {
+        const res = await apiFetch(`/api/ventures/${projectId}/stop`, {
           method: "POST",
         });
         if (!res.ok) {

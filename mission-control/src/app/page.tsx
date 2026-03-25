@@ -170,7 +170,7 @@ export default function CommandCenterPage() {
 
   const handleCreateProject = async (formData: { name: string; description: string; color: string; tags: string; teamMembers?: string[] }) => {
     try {
-      const res = await apiFetch("/api/projects", {
+      const res = await apiFetch("/api/ventures", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -432,47 +432,62 @@ export default function CommandCenterPage() {
       {/* Stats Bar */}
       <div role="region" aria-label="Stats overview" className="grid grid-cols-2 gap-3 sm:grid-cols-4">
         <Card className="bg-card/50">
-          <CardContent className="p-4 flex items-center gap-3">
-            <div className="h-9 w-9 rounded-lg bg-primary/10 flex items-center justify-center">
-              <CheckSquare className="h-4 w-4 text-primary" />
+          <CardContent className="p-4">
+            <div className="flex items-center gap-3">
+              <div className="h-9 w-9 rounded-lg bg-primary/10 flex items-center justify-center">
+                <CheckSquare className="h-4 w-4 text-primary" />
+              </div>
+              <div>
+                <p className="text-2xl font-bold tabular-nums">{stats?.totalTasks ?? tasks.length}</p>
+                <p className="text-xs text-muted-foreground">
+                  {stats?.inProgressTasks ?? 0} active · {stats?.doneTasks ?? 0} done
+                </p>
+              </div>
             </div>
-            <div>
-              <p className="text-2xl font-bold tabular-nums">{stats?.totalTasks ?? tasks.length}</p>
-              <p className="text-xs text-muted-foreground">
-                {stats?.inProgressTasks ?? 0} active · {stats?.doneTasks ?? 0} done
-              </p>
-            </div>
+            <Button size="sm" variant="ghost" className="mt-2 h-6 text-xs gap-1 text-muted-foreground hover:text-foreground w-full justify-start" onClick={() => setShowCreateTask(true)}>
+              <Plus className="h-3 w-3" /> New Task
+            </Button>
           </CardContent>
         </Card>
         <Card className="bg-card/50">
-          <CardContent className="p-4 flex items-center gap-3">
-            <div className="h-9 w-9 rounded-lg bg-primary/10 flex items-center justify-center">
-              <Target className="h-4 w-4 text-primary" />
+          <CardContent className="p-4">
+            <div className="flex items-center gap-3">
+              <div className="h-9 w-9 rounded-lg bg-primary/10 flex items-center justify-center">
+                <Target className="h-4 w-4 text-primary" />
+              </div>
+              <div>
+                <p className="text-2xl font-bold tabular-nums">{stats?.totalGoals ?? longTermGoals.length}</p>
+                <p className="text-xs text-muted-foreground">
+                  {stats?.completedMilestones ?? 0}/{stats?.totalMilestones ?? milestones.length} milestones
+                </p>
+              </div>
             </div>
-            <div>
-              <p className="text-2xl font-bold tabular-nums">{stats?.totalGoals ?? longTermGoals.length}</p>
-              <p className="text-xs text-muted-foreground">
-                {stats?.completedMilestones ?? 0}/{stats?.totalMilestones ?? milestones.length} milestones
-              </p>
-            </div>
+            <Button size="sm" variant="ghost" className="mt-2 h-6 text-xs gap-1 text-muted-foreground hover:text-foreground w-full justify-start" onClick={() => setShowCreateGoal(true)}>
+              <Plus className="h-3 w-3" /> New Objective
+            </Button>
           </CardContent>
         </Card>
         <Card className="bg-card/50">
-          <CardContent className="p-4 flex items-center gap-3">
-            <div className="h-9 w-9 rounded-lg bg-primary/10 flex items-center justify-center">
-              <FolderOpen className="h-4 w-4 text-primary" />
+          <CardContent className="p-4">
+            <div className="flex items-center gap-3">
+              <div className="h-9 w-9 rounded-lg bg-primary/10 flex items-center justify-center">
+                <FolderOpen className="h-4 w-4 text-primary" />
+              </div>
+              <div>
+                <p className="text-2xl font-bold tabular-nums">
+                  {stats?.activeProjects ?? projects.filter((p) => p.status === "active").length}
+                </p>
+                <p className="text-xs text-muted-foreground">active ventures</p>
+              </div>
             </div>
-            <div>
-              <p className="text-2xl font-bold tabular-nums">
-                {stats?.activeProjects ?? projects.filter((p) => p.status === "active").length}
-              </p>
-              <p className="text-xs text-muted-foreground">active projects</p>
-            </div>
+            <Button size="sm" variant="ghost" className="mt-2 h-6 text-xs gap-1 text-muted-foreground hover:text-foreground w-full justify-start" onClick={() => setShowCreateProject(true)}>
+              <Plus className="h-3 w-3" /> New Venture
+            </Button>
           </CardContent>
         </Card>
         <Link href="/brain-dump">
-          <Card className="bg-card/50 cursor-pointer hover:border-primary/30 transition-all">
-            <CardContent className="p-4 flex items-center gap-3">
+          <Card className="bg-card/50 cursor-pointer hover:border-primary/30 transition-all h-full">
+            <CardContent className="p-4 flex items-center gap-3 h-full">
               <div className="h-9 w-9 rounded-lg bg-primary/10 flex items-center justify-center">
                 <Lightbulb className="h-4 w-4 text-primary" />
               </div>
@@ -510,24 +525,6 @@ export default function CommandCenterPage() {
         </Card>
       )}
 
-      {/* Quick Actions */}
-      <div role="region" aria-label="Quick actions" className="flex flex-wrap gap-2">
-        <Tip content="Create a new task">
-          <Button size="sm" onClick={() => setShowCreateTask(true)} className="gap-1.5">
-            <Plus className="h-3.5 w-3.5" /> New Task
-          </Button>
-        </Tip>
-        <Tip content="Create a new venture">
-          <Button size="sm" variant="outline" onClick={() => setShowCreateProject(true)} className="gap-1.5">
-            <Plus className="h-3.5 w-3.5" /> New Venture
-          </Button>
-        </Tip>
-        <Tip content="Create a new objective">
-          <Button size="sm" variant="outline" onClick={() => setShowCreateGoal(true)} className="gap-1.5">
-            <Plus className="h-3.5 w-3.5" /> New Goal
-          </Button>
-        </Tip>
-      </div>
 
       {/* ─── Field Ops Summary ──────────────────────────────────────────────── */}
       <Link href="/field-ops">
@@ -772,7 +769,7 @@ export default function CommandCenterPage() {
             <Sparkles className="h-4 w-4 text-primary" />
             Ventures
           </h2>
-          <Link href="/projects" className="text-xs text-muted-foreground hover:text-foreground">
+          <Link href="/ventures" className="text-xs text-muted-foreground hover:text-foreground">
             View all →
           </Link>
         </div>

@@ -47,7 +47,7 @@ import type { AgentDefinition } from "@/lib/types";
 const mainLinks = [
   { href: "/", label: "Command Center", icon: LayoutDashboard },
   { href: "/objectives", label: "Objectives", icon: Crosshair },
-  { href: "/projects", label: "Ventures", icon: Sparkles },
+  { href: "/ventures", label: "Ventures", icon: Sparkles },
   { href: "/brain-dump", label: "Brain Dump", icon: Lightbulb },
   { href: "/checkpoints", label: "Checkpoints", icon: Flag },
   { href: "/autopilot", label: "Autopilot", icon: Zap },

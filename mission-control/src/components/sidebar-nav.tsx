@@ -19,7 +19,7 @@ const links = [
   { href: "/status-board", label: "Status Board", icon: Columns3 },
   { href: "/objectives", label: "Objectives", icon: Target },
   { href: "/brain-dump", label: "Brain Dump", icon: Lightbulb },
-  { href: "/projects", label: "Projects", icon: FolderOpen },
+  { href: "/ventures", label: "Ventures", icon: FolderOpen },
   { href: "/autopilot", label: "Autopilot", icon: Zap },
 ];
 

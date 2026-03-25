@@ -1240,21 +1240,23 @@
         { "key": "clientSecret", "label": "Client Secret", "type": "password", "required": true, "placeholder": "Your Reddit App Client Secret" },
         { "key": "username", "label": "Reddit Username", "type": "text", "required": true, "placeholder": "Your Reddit username" },
         { "key": "password", "label": "Reddit Password", "type": "password", "required": true, "placeholder": "Your Reddit account password" },
-        { "key": "userAgent", "label": "User Agent", "type": "text", "required": true, "placeholder": "MissionControl/1.0 by u/yourusername", "helpText": "A unique user agent string identifying your app" }
+        { "key": "userAgent", "label": "User Agent", "type": "text", "required": true, "placeholder": "MissionControl/1.0 by u/yourusername", "helpText": "A unique user agent string identifying your app" },
+        { "key": "botDisclosure", "label": "Bot Disclosure Footer", "type": "text", "required": false, "placeholder": "^(Bot-assisted post, reviewed and approved by a human.)", "helpText": "Appended to posts/comments per Reddit's Responsible Builder Policy. Leave blank to disable." }
       ],
       "setupGuide": {
         "steps": [
-          "Go to reddit.com/prefs/apps and sign in.",
-          "Scroll down and click 'create another app...' or 'are you a developer? create an app...'.",
-          "Select 'script' as the app type.",
-          "Fill in the name, description, and redirect URI (http://localhost:3000).",
-          "Click Create app.",
+          "Go to https://support.reddithelp.com/hc/en-us/requests/new?ticket_form_id=14868593862164 and sign in with your Reddit account.",
+          "Submit a Developer Support request: describe your app's purpose (e.g., 'automated content posting for a business account'), target subreddits, expected request volume, and data needs. Be specific — vague requests are rejected.",
+          "Wait for Reddit's review (~7 business days). Business and moderation use cases have higher approval rates than personal bots.",
+          "Once approved, follow Reddit's instructions to create your OAuth app. Select 'script' as the app type and set the redirect URI to http://localhost:3000.",
           "Copy the Client ID (shown under the app name) and Client Secret.",
-          "Enter your Reddit username and password below."
+          "Enter your Reddit username, password, and a descriptive User Agent string (e.g., MissionControl/1.0 by u/yourname) below.",
+          "Fill in the Bot Disclosure Footer — Reddit's Responsible Builder Policy requires bot accounts to be clearly identified.",
+          "Important: use a dedicated bot account, not your personal Reddit account. The policy requires bot accounts be used solely for app functions."
         ],
         "docsUrl": "https://www.reddit.com/dev/api/",
-        "estimatedMinutes": 5,
-        "pricing": "Free API with 60 req/min rate limit."
+        "estimatedMinutes": 15,
+        "pricing": "Free API (60 req/min) — requires Developer Support approval for new apps."
       },
       "icon": "MessageCircle",
       "tags": ["social", "communities", "posting", "discussions", "monitoring"]

@@ -524,7 +524,17 @@ const redditAdapter: ServiceAdapter = {
       };
     }
 
+    // Bot disclosure footer (from service config, non-sensitive)
+    const botDisclosure = typeof ctx.credentials.botDisclosure === "string"
+      ? (ctx.credentials.botDisclosure as string).trim()
+      : "";
+
     const operation = (ctx.task.payload.operation as string) ?? "post-text";
+
+    /** Append bot disclosure footer to text content if configured. */
+    function withDisclosure(text: string): string {
+      return botDisclosure ? `${text}\n\n${botDisclosure}` : text;
+    }
 
     // Dry run: validate credentials and payload, return simulated result
     if (ctx.dryRun) {
@@ -549,6 +559,10 @@ const redditAdapter: ServiceAdapter = {
         dryRunData.thingId = ctx.task.payload.thingId;
       }
 
+      if (botDisclosure) {
+        dryRunData.botDisclosure = botDisclosure;
+      }
+
       return {
         success: true,
         data: dryRunData,
@@ -561,7 +575,7 @@ const redditAdapter: ServiceAdapter = {
           "self",
           ctx.task.payload.subreddit as string,
           ctx.task.payload.title as string,
-          (ctx.task.payload.text as string) ?? "",
+          withDisclosure((ctx.task.payload.text as string) ?? ""),
           redditCreds,
         );
 
@@ -577,7 +591,7 @@ const redditAdapter: ServiceAdapter = {
       case "comment":
         return postComment(
           ctx.task.payload.thingId as string,
-          ctx.task.payload.text as string,
+          withDisclosure(ctx.task.payload.text as string),
           redditCreds,
         );
 

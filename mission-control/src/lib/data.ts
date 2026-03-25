@@ -199,8 +199,12 @@ const fileMutexes = {
 // ─── Read functions (no locking needed — reads are safe) ──────────────────────
 
 export async function getTasks(): Promise<TasksFile> {
-  const raw = await readFile(filePath("tasks.json"), "utf-8");
-  return JSON.parse(raw) as TasksFile;
+  try {
+    const raw = await readFile(filePath("tasks.json"), "utf-8");
+    return JSON.parse(raw) as TasksFile;
+  } catch {
+    return { tasks: [] };
+  }
 }
 
 export async function getTasksArchive(): Promise<TasksFile> {
@@ -213,33 +217,57 @@ export async function getTasksArchive(): Promise<TasksFile> {
 }
 
 export async function getGoals(): Promise<GoalsFile> {
-  const raw = await readFile(filePath("goals.json"), "utf-8");
-  return JSON.parse(raw) as GoalsFile;
+  try {
+    const raw = await readFile(filePath("goals.json"), "utf-8");
+    return JSON.parse(raw) as GoalsFile;
+  } catch {
+    return { goals: [] };
+  }
 }
 
 export async function getProjects(): Promise<ProjectsFile> {
-  const raw = await readFile(filePath("projects.json"), "utf-8");
-  return JSON.parse(raw) as ProjectsFile;
+  try {
+    const raw = await readFile(filePath("projects.json"), "utf-8");
+    return JSON.parse(raw) as ProjectsFile;
+  } catch {
+    return { projects: [] };
+  }
 }
 
 export async function getBrainDump(): Promise<BrainDumpFile> {
-  const raw = await readFile(filePath("brain-dump.json"), "utf-8");
-  return JSON.parse(raw) as BrainDumpFile;
+  try {
+    const raw = await readFile(filePath("brain-dump.json"), "utf-8");
+    return JSON.parse(raw) as BrainDumpFile;
+  } catch {
+    return { entries: [] };
+  }
 }
 
 export async function getActivityLog(): Promise<ActivityLogFile> {
-  const raw = await readFile(filePath("activity-log.json"), "utf-8");
-  return JSON.parse(raw) as ActivityLogFile;
+  try {
+    const raw = await readFile(filePath("activity-log.json"), "utf-8");
+    return JSON.parse(raw) as ActivityLogFile;
+  } catch {
+    return { events: [] };
+  }
 }
 
 export async function getInbox(): Promise<InboxFile> {
-  const raw = await readFile(filePath("inbox.json"), "utf-8");
-  return JSON.parse(raw) as InboxFile;
+  try {
+    const raw = await readFile(filePath("inbox.json"), "utf-8");
+    return JSON.parse(raw) as InboxFile;
+  } catch {
+    return { messages: [] };
+  }
 }
 
 export async function getDecisions(): Promise<DecisionsFile> {
-  const raw = await readFile(filePath("decisions.json"), "utf-8");
-  return JSON.parse(raw) as DecisionsFile;
+  try {
+    const raw = await readFile(filePath("decisions.json"), "utf-8");
+    return JSON.parse(raw) as DecisionsFile;
+  } catch {
+    return { decisions: [] };
+  }
 }
 
 export async function getAgents(): Promise<AgentsFile> {

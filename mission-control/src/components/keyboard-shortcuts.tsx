@@ -57,7 +57,7 @@ export function KeyboardShortcuts({ onCreateTask }: KeyboardShortcutsProps) {
           case "k": router.push("/status-board"); return;
           case "o": router.push("/objectives"); return;
           case "b": router.push("/brain-dump"); return;
-          case "p": router.push("/projects"); return;
+          case "p": router.push("/ventures"); return;
           case "i": router.push("/inbox"); return;
           case "d": router.push("/decisions"); return;
           case "c": router.push("/crew"); return;

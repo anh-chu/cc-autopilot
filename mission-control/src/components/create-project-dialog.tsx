@@ -60,8 +60,8 @@ export function CreateProjectDialog({ open, onOpenChange, onSubmit }: CreateProj
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-md">
         <DialogHeader>
-          <DialogTitle>Create Mission</DialogTitle>
-          <DialogDescription>Start a new mission to organize your work.</DialogDescription>
+          <DialogTitle>Create Venture</DialogTitle>
+          <DialogDescription>A venture is a business, product, or initiative you&apos;re building. Group related tasks, assign agents, and track progress.</DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
@@ -70,7 +70,7 @@ export function CreateProjectDialog({ open, onOpenChange, onSubmit }: CreateProj
               id="proj-name"
               value={name}
               onChange={(e) => setName(e.target.value)}
-              placeholder="Mission name"
+              placeholder="Venture name"
               autoFocus
             />
           </div>
@@ -80,7 +80,7 @@ export function CreateProjectDialog({ open, onOpenChange, onSubmit }: CreateProj
               id="proj-desc"
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              placeholder="What is this project about?"
+              placeholder="What is this venture about?"
               rows={3}
             />
           </div>
@@ -170,7 +170,7 @@ export function CreateProjectDialog({ open, onOpenChange, onSubmit }: CreateProj
               Cancel
             </Button>
             <Button type="submit" disabled={!name.trim()}>
-              Create Mission
+              Create Venture
             </Button>
           </div>
         </form>

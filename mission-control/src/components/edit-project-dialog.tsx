@@ -88,8 +88,8 @@ export function EditProjectDialog({ open, onOpenChange, project, agents, onSubmi
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-md">
         <DialogHeader>
-          <DialogTitle>Edit Mission</DialogTitle>
-          <DialogDescription>Update mission details and team.</DialogDescription>
+          <DialogTitle>Edit Venture</DialogTitle>
+          <DialogDescription>Update venture details and team.</DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
@@ -98,7 +98,7 @@ export function EditProjectDialog({ open, onOpenChange, project, agents, onSubmi
               id="edit-proj-name"
               value={name}
               onChange={(e) => setName(e.target.value)}
-              placeholder="Mission name"
+              placeholder="Venture name"
               autoFocus
             />
           </div>
@@ -108,7 +108,7 @@ export function EditProjectDialog({ open, onOpenChange, project, agents, onSubmi
               id="edit-proj-desc"
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              placeholder="What is this mission about?"
+              placeholder="What is this venture about?"
               rows={3}
             />
           </div>
