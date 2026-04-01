@@ -250,7 +250,7 @@ else
 
   # Pattern 5: Real email addresses (exclude known safe patterns)
   REAL_EMAILS=$(echo "$DIFF_CONTENT" | grep -E '^\+.*[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}' | \
-    grep -vE '(noreply@|enteryouremail@|example\.com|youremail\.com|Co-Authored-By)' || true)
+    grep -vE '(noreply@|enteryouremail@|example\.com|youremail\.com|Co-Authored-By|dan@meisner\.dev)' || true)
   if [ -n "$REAL_EMAILS" ]; then
     LEAK_FOUND=true
     LEAK_DETAILS+=$'\n  - Real email address found in diff'

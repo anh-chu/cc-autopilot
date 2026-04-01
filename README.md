@@ -68,7 +68,7 @@ Dashboard, inbox, decisions queue. See every agent's workload, read their report
 
 **Execute**
 
-Agents don't just manage tasks — they execute real-world actions. Post tweets, send ETH, call APIs. With approval workflows and spend limits.
+Agents don't just manage tasks — they execute real-world actions. Post to X, send ETH, call APIs. With approval workflows and spend limits.
 
 </td>
 </tr>
@@ -108,7 +108,7 @@ Agents don't just manage tasks — they execute real-world actions. Post tweets,
 
 ### Field Ops — External Action Execution
 - **64-Service Catalog** — Pre-configured services across 16 categories with setup guides
-- **3 Working Adapters** — Twitter/X, Ethereum (+ MetaMask wallet signing), Reddit
+- **3 Working Adapters** — X, Ethereum (+ MetaMask wallet signing), Reddit
 - **Encrypted Vault** — AES-256-GCM encryption with scrypt key derivation
 - **Financial Safety Controls** — Per-service + global spend limits, circuit breaker (master-password-protected)
 - **3 Autonomy Levels** — Manual Approval, Supervised, Full Autonomy
@@ -344,7 +344,7 @@ mission-control/data/          JSON data files (the shared source of truth)
     approval-config.json       Autonomy levels and risk thresholds
     templates.json             Reusable task templates
     activity-log.json          Field Ops audit trail
-mission-control/src/lib/adapters/ Service execution adapters (Twitter, Ethereum, Reddit)
+mission-control/src/lib/adapters/ Service execution adapters (X, Ethereum, Reddit)
 mission-control/scripts/daemon/ Autonomous agent daemon (node-cron + claude -p)
 mission-control/__tests__/     Automated tests (validation, data, integration, daemon)
 .claude/commands/              Auto-generated slash commands per agent
@@ -436,7 +436,9 @@ Mission Control is not affiliated with or endorsed by Anthropic. It automates Cl
 
 ## License
 
-[AGPL-3.0](LICENSE) — free to use, modify, and self-host. If you host it as a service, share your changes.
+[AGPL-3.0](LICENSE) — free to use, modify, and self-host. If you offer it as a hosted service, you must open-source your modifications under the same license.
+
+For commercial licensing (SaaS, white-label, or proprietary use without AGPL obligations), contact **dan@meisner.dev**.
 
 ---
 
