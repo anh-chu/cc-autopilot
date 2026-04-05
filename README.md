@@ -34,9 +34,21 @@ You stay in control without micromanaging.
 
 ## What's New in This Fork
 
-This fork adds three major features on top of the original Mission Control:
+This fork adds four major features on top of the original Mission Control:
 
-### 1. Real-Time Agent Streaming
+### 1. Workspace-Scoped IA (Workspaces → Goals → Initiatives → Tasks + Actions)
+
+Full information architecture refactor for multi-client / multi-project use.
+
+- **Workspaces** — isolated data contexts (separate data dirs per workspace); switch via the header switcher
+- **Initiatives** — replace the old Projects/Milestones/Missions split; each initiative groups Tasks + Actions under one roof
+- **Actions** — real-world side-effects (API calls, posts, payments) with a 3-tier autonomy cascade: action override → initiative override → workspace default
+- **Inline editing** — title, description, status, and approval level all editable directly on the initiative page
+- **Approvals queue** — cross-initiative pending actions with risk filtering, batch approve/reject, and vault unlock
+- New API routes: `/api/workspaces`, `/api/initiatives`, `/api/actions`
+- New components: WorkspaceSwitcher, AutonomySelector (colored shield buttons), GettingStartedCard
+
+### 2. Real-Time Agent Streaming
 
 See what your agents are doing **live**, not after the fact.
 
@@ -63,7 +75,7 @@ Run agents on either **Claude Code** or **OpenAI Codex CLI**.
 - The daemon auto-detects the correct binary (`claude` or `codex`) and spawns with appropriate flags
 - Codex output is normalized to the same JSONL stream format for consistent live console display
 
-### 4. General-Purpose Rebrand
+### 5. General-Purpose Rebrand
 
 Renamed from founder/startup-specific terminology to general-purpose labels:
 
@@ -75,8 +87,9 @@ Renamed from founder/startup-specific terminology to general-purpose labels:
 | Brain Dump | Quick Capture |
 | Autopilot | Automation |
 | Crew | Agents |
-| Field Ops | Integrations |
+| Field Ops | Integrations / Actions |
 | Comms | Messages |
+| Activity | Logbook |
 
 All route paths (`/ventures`, `/brain-dump`, etc.) are preserved for backwards compatibility.
 
@@ -130,7 +143,8 @@ Agents don't just manage tasks -- they execute real-world actions. Post to X, se
 ### Core
 - **Eisenhower Matrix** -- Prioritize by importance and urgency with drag-and-drop between quadrants
 - **Kanban Board** -- Track work through Not Started, In Progress, and Done columns
-- **Goal Hierarchy** -- Long-term goals with milestone tracking, progress bars, and linked tasks
+- **Workspaces** -- Isolated data contexts for multi-client or multi-project use; switch via header
+- **Goal → Initiative hierarchy** -- Long-term goals broken into initiatives; each initiative owns Tasks + Actions
 - **Quick Capture** -- Capture ideas instantly, triage into tasks later
 - **Agent Registry** -- 6 built-in agents + create unlimited custom agents with unique instructions
 - **Skills Library** -- Define reusable knowledge modules and inject them into agent prompts
@@ -286,30 +300,40 @@ Each agent's backend (Claude Code or Codex CLI) is configurable from the Agents 
 ## Architecture
 
 ```
-mission-control/                 Next.js 15 web app
-mission-control/data/            JSON data files (shared source of truth)
-  tasks.json                     Tasks with Eisenhower + Kanban + agent assignment
-  agents.json                    Agent registry (profiles, instructions, backend)
-  agent-streams/                 Live JSONL stream files per active run
-  goals.json                     Long-term goals and milestones
-  projects.json                  Projects with team members
-  inbox.json                     Agent <-> human messages
-  decisions.json                 Pending decisions requiring human judgment
-  activity-log.json              Timestamped event log
-  ai-context.md                  Generated ~650-token workspace snapshot
-  daemon-config.json             Daemon config (schedule, concurrency)
-  active-runs.json               Live execution tracking (status, PIDs, streams)
-  field-ops/                     Integrations data (services, vault, safety)
-mission-control/scripts/daemon/  Agent daemon + execution scripts
-  runner.ts                      CLI runner (Claude Code + Codex CLI)
-  run-task.ts                    Task execution with streaming
-  run-task-comment.ts            @-mention comment handler
-mission-control/src/             Next.js app source
-  components/agent-console.tsx   Live streaming console component
-  components/mention-textarea.tsx @-mention autocomplete + highlighting
-  hooks/use-agent-stream.ts      SSE hook for live agent output
-  app/api/runs/stream/           SSE endpoint for agent streaming
-  app/api/tasks/[id]/comment/    Comment + @-mention API
+mission-control/                       Next.js 15 web app
+mission-control/data/
+  workspaces.json                      Workspace registry (id, name, color, autonomy default)
+  workspaces/{id}/                     Per-workspace isolated data
+    tasks.json                         Tasks with Eisenhower + Kanban + agent assignment
+    initiatives.json                   Initiatives (group Tasks + Actions under a goal)
+    actions.json                       Actions: real-world side-effects with approval workflow
+    agents.json                        Agent registry (profiles, instructions, backend)
+    goals.json                         Long-term goals
+    projects.json                      Projects
+    inbox.json                         Agent <-> human messages
+    decisions.json                     Pending decisions requiring human judgment
+    activity-log.json                  Timestamped event log
+    daemon-config.json                 Per-workspace daemon config (polling, concurrency)
+    field-ops/                         Integrations data (services, vault, safety)
+  agent-streams/                       Live JSONL stream files per active run
+  ai-context.md                        Generated ~650-token workspace snapshot
+mission-control/scripts/daemon/        Agent daemon + execution scripts
+  runner.ts                            CLI runner (Claude Code + Codex CLI)
+  run-task.ts                          Task execution with streaming
+  run-task-comment.ts                  @-mention comment handler
+mission-control/src/
+  app/initiatives/                     Initiative list + detail pages
+  app/approvals/                       Cross-initiative pending actions queue
+  app/actions/activity/                Global actions activity log
+  app/settings/                        Workspace settings + autopilot config
+  app/api/workspaces/                  Workspace CRUD
+  app/api/initiatives/                 Initiative CRUD (workspace-scoped)
+  app/api/actions/                     Action CRUD (workspace-scoped)
+  components/autonomy-selector.tsx     Shield button autonomy toggle
+  components/workspace-switcher.tsx    Workspace dropdown
+  lib/action-adapter.ts                Maps Action → FieldTask for FieldTaskCard
+  lib/autonomy.ts                      3-tier autonomy cascade resolver
+  lib/workspace-context.ts             Reads x-workspace-id header in API routes
 ```
 
 ### Design Decisions
