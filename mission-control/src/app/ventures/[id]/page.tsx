@@ -100,7 +100,7 @@ export default function ProjectDetailPage() {
   if (!project) {
     return (
       <div className="space-y-4">
-        <BreadcrumbNav items={[{ label: "Ventures", href: "/ventures" }, { label: "Not Found" }]} />
+        <BreadcrumbNav items={[{ label: "Projects", href: "/ventures" }, { label: "Not Found" }]} />
         <p className="text-muted-foreground">Project not found.</p>
       </div>
     );
@@ -171,7 +171,7 @@ export default function ProjectDetailPage() {
 
   return (
     <div className="space-y-4">
-      <BreadcrumbNav items={[{ label: "Ventures", href: "/ventures" }, { label: project.name }]} />
+      <BreadcrumbNav items={[{ label: "Projects", href: "/ventures" }, { label: project.name }]} />
 
       {/* Project Header */}
       <div className="flex items-center justify-between">

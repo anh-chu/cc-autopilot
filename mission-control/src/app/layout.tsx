@@ -8,8 +8,8 @@ import { Toaster } from "sonner";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "Mission Control",
-  description: "The command center for humans supervising AI agents — Eisenhower matrix, Kanban, objectives, and agent deployment",
+  title: "Task Control",
+  description: "AI agent orchestration hub — Eisenhower matrix, Kanban, objectives, and multi-agent task execution",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

@@ -268,6 +268,7 @@ export const activityEventCreateSchema = z.object({
 // ─── Agent schemas ───────────────────────────────────────────────────────────
 
 const agentStatusEnum = z.enum(["active", "inactive"]);
+const agentBackendEnum = z.enum(["claude", "codex"]);
 
 export const agentCreateSchema = z.object({
   id: z.string().min(1, "ID is required").max(50).regex(/^[a-z0-9-]+$/, "ID must be lowercase alphanumeric with hyphens"),
@@ -278,6 +279,7 @@ export const agentCreateSchema = z.object({
   capabilities: z.array(z.string().max(100)).max(50).optional().default([]),
   skillIds: z.array(z.string().max(100)).max(50).optional().default([]),
   status: agentStatusEnum.optional().default("active"),
+  backend: agentBackendEnum.optional().default("claude"),
 });
 
 export const agentUpdateSchema = z.object({
@@ -289,6 +291,7 @@ export const agentUpdateSchema = z.object({
   capabilities: z.array(z.string().max(100)).max(50).optional(),
   skillIds: z.array(z.string().max(100)).max(50).optional(),
   status: agentStatusEnum.optional(),
+  backend: agentBackendEnum.optional(),
 });
 
 // ─── Skill schemas ──────────────────────────────────────────────────────────

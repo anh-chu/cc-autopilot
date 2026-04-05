@@ -37,7 +37,7 @@ const eventTypeLabels: Record<EventType, string> = {
   message_sent: "Message Sent",
   decision_requested: "Decision Requested",
   decision_answered: "Decision Answered",
-  brain_dump_triaged: "Brain Dump Processed",
+  brain_dump_triaged: "Quick Capture Processed",
   milestone_completed: "Milestone Completed",
   agent_checkin: "Agent Check-in",
   field_task_completed: "Field Task Completed",

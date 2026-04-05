@@ -22,7 +22,7 @@ export function BreadcrumbNav({ items, className }: BreadcrumbNavProps) {
         className="flex items-center gap-1.5 text-muted-foreground hover:text-foreground transition-colors"
       >
         <LayoutDashboard className="h-4 w-4" />
-        <span>Command Center</span>
+        <span>Dashboard</span>
       </Link>
       {items.map((item, i) => (
         <span key={i} className="flex items-center gap-1.5">

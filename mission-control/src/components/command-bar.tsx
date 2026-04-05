@@ -121,7 +121,7 @@ export function CommandBar({ onCapture, sidebarOpen, onToggleSidebar, isMobile =
         "relative flex flex-1 items-center gap-2 rounded-lg border bg-card px-3 transition-all",
         focused ? "border-primary ring-1 ring-primary/30" : "border-border"
       )}>
-        <Tip content="Capture a brain dump">
+        <Tip content="Quick capture">
           <button
             type="button"
             onClick={() => inputRef.current?.focus()}
@@ -143,7 +143,7 @@ export function CommandBar({ onCapture, sidebarOpen, onToggleSidebar, isMobile =
             }, 150);
           }}
           onKeyDown={handleKeyDown}
-          placeholder="Brain dump — capture anything"
+          placeholder="Quick capture — capture anything"
           className="h-9 flex-1 border-0 bg-transparent px-0 shadow-none focus-visible:ring-0 placeholder:text-muted-foreground/60"
         />
         {value.trim() && (

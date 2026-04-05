@@ -133,7 +133,7 @@ export default function CrewPage() {
   if (loading) {
     return (
       <div className="space-y-6">
-        <BreadcrumbNav items={[{ label: "Crew" }]} />
+        <BreadcrumbNav items={[{ label: "Agents" }]} />
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           <AgentCardSkeleton />
           <AgentCardSkeleton />
@@ -146,7 +146,7 @@ export default function CrewPage() {
   if (agentsError) {
     return (
       <div className="space-y-6">
-        <BreadcrumbNav items={[{ label: "Crew" }]} />
+        <BreadcrumbNav items={[{ label: "Agents" }]} />
         <ErrorState message={agentsError} onRetry={refetch} />
       </div>
     );
@@ -154,11 +154,11 @@ export default function CrewPage() {
 
   return (
     <div className="space-y-6">
-      <BreadcrumbNav items={[{ label: "Crew" }]} />
+      <BreadcrumbNav items={[{ label: "Agents" }]} />
 
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-xl font-bold">Crew</h1>
+          <h1 className="text-xl font-bold">Agents</h1>
           <p className="text-sm text-muted-foreground mt-0.5">
             {agents.length} agent{agents.length !== 1 ? "s" : ""} registered
           </p>

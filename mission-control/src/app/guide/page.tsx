@@ -21,9 +21,9 @@ const sections = [
   { id: "getting-started", label: "Getting Started", icon: Rocket },
   { id: "tasks", label: "Task Management", icon: CheckSquare },
   { id: "projects", label: "Projects & Goals", icon: Target },
-  { id: "brain-dump", label: "Brain Dump", icon: Lightbulb },
+  { id: "brain-dump", label: "Quick Capture", icon: Lightbulb },
   { id: "agents", label: "AI Agents", icon: Bot },
-  { id: "field-ops", label: "Field Ops", icon: Radio },
+  { id: "field-ops", label: "Integrations", icon: Radio },
   { id: "vault-security", label: "Vault Security", icon: Shield },
   { id: "data-management", label: "Data Management", icon: Database },
   { id: "shortcuts", label: "Keyboard Shortcuts", icon: Keyboard },
@@ -75,7 +75,7 @@ export default function GuidePage() {
           <ul className="list-disc pl-5 space-y-1.5 text-muted-foreground">
             <li><strong className="text-foreground">Local-first architecture</strong> -- all data stored as JSON files on your machine, no external databases</li>
             <li><strong className="text-foreground">AI-powered task management</strong> -- AI agents read and write data files directly, enabling autonomous task execution</li>
-            <li><strong className="text-foreground">Solo entrepreneur focus</strong> -- Eisenhower matrix prioritization, Kanban workflow, goal hierarchy, and brain dump capture</li>
+            <li><strong className="text-foreground">Solo entrepreneur focus</strong> -- Eisenhower matrix prioritization, Kanban workflow, goal hierarchy, and quick capture</li>
             <li><strong className="text-foreground">Multi-agent orchestration</strong> -- delegate work to specialized AI agents (Researcher, Developer, Marketer, Business Analyst)</li>
             <li><strong className="text-foreground">Field Ops</strong> -- connect to external platforms and automate real-world actions with configurable autonomy levels</li>
           </ul>
@@ -150,18 +150,18 @@ export default function GuidePage() {
         </CardContent>
       </Card>
 
-      {/* Brain Dump */}
+      {/* Quick Capture */}
       <Card id="brain-dump">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Lightbulb className="h-5 w-5 text-primary" />
-            Brain Dump
+            Quick Capture
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-2 text-sm">
           <ul className="list-disc pl-5 space-y-1.5 text-muted-foreground">
-            <li><strong className="text-foreground">Quick capture</strong> -- press <kbd className="rounded border bg-muted px-1.5 py-0.5 text-xs font-mono">Ctrl+K</kbd> to open command palette, or use the brain dump capture bar</li>
-            <li><strong className="text-foreground">Triage workflow</strong> -- unprocessed entries appear in the brain dump view for sorting</li>
+            <li><strong className="text-foreground">Quick capture</strong> -- press <kbd className="rounded border bg-muted px-1.5 py-0.5 text-xs font-mono">Ctrl+K</kbd> to open command palette, or use the capture bar</li>
+            <li><strong className="text-foreground">Triage workflow</strong> -- unprocessed entries appear in the Quick Capture view for sorting</li>
             <li><strong className="text-foreground">Convert to task</strong> -- promote an idea into a full task with priority, project, and assignment</li>
             <li><strong className="text-foreground">Archive</strong> -- mark as processed without creating a task</li>
             <li>Keep entries short; elaboration goes in the task description after conversion</li>
@@ -315,7 +315,7 @@ export default function GuidePage() {
         <CardContent className="space-y-2 text-sm">
           <ul className="list-disc pl-5 space-y-1.5 text-muted-foreground">
             <li>
-              <kbd className="rounded border bg-muted px-1.5 py-0.5 text-xs font-mono">Ctrl+K</kbd> -- open the command palette (search, navigation, quick brain dump capture)
+              <kbd className="rounded border bg-muted px-1.5 py-0.5 text-xs font-mono">Ctrl+K</kbd> -- open the command palette (search, navigation, quick capture)
             </li>
             <li>
               <kbd className="rounded border bg-muted px-1.5 py-0.5 text-xs font-mono">?</kbd> -- show keyboard shortcuts overlay
@@ -324,7 +324,7 @@ export default function GuidePage() {
               <kbd className="rounded border bg-muted px-1.5 py-0.5 text-xs font-mono">Ctrl+Click</kbd> -- multi-select tasks on the Status Board
             </li>
             <li>
-              Brain dump capture bar is always accessible at the top of the Brain Dump page
+              Capture bar is always accessible at the top of the Quick Capture page
             </li>
           </ul>
         </CardContent>

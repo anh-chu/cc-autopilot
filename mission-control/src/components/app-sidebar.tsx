@@ -45,12 +45,12 @@ import { SidebarFooter } from "@/components/sidebar-footer";
 import type { AgentDefinition } from "@/lib/types";
 
 const mainLinks = [
-  { href: "/", label: "Command Center", icon: LayoutDashboard },
+  { href: "/", label: "Dashboard", icon: LayoutDashboard },
   { href: "/objectives", label: "Objectives", icon: Crosshair },
-  { href: "/ventures", label: "Ventures", icon: Sparkles },
-  { href: "/brain-dump", label: "Brain Dump", icon: Lightbulb },
+  { href: "/ventures", label: "Projects", icon: Sparkles },
+  { href: "/brain-dump", label: "Quick Capture", icon: Lightbulb },
   { href: "/checkpoints", label: "Checkpoints", icon: Flag },
-  { href: "/autopilot", label: "Autopilot", icon: Zap },
+  { href: "/autopilot", label: "Automation", icon: Zap },
   { href: "/guide", label: "Guide", icon: BookOpen },
 ];
 
@@ -112,7 +112,7 @@ export function AppSidebar({ collapsed, unreadInbox = 0, pendingDecisions = 0, p
         >
           {/* Mobile close button */}
           <div className="flex h-14 items-center justify-between border-b px-4">
-            <span className="text-sm font-semibold">Mission Control</span>
+            <span className="text-sm font-semibold">Task Control</span>
             <Button variant="ghost" size="icon" onClick={onClose} className="shrink-0" aria-label="Close sidebar">
               <X className="h-5 w-5" />
             </Button>
@@ -175,7 +175,7 @@ export function AppSidebar({ collapsed, unreadInbox = 0, pendingDecisions = 0, p
             <Separator className="mx-2 my-2" />
             <div className="px-3 pb-1">
               <p className="text-xs font-semibold uppercase tracking-wider text-sidebar-foreground/50">
-                Field Ops
+                Integrations
               </p>
             </div>
             <nav className="space-y-0.5 px-2">
@@ -210,7 +210,7 @@ export function AppSidebar({ collapsed, unreadInbox = 0, pendingDecisions = 0, p
             <Separator className="mx-2 my-2" />
             <div className="px-3 pb-1">
               <p className="text-xs font-semibold uppercase tracking-wider text-sidebar-foreground/50">
-                Comms
+                Messages
               </p>
             </div>
             <nav className="space-y-0.5 px-2">
@@ -245,7 +245,7 @@ export function AppSidebar({ collapsed, unreadInbox = 0, pendingDecisions = 0, p
             <Separator className="mx-2 my-2" />
             <div className="px-3 pb-1">
               <p className="text-xs font-semibold uppercase tracking-wider text-sidebar-foreground/50">
-                Crew
+                Agents
               </p>
             </div>
             <div className="space-y-0.5 px-2">
@@ -398,7 +398,7 @@ export function AppSidebar({ collapsed, unreadInbox = 0, pendingDecisions = 0, p
           {!collapsed && (
             <div className="px-3 pb-1">
               <p className="text-xs font-semibold uppercase tracking-wider text-sidebar-foreground/50">
-                Field Ops
+                Integrations
               </p>
             </div>
           )}
@@ -459,7 +459,7 @@ export function AppSidebar({ collapsed, unreadInbox = 0, pendingDecisions = 0, p
           {!collapsed && (
             <div className="px-3 pb-1">
               <p className="text-xs font-semibold uppercase tracking-wider text-sidebar-foreground/50">
-                Comms
+                Messages
               </p>
             </div>
           )}
@@ -520,7 +520,7 @@ export function AppSidebar({ collapsed, unreadInbox = 0, pendingDecisions = 0, p
           {!collapsed && (
             <div className="px-3 pb-1">
               <p className="text-xs font-semibold uppercase tracking-wider text-sidebar-foreground/50">
-                Crew
+                Agents
               </p>
             </div>
           )}

@@ -8,7 +8,6 @@ import {
 import { Button } from "@/components/ui/button";
 import { TaskForm, type TaskFormData } from "@/components/task-form";
 import { Badge } from "@/components/ui/badge";
-import { Textarea } from "@/components/ui/textarea";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -20,14 +19,16 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
-import type { Task, Project, Goal, AgentRole, TaskComment, FieldTask } from "@/lib/types";
+import type { Task, Project, Goal, AgentRole, FieldTask } from "@/lib/types";
 import { getQuadrant } from "@/lib/types";
 import { useActivityLog, useInbox, useAgents, useDecisions } from "@/hooks/use-data";
 import { getAgentIcon } from "@/lib/agent-icons";
 import { ConfirmDialog } from "@/components/confirm-dialog";
 import { Tip } from "@/components/ui/tip";
-import { cn } from "@/lib/utils";
+import { cn, parseAgentMentions } from "@/lib/utils";
 import { toast } from "sonner";
+import { MentionTextarea, CommentContent } from "@/components/mention-textarea";
+import { apiFetch } from "@/lib/api-client";
 
 const quadrantLabels: Record<string, { label: string; color: string }> = {
   do: { label: "DO", color: "bg-quadrant-do/20 text-quadrant-do border-quadrant-do/30" },
@@ -52,6 +53,7 @@ export function TaskDetailPanel({ task, projects, goals, allTasks, onUpdate, onD
   const { agents } = useAgents();
   const { decisions } = useDecisions();
   const [commentText, setCommentText] = useState("");
+  const mentionedAgentIds = parseAgentMentions(commentText);
   const [timelineOpen, setTimelineOpen] = useState(false);
   const [commentsOpen, setCommentsOpen] = useState(true);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
@@ -148,26 +150,31 @@ export function TaskDetailPanel({ task, projects, goals, allTasks, onUpdate, onD
     const trimmed = commentText.trim();
     if (!trimmed) return;
 
-    const newComment: TaskComment = {
-      id: `cmt_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`,
-      author: "me",
-      content: trimmed,
-      createdAt: new Date().toISOString(),
-    };
-    const existingComments = task.comments ?? [];
     try {
-      await fetch("/api/tasks", {
-        method: "PUT",
+      const res = await apiFetch(`/api/tasks/${task.id}/comment`, {
+        method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          id: task.id,
-          comments: [...existingComments, newComment],
-        }),
+        body: JSON.stringify({ content: trimmed, author: "me" }),
       });
+
+      if (!res.ok) {
+        const data = await res.json();
+        toast.error(data.error ?? "Failed to add comment");
+        return;
+      }
+
+      const data = await res.json();
       // Optimistically update the local task reference
-      task.comments = [...existingComments, newComment];
+      if (!Array.isArray(task.comments)) task.comments = [];
+      task.comments.push(data.comment);
       setCommentText("");
-      toast.success("Comment added");
+
+      const mentions = data.mentionedAgents as string[];
+      if (mentions.length > 0) {
+        toast.success(`Comment sent — @${mentions.join(", @")} notified`);
+      } else {
+        toast.success("Comment added");
+      }
     } catch {
       toast.error("Failed to add comment");
     }
@@ -410,21 +417,31 @@ export function TaskDetailPanel({ task, projects, goals, allTasks, onUpdate, onD
                   {comments.map((comment) => {
                     const authorAgent = agents.find((a) => a.id === comment.author);
                     const AuthorIcon = comment.author === "system" ? Activity : getAgentIcon(comment.author, authorAgent?.icon);
+                    const isAgent = comment.author !== "me" && comment.author !== "system";
                     return (
-                      <div key={comment.id} className="flex gap-2">
-                        <div className="h-6 w-6 rounded-full bg-muted flex items-center justify-center shrink-0 mt-0.5">
-                          <AuthorIcon className="h-3 w-3 text-muted-foreground" />
+                      <div
+                        key={comment.id}
+                        className={cn(
+                          "flex gap-2",
+                          isAgent && "pl-2 border-l-2 border-blue-500/30"
+                        )}
+                      >
+                        <div className={cn(
+                          "h-6 w-6 rounded-full flex items-center justify-center shrink-0 mt-0.5",
+                          isAgent ? "bg-blue-500/10" : "bg-muted"
+                        )}>
+                          <AuthorIcon className={cn("h-3 w-3", isAgent ? "text-blue-400" : "text-muted-foreground")} />
                         </div>
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-2">
-                            <span className="text-xs font-medium">
+                            <span className={cn("text-xs font-medium", isAgent && "text-blue-400")}>
                               {comment.author === "system" ? "System" : (authorAgent?.name ?? comment.author)}
                             </span>
                             <span className="text-[10px] text-muted-foreground">
                               {new Date(comment.createdAt).toLocaleDateString()} {new Date(comment.createdAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
                             </span>
                           </div>
-                          <p className="text-xs text-muted-foreground mt-0.5 whitespace-pre-wrap">{comment.content}</p>
+                          <CommentContent content={comment.content} />
                         </div>
                       </div>
                     );
@@ -434,28 +451,25 @@ export function TaskDetailPanel({ task, projects, goals, allTasks, onUpdate, onD
                 <p className="text-xs text-muted-foreground py-1">No comments yet</p>
               )}
 
-              {/* Add comment */}
+              {/* Add comment with @-mention support */}
               <div className="flex gap-2">
-                <Textarea
+                <MentionTextarea
                   value={commentText}
-                  onChange={(e) => setCommentText(e.target.value)}
-                  placeholder="Add a comment..."
-                  className="min-h-[60px] text-xs resize-none"
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) {
-                      e.preventDefault();
-                      handleAddComment();
-                    }
-                  }}
+                  onChange={setCommentText}
+                  agents={agents}
+                  onSubmit={handleAddComment}
                 />
-                <Tip content="Post comment">
+                <Tip content={mentionedAgentIds.length > 0 ? `Send to @${mentionedAgentIds.join(", @")}` : "Post comment"}>
                   <Button
                     size="icon"
                     variant="ghost"
-                    className="shrink-0 self-end"
+                    className={cn(
+                      "shrink-0 self-end",
+                      mentionedAgentIds.length > 0 && "text-blue-400 hover:text-blue-500"
+                    )}
                     onClick={handleAddComment}
                     disabled={!commentText.trim()}
-                    aria-label="Send comment"
+                    aria-label={mentionedAgentIds.length > 0 ? `Send to @${mentionedAgentIds.join(", @")}` : "Send comment"}
                   >
                     <Send className="h-4 w-4" />
                   </Button>

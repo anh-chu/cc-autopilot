@@ -94,10 +94,10 @@ export function enforcePromptLimit(prompt: string): string {
 
 // ─── Spawn Safety ────────────────────────────────────────────────────────────
 
-const ALLOWED_BINARIES = ["claude", "claude.cmd", "claude.exe"];
+const ALLOWED_BINARIES = ["claude", "claude.cmd", "claude.exe", "codex", "codex.cmd", "codex.exe"];
 
 /**
- * Validate that only the Claude binary is being spawned.
+ * Validate that only approved CLI binaries are being spawned.
  * Prevents arbitrary command execution.
  */
 export function validateBinary(binary: string): boolean {

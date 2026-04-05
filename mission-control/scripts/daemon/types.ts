@@ -52,6 +52,8 @@ export interface AgentSession {
   startedAt: string;
   status: SessionStatus;
   retryCount: number;
+  backend?: AgentBackend;
+  streamFile?: string | null;
 }
 
 export interface SessionHistoryEntry {
@@ -101,6 +103,8 @@ export interface DaemonStatus {
 
 // ─── Runner Types ────────────────────────────────────────────────────────────
 
+export type AgentBackend = "claude" | "codex";
+
 export interface SpawnOptions {
   prompt: string;
   maxTurns: number;
@@ -108,7 +112,9 @@ export interface SpawnOptions {
   skipPermissions: boolean;
   allowedTools?: string[];
   agentTeams?: boolean;
+  backend?: AgentBackend;
   cwd: string;
+  streamFile?: string;
   onSpawned?: (pid: number) => void;
 }
 

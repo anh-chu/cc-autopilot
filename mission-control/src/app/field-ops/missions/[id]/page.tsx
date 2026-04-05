@@ -548,7 +548,7 @@ export default function MissionDetailPage() {
     return (
       <div className="space-y-6">
         <BreadcrumbNav items={[
-          { label: "Field Ops", href: "/field-ops" },
+          { label: "Integrations", href: "/field-ops" },
           { label: "Missions", href: "/field-ops/missions" },
           { label: "Not Found" },
         ]} />
@@ -574,7 +574,7 @@ export default function MissionDetailPage() {
   return (
     <div className="space-y-6">
       <BreadcrumbNav items={[
-        { label: "Field Ops", href: "/field-ops" },
+        { label: "Integrations", href: "/field-ops" },
         { label: "Missions", href: "/field-ops/missions" },
         { label: mission.title },
       ]} />

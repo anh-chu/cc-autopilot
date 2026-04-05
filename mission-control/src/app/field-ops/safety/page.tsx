@@ -344,7 +344,7 @@ export default function SafetyPage() {
       <div className="space-y-6">
         <BreadcrumbNav
           items={[
-            { label: "Field Ops", href: "/field-ops" },
+            { label: "Integrations", href: "/field-ops" },
             { label: "Safety" },
           ]}
         />
@@ -367,7 +367,7 @@ export default function SafetyPage() {
     <div className="space-y-6 pb-24">
       <BreadcrumbNav
         items={[
-          { label: "Field Ops", href: "/field-ops" },
+          { label: "Integrations", href: "/field-ops" },
           { label: "Safety" },
         ]}
       />

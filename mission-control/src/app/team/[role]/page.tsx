@@ -63,7 +63,7 @@ export default function TeamMemberPage() {
   if (loading) {
     return (
       <div className="space-y-6">
-        <BreadcrumbNav items={[{ label: "Crew", href: "/crew" }, { label: roleId }]} />
+        <BreadcrumbNav items={[{ label: "Agents", href: "/crew" }, { label: roleId }]} />
         <div className="grid gap-3 sm:grid-cols-2">
           <TaskCardSkeleton />
           <TaskCardSkeleton />
@@ -76,7 +76,7 @@ export default function TeamMemberPage() {
   if (agentsError) {
     return (
       <div className="space-y-6">
-        <BreadcrumbNav items={[{ label: "Crew", href: "/crew" }, { label: roleId }]} />
+        <BreadcrumbNav items={[{ label: "Agents", href: "/crew" }, { label: roleId }]} />
         <ErrorState message={agentsError} onRetry={refetch} />
       </div>
     );
@@ -85,7 +85,7 @@ export default function TeamMemberPage() {
   if (!agent) {
     return (
       <div className="space-y-6">
-        <BreadcrumbNav items={[{ label: "Crew", href: "/crew" }, { label: "Not Found" }]} />
+        <BreadcrumbNav items={[{ label: "Agents", href: "/crew" }, { label: "Not Found" }]} />
         <p className="text-muted-foreground">Agent &ldquo;{roleId}&rdquo; not found.</p>
       </div>
     );
@@ -159,7 +159,7 @@ export default function TeamMemberPage() {
 
   return (
     <div className="space-y-6">
-      <BreadcrumbNav items={[{ label: "Crew", href: "/crew" }, { label: agent.name }]} />
+      <BreadcrumbNav items={[{ label: "Agents", href: "/crew" }, { label: agent.name }]} />
 
       {/* Agent Profile Header */}
       <div className="flex items-start gap-4">

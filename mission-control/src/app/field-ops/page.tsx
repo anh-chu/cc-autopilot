@@ -315,7 +315,7 @@ export default function FieldOpsPage() {
   if (loading) {
     return (
       <div className="space-y-6">
-        <BreadcrumbNav items={[{ label: "Field Ops" }]} />
+        <BreadcrumbNav items={[{ label: "Integrations" }]} />
         <div className="flex items-center justify-between">
           <Skeleton className="h-8 w-48" />
           <Skeleton className="h-9 w-32" />
@@ -337,13 +337,13 @@ export default function FieldOpsPage() {
 
   return (
     <div className="space-y-6">
-      <BreadcrumbNav items={[{ label: "Field Ops" }]} />
+      <BreadcrumbNav items={[{ label: "Integrations" }]} />
 
       {/* Header Row */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
           <Radio className="h-6 w-6" />
-          <h1 className="text-2xl font-bold">Field Ops</h1>
+          <h1 className="text-2xl font-bold">Integrations</h1>
         </div>
         <Button size="sm" className="gap-1.5" onClick={() => setMissionFormOpen(true)}>
           <Plus className="h-4 w-4" />
@@ -388,8 +388,8 @@ export default function FieldOpsPage() {
 
       {/* Getting Started */}
       <GettingStartedCard
-        title="Welcome to Field Ops"
-        description="Field Ops lets your AI agents take real actions — posting to social media, sending transactions, calling APIs — with your approval at every step. Start by connecting a service, then create a mission to organize your tasks."
+        title="Welcome to Integrations"
+        description="Integrations lets your AI agents take real actions — posting to social media, sending transactions, calling APIs — with your approval at every step. Start by connecting a service, then create a mission to organize your tasks."
         steps={[
           "Choose an autonomy level above (start with Manual Approval)",
           "Go to Services to browse and connect integrations",

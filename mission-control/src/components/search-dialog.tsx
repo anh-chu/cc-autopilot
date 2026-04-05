@@ -147,9 +147,9 @@ export function SearchDialog() {
 
         {sortedTasks.length > 0 && sortedProjects.length > 0 && <CommandSeparator />}
 
-        {/* Ventures (Projects) */}
+        {/* Projects */}
         {sortedProjects.length > 0 && (
-          <CommandGroup heading="Ventures">
+          <CommandGroup heading="Projects">
             {sortedProjects.map((project) => (
               <CommandItem
                 key={project.id}
@@ -210,9 +210,9 @@ export function SearchDialog() {
 
         {sortedGoals.length > 0 && sortedBrainDump.length > 0 && <CommandSeparator />}
 
-        {/* Brain Dump */}
+        {/* Quick Capture */}
         {sortedBrainDump.length > 0 && (
-          <CommandGroup heading="Brain Dump">
+          <CommandGroup heading="Quick Capture">
             {sortedBrainDump.map((entry) => (
               <CommandItem
                 key={entry.id}

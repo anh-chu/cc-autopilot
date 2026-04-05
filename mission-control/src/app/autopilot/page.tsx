@@ -1,8 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import Link from "next/link";
 import { useDaemon } from "@/hooks/use-daemon";
+import { useActiveRuns } from "@/hooks/use-active-runs";
+import { AgentConsole } from "@/components/agent-console";
 import { BreadcrumbNav } from "@/components/breadcrumb-nav";
 import { ErrorState } from "@/components/error-state";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -70,6 +72,19 @@ function cronToHuman(cron: string): string {
 
 export default function AutopilotPage() {
   const { status, config, isRunning, isLoading, error, start, stop, updateConfig } = useDaemon();
+  const { runs, stopTask } = useActiveRuns();
+  const [expandedSessionId, setExpandedSessionId] = useState<string | null>(null);
+
+  // Map task IDs to active run IDs for the live console
+  const taskToRunId = useMemo(() => {
+    const map = new Map<string, string>();
+    for (const run of runs) {
+      if (run.status === "running" && run.taskId && run.streamFile) {
+        map.set(run.taskId, run.id);
+      }
+    }
+    return map;
+  }, [runs]);
 
   // Daemon start password dialog
   const [showStartDialog, setShowStartDialog] = useState(false);
@@ -191,7 +206,7 @@ export default function AutopilotPage() {
   if (isLoading) {
     return (
       <div className="space-y-6">
-        <BreadcrumbNav items={[{ label: "Autopilot" }]} />
+        <BreadcrumbNav items={[{ label: "Automation" }]} />
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
           {Array.from({ length: 4 }).map((_, i) => (
             <Skeleton key={i} className="h-28" />
@@ -205,7 +220,7 @@ export default function AutopilotPage() {
   if (error) {
     return (
       <div className="space-y-6">
-        <BreadcrumbNav items={[{ label: "Autopilot" }]} />
+        <BreadcrumbNav items={[{ label: "Automation" }]} />
         <ErrorState message={error} onRetry={() => window.location.reload()} />
       </div>
     );
@@ -217,13 +232,13 @@ export default function AutopilotPage() {
 
   return (
     <div className="space-y-6">
-      <BreadcrumbNav items={[{ label: "Autopilot" }]} />
+      <BreadcrumbNav items={[{ label: "Automation" }]} />
 
       {/* Status Bar */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
           <Rocket className="h-6 w-6" />
-          <h2 className="text-2xl font-bold">Autopilot</h2>
+          <h2 className="text-2xl font-bold">Automation</h2>
           <Badge variant={isRunning ? "default" : "secondary"} className={isRunning ? "bg-green-600" : ""}>
             {isRunning ? "Running" : "Stopped"}
           </Badge>
@@ -353,25 +368,55 @@ export default function AutopilotPage() {
           </CardHeader>
           <CardContent>
             <div className="space-y-3">
-              {status.activeSessions.map((session) => (
-                <div key={session.id} className="flex items-center justify-between rounded-lg border p-3">
-                  <div className="flex items-center gap-3">
-                    <div className="h-2 w-2 rounded-full bg-green-500 animate-pulse" />
-                    <div>
-                      <p className="font-medium">
-                        {session.command === "task" ? `Task: ${session.taskId}` : `/${session.command}`}
-                      </p>
-                      <p className="text-sm text-muted-foreground">
-                        Agent: {session.agentId} &middot; PID: {session.pid}
-                      </p>
+              {status.activeSessions.map((session) => {
+                const runId = session.taskId ? taskToRunId.get(session.taskId) : null;
+                const isExpanded = expandedSessionId === session.id;
+
+                return (
+                  <div key={session.id} className="rounded-lg border overflow-hidden">
+                    <div
+                      className="flex items-center justify-between p-3 cursor-pointer hover:bg-muted/30 transition-colors"
+                      onClick={() => setExpandedSessionId(isExpanded ? null : session.id)}
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className="h-2 w-2 rounded-full bg-green-500 animate-pulse" />
+                        <div>
+                          <p className="font-medium">
+                            {session.command === "task" ? `Task: ${session.taskId}` : `/${session.command}`}
+                          </p>
+                          <p className="text-sm text-muted-foreground">
+                            Agent: {session.agentId} &middot; PID: {session.pid}
+                          </p>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-3">
+                        {runId && (
+                          <Badge variant="outline" className="text-[10px] text-green-500 border-green-500/30">
+                            Live
+                          </Badge>
+                        )}
+                        <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                          <Clock className="h-4 w-4" />
+                          {formatRelativeTime(session.startedAt)}
+                        </div>
+                      </div>
                     </div>
+                    {isExpanded && runId && (
+                      <div className="border-t px-3 pb-3 pt-2">
+                        <AgentConsole
+                          runId={runId}
+                          onStop={session.taskId ? () => stopTask(session.taskId!) : undefined}
+                        />
+                      </div>
+                    )}
+                    {isExpanded && !runId && (
+                      <div className="border-t px-3 py-4 text-center text-xs text-muted-foreground">
+                        No live stream available for this session
+                      </div>
+                    )}
                   </div>
-                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                    <Clock className="h-4 w-4" />
-                    {formatRelativeTime(session.startedAt)}
-                  </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           </CardContent>
         </Card>

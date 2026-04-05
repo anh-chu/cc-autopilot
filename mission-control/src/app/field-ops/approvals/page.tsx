@@ -232,7 +232,7 @@ export default function ApprovalsPage() {
     return (
       <div className="space-y-6">
         <BreadcrumbNav items={[
-          { label: "Field Ops", href: "/field-ops" },
+          { label: "Integrations", href: "/field-ops" },
           { label: "Approvals" },
         ]} />
         <Skeleton className="h-8 w-48" />
@@ -260,7 +260,7 @@ export default function ApprovalsPage() {
   return (
     <div className="space-y-6">
       <BreadcrumbNav items={[
-        { label: "Field Ops", href: "/field-ops" },
+        { label: "Integrations", href: "/field-ops" },
         { label: "Approvals" },
       ]} />
 

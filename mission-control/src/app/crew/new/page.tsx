@@ -60,6 +60,7 @@ export default function NewAgentPage() {
     description: "",
     instructions: "",
     status: "active" as "active" | "inactive",
+    backend: "claude" as "claude" | "codex",
   });
   const [capabilities, setCapabilities] = useState<string[]>([]);
   const [capInput, setCapInput] = useState("");
@@ -112,6 +113,7 @@ export default function NewAgentPage() {
         capabilities,
         skillIds: [],
         status: form.status,
+        backend: form.backend,
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
       });
@@ -127,7 +129,7 @@ export default function NewAgentPage() {
 
   return (
     <div className="space-y-6 max-w-2xl">
-      <BreadcrumbNav items={[{ label: "Crew", href: "/crew" }, { label: "New Agent" }]} />
+      <BreadcrumbNav items={[{ label: "Agents", href: "/crew" }, { label: "New Agent" }]} />
 
       <div className="flex items-center gap-3">
         <Button variant="ghost" size="icon" onClick={() => router.back()}>
@@ -208,6 +210,34 @@ export default function NewAgentPage() {
             value={form.description}
             onChange={(e) => setForm((prev) => ({ ...prev, description: e.target.value }))}
           />
+        </div>
+
+        {/* Backend CLI */}
+        <div className="space-y-2">
+          <Label>Backend CLI</Label>
+          <div className="flex gap-2">
+            <Button
+              type="button"
+              variant={form.backend === "claude" ? "default" : "outline"}
+              size="sm"
+              onClick={() => setForm((prev) => ({ ...prev, backend: "claude" as const }))}
+            >
+              Claude Code
+            </Button>
+            <Button
+              type="button"
+              variant={form.backend === "codex" ? "default" : "outline"}
+              size="sm"
+              onClick={() => setForm((prev) => ({ ...prev, backend: "codex" as const }))}
+            >
+              Codex CLI
+            </Button>
+          </div>
+          <p className="text-xs text-muted-foreground">
+            {form.backend === "codex"
+              ? "Uses OpenAI Codex CLI for task execution"
+              : "Uses Claude Code CLI for task execution (default)"}
+          </p>
         </div>
 
         {/* Instructions (system prompt) */}

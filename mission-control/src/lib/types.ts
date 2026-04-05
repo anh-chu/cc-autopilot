@@ -21,6 +21,7 @@ export const AGENT_ROLES: { id: BuiltInAgentRole; label: string; icon: string; d
 // ─── Agent Definition (dynamic registry) ──────────────────────────────────────
 
 export type AgentStatus = "active" | "inactive";
+export type AgentBackend = "claude" | "codex";
 
 export interface AgentDefinition {
   id: string;
@@ -31,6 +32,7 @@ export interface AgentDefinition {
   capabilities: string[];
   skillIds: string[];
   status: AgentStatus;
+  backend?: AgentBackend;
   createdAt: string;
   updatedAt: string;
 }
@@ -76,7 +78,7 @@ export const SKILLS: SkillInfo[] = [
     command: "/daily-plan",
     label: "Daily Plan",
     description: "Create daily plan",
-    longDescription: "Creates a focused daily plan with top priorities, brain dump triage, pending decisions, and time blocks.",
+    longDescription: "Creates a focused daily plan with top priorities, quick capture triage, pending decisions, and time blocks.",
   },
   {
     command: "/weekly-review",
@@ -336,6 +338,7 @@ export interface ActiveRun {
   costUsd: number | null;
   numTurns: number | null;
   continuationIndex: number;
+  streamFile?: string | null;
 }
 
 export interface ActiveRunsFile {

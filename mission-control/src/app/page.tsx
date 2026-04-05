@@ -271,9 +271,9 @@ export default function CommandCenterPage() {
               <Rocket className="h-8 w-8 text-primary" />
             </div>
             <div>
-              <h1 className="text-2xl font-bold">Welcome to Mission Control</h1>
+              <h1 className="text-2xl font-bold">Welcome to Task Control</h1>
               <p className="text-muted-foreground mt-2">
-                Your command center for supervising AI agents. Create ventures, delegate tasks, and let your crew handle the rest.
+                Your hub for orchestrating AI agents. Create projects, delegate tasks, and let your agents handle the rest.
               </p>
             </div>
 
@@ -338,7 +338,7 @@ export default function CommandCenterPage() {
                 </Button>
               </Tip>
               <p className="text-xs text-muted-foreground mt-2">
-                Try Mission Control with sample projects, tasks, and agent activity
+                Try Task Control with sample projects, tasks, and agent activity
               </p>
             </div>
           </div>
@@ -365,7 +365,7 @@ export default function CommandCenterPage() {
     <div className="space-y-6">
       <BreadcrumbNav items={[]} />
 
-      {/* Mission Control Autopilot */}
+      {/* Automation */}
       <Link href="/autopilot">
         <Card className={cn(
           "cursor-pointer transition-all hover:shadow-lg hover:border-primary/30",
@@ -387,12 +387,12 @@ export default function CommandCenterPage() {
                       daemonRunning ? "bg-green-500 animate-pulse" : "bg-muted-foreground/40"
                     )} />
                     <p className="text-sm font-semibold">
-                      Mission Control Autopilot
+                      Automation
                     </p>
                   </div>
                   <p className="text-xs text-muted-foreground mt-0.5">
                     {daemonRunning
-                      ? `${daemonStatus.activeSessions.length} crew active · ${daemonStatus.stats.tasksCompleted} completed${daemonStatus.lastPollAt ? ` · Last sweep: ${formatRelativeTime(daemonStatus.lastPollAt)}` : ""}`
+                      ? `${daemonStatus.activeSessions.length} agents active · ${daemonStatus.stats.tasksCompleted} completed${daemonStatus.lastPollAt ? ` · Last poll: ${formatRelativeTime(daemonStatus.lastPollAt)}` : ""}`
                       : "Autonomous task execution is disabled"
                     }
                   </p>
@@ -808,17 +808,17 @@ export default function CommandCenterPage() {
         </section>
       )}
 
-      {/* Eisenhower + Brain Dump row */}
-      <div role="region" aria-label="Eisenhower matrix and brain dump" className="grid gap-4 lg:grid-cols-2">
+      {/* Eisenhower + Quick Capture row */}
+      <div role="region" aria-label="Eisenhower matrix and quick capture" className="grid gap-4 lg:grid-cols-2">
         <EisenhowerSummary tasks={tasks} />
 
-        {/* Recent Brain Dump */}
+        {/* Recent Quick Capture */}
         {unprocessedEntries.length > 0 && (
           <Link href="/brain-dump">
             <Card className="cursor-pointer transition-all hover:shadow-lg hover:border-primary/30 h-full">
               <CardHeader className="pb-2">
                 <CardTitle className="text-sm flex items-center justify-between">
-                  Brain Dump
+                  Quick Capture
                   <Badge variant="secondary" className="text-xs tabular-nums">
                     {unprocessedEntries.length} unprocessed
                   </Badge>

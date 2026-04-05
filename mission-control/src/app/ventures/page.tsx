@@ -72,7 +72,7 @@ export default function ProjectsPage() {
   if (loading) {
     return (
       <div className="space-y-6">
-        <BreadcrumbNav items={[{ label: "Ventures" }]} />
+        <BreadcrumbNav items={[{ label: "Projects" }]} />
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           <ProjectCardSkeleton />
           <ProjectCardSkeleton />
@@ -85,7 +85,7 @@ export default function ProjectsPage() {
   if (projectsError) {
     return (
       <div className="space-y-6">
-        <BreadcrumbNav items={[{ label: "Ventures" }]} />
+        <BreadcrumbNav items={[{ label: "Projects" }]} />
         <ErrorState message={projectsError} onRetry={refetchProjects} />
       </div>
     );
@@ -93,12 +93,12 @@ export default function ProjectsPage() {
 
   return (
     <div className="space-y-6">
-      <BreadcrumbNav items={[{ label: "Ventures" }]} />
+      <BreadcrumbNav items={[{ label: "Projects" }]} />
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <h1 className="text-xl font-bold">Ventures</h1>
+          <h1 className="text-xl font-bold">Projects</h1>
           {archivedCount > 0 && (
-            <Tip content="Toggle archived ventures">
+            <Tip content="Toggle archived projects">
               <Button
                 variant="ghost"
                 size="sm"
@@ -111,9 +111,9 @@ export default function ProjectsPage() {
             </Tip>
           )}
         </div>
-        <Tip content="Create a new venture">
+        <Tip content="Create a new project">
           <Button size="sm" onClick={() => setShowCreateProject(true)} className="gap-1.5">
-            <Plus className="h-3.5 w-3.5" /> New Venture
+            <Plus className="h-3.5 w-3.5" /> New Project
           </Button>
         </Tip>
       </div>
@@ -121,9 +121,9 @@ export default function ProjectsPage() {
       {visibleProjects.length === 0 ? (
         <EmptyState
           icon={FolderOpen}
-          title="No ventures yet"
-          description="Ventures help you organize tasks and track progress across your businesses and products."
-          actionLabel="Create a venture"
+          title="No projects yet"
+          description="Projects help you organize tasks and track progress across your businesses and products."
+          actionLabel="Create a project"
           onAction={() => setShowCreateProject(true)}
         />
       ) : (
@@ -168,8 +168,8 @@ export default function ProjectsPage() {
       <ConfirmDialog
         open={!!deletingProjectId}
         onOpenChange={(open) => { if (!open) setDeletingProjectId(null); }}
-        title="Delete venture"
-        description="This will permanently delete this venture and unlink all associated tasks. This action cannot be undone."
+        title="Delete project"
+        description="This will permanently delete this project and unlink all associated tasks. This action cannot be undone."
         confirmLabel="Delete"
         onConfirm={handleDeleteProject}
       />

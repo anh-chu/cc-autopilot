@@ -50,14 +50,14 @@ const steps: Step[] = [
   {
     type: "bullets",
     icon: Rocket,
-    title: "Welcome to Mission Control",
+    title: "Welcome to Task Control",
     description:
-      "Your AI-powered command center. Organize work, delegate to agents, and execute real actions across services.",
+      "Your AI-powered task orchestration hub. Organize work, delegate to agents, and execute real actions across services.",
     bullets: [
       "Prioritize with the Eisenhower Matrix (Do, Schedule, Delegate, Eliminate)",
       "Track progress with Kanban boards and goal milestones",
       "Delegate to specialized AI agents (Researcher, Developer, Marketer, etc.)",
-      "Execute real actions via Field Ops — social posts, transactions, API calls",
+      "Execute real actions via Integrations — social posts, transactions, API calls",
     ],
   },
   {
@@ -86,7 +86,7 @@ const steps: Step[] = [
     icon: Zap,
     title: "You're All Set!",
     description:
-      "Mission Control is ready. Here are some tips to get started.",
+      "Task Control is ready. Here are some tips to get started.",
   },
 ];
 

@@ -18,9 +18,9 @@ const links = [
   { href: "/priority-matrix", label: "Priority Matrix", icon: Grid2x2 },
   { href: "/status-board", label: "Status Board", icon: Columns3 },
   { href: "/objectives", label: "Objectives", icon: Target },
-  { href: "/brain-dump", label: "Brain Dump", icon: Lightbulb },
-  { href: "/ventures", label: "Ventures", icon: FolderOpen },
-  { href: "/autopilot", label: "Autopilot", icon: Zap },
+  { href: "/brain-dump", label: "Quick Capture", icon: Lightbulb },
+  { href: "/ventures", label: "Projects", icon: FolderOpen },
+  { href: "/autopilot", label: "Automation", icon: Zap },
 ];
 
 export function SidebarNav() {
@@ -29,7 +29,7 @@ export function SidebarNav() {
   return (
     <aside className="fixed left-0 top-0 z-30 flex h-full w-56 flex-col border-r bg-sidebar-background">
       <div className="flex h-14 items-center border-b px-4">
-        <h1 className="text-lg font-bold text-sidebar-primary">Mission Control</h1>
+        <h1 className="text-lg font-bold text-sidebar-primary">Task Control</h1>
       </div>
       <nav className="flex-1 space-y-1 p-3">
         {links.map(({ href, label, icon: Icon }) => {

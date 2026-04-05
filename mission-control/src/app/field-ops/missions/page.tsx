@@ -110,7 +110,7 @@ export default function MissionsPage() {
   return (
     <div className="space-y-6">
       <BreadcrumbNav items={[
-        { label: "Field Ops", href: "/field-ops" },
+        { label: "Integrations", href: "/field-ops" },
         { label: "Missions" },
       ]} />
 

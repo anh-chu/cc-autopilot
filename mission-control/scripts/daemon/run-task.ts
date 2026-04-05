@@ -16,25 +16,40 @@
  *   9. Prunes completed runs older than 1 hour
  */
 
-import { readFileSync, writeFileSync, existsSync } from "fs";
+import { readFileSync, writeFileSync, existsSync, unlinkSync } from "fs";
 import { execSync, spawn } from "child_process";
 import path from "path";
 import { AgentRunner, parseClaudeOutput } from "./runner";
 import { buildTaskPrompt, getTask, isTaskUnblocked, hasPendingDecision } from "./prompt-builder";
 import { loadConfig } from "./config";
 import { logger } from "./logger";
-import type { ProjectRun, ProjectRunsFile } from "./types";
+import type { ProjectRun, ProjectRunsFile, AgentBackend } from "./types";
 
 // ─── Paths ──────────────────────────────────────────────────────────────────
 
 const DATA_DIR = path.resolve(__dirname, "../../data");
 const ACTIVE_RUNS_FILE = path.join(DATA_DIR, "active-runs.json");
+const STREAMS_DIR = path.join(DATA_DIR, "agent-streams");
 const TASKS_FILE = path.join(DATA_DIR, "tasks.json");
+const AGENTS_FILE = path.join(DATA_DIR, "agents.json");
 const INBOX_FILE = path.join(DATA_DIR, "inbox.json");
 const ACTIVITY_LOG_FILE = path.join(DATA_DIR, "activity-log.json");
 const MISSIONS_FILE = path.join(DATA_DIR, "missions.json");
 const DECISIONS_FILE = path.join(DATA_DIR, "decisions.json");
 const WORKSPACE_ROOT = path.resolve(__dirname, "../../..");
+
+// ─── Agent Backend Resolution ─────────────────────────────────────────────
+
+function getAgentBackend(agentId: string): AgentBackend {
+  try {
+    const raw = readFileSync(AGENTS_FILE, "utf-8");
+    const data = JSON.parse(raw) as { agents: Array<{ id: string; backend?: AgentBackend }> };
+    const agent = data.agents.find((a) => a.id === agentId);
+    return agent?.backend ?? "claude";
+  } catch {
+    return "claude";
+  }
+}
 
 // ─── Active Runs File I/O ───────────────────────────────────────────────────
 
@@ -53,6 +68,7 @@ interface ActiveRunEntry {
   costUsd: number | null;
   numTurns: number | null;
   continuationIndex: number;
+  streamFile?: string | null;
 }
 
 interface ActiveRunsData {
@@ -83,7 +99,19 @@ function pruneOldRuns(data: ActiveRunsData): ActiveRunsData {
   data.runs = data.runs.filter((run) => {
     if (run.status === "running") return true;
     if (!run.completedAt) return true;
-    return now - new Date(run.completedAt).getTime() < ONE_HOUR;
+    const isOld = now - new Date(run.completedAt).getTime() >= ONE_HOUR;
+    if (isOld) {
+      // Clean up the stream file when pruning the run
+      if (run.streamFile) {
+        try {
+          if (existsSync(run.streamFile)) {
+            unlinkSync(run.streamFile);
+          }
+        } catch { /* best effort */ }
+      }
+      return false;
+    }
+    return true;
   });
 
   return data;
@@ -842,6 +870,8 @@ async function main() {
   // 8. Write "running" entry
   const runId = existingRunId ?? `run_${Date.now()}`;
   const currentRuns = readActiveRuns();
+  const activeRunId = isContinuation ? `${runId}_c${continuationIndex}` : runId;
+  const streamFile = path.join(STREAMS_DIR, `${activeRunId}.jsonl`);
 
   if (!isContinuation) {
     const runEntry: ActiveRunEntry = {
@@ -859,13 +889,13 @@ async function main() {
       costUsd: null,
       numTurns: null,
       continuationIndex,
+      streamFile,
     };
     currentRuns.runs.push(runEntry);
   } else {
     // For continuations, create a new run entry linked by the same runId prefix
-    const contRunId = `${runId}_c${continuationIndex}`;
     const runEntry: ActiveRunEntry = {
-      id: contRunId,
+      id: activeRunId,
       taskId,
       agentId: task.assignedTo,
       projectId: task.projectId ?? null,
@@ -879,12 +909,11 @@ async function main() {
       costUsd: null,
       numTurns: null,
       continuationIndex,
+      streamFile,
     };
     currentRuns.runs.push(runEntry);
   }
   writeActiveRuns(pruneOldRuns(currentRuns));
-
-  const activeRunId = isContinuation ? `${runId}_c${continuationIndex}` : runId;
   logger.info("run-task", `Run ${activeRunId} created for task ${taskId} (agent: ${task.assignedTo}, session ${continuationIndex + 1})`);
 
   // 8.5. Mark task as "in-progress" (daemon handles this instead of the agent)
@@ -926,7 +955,8 @@ This is session ${continuationIndex + 1}. Previous session(s) ran out of turns o
     prompt = contHeader + prompt;
   }
 
-  // 10. Spawn Claude Code
+  // 10. Spawn agent (Claude Code or Codex CLI based on agent config)
+  const backend = getAgentBackend(task.assignedTo);
   const runner = new AgentRunner(WORKSPACE_ROOT);
   try {
     const result = await runner.spawnAgent({
@@ -936,7 +966,9 @@ This is session ${continuationIndex + 1}. Previous session(s) ran out of turns o
       skipPermissions,
       allowedTools,
       agentTeams: useAgentTeams,
+      backend,
       cwd: WORKSPACE_ROOT,
+      streamFile,
       onSpawned: (pid) => {
         // Update the PID in active-runs immediately after spawn
         try {

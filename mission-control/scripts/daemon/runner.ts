@@ -1,10 +1,10 @@
 import { spawn, execSync, type ChildProcess } from "child_process";
-import { existsSync, readFileSync } from "fs";
+import { existsSync, readFileSync, createWriteStream, mkdirSync } from "fs";
 import path from "path";
 import { logger } from "./logger";
 import { loadConfig } from "./config";
 import { validateBinary, buildSafeEnv, scrubCredentials } from "./security";
-import type { SpawnOptions, SpawnResult, ClaudeOutputMeta, ClaudeUsage } from "./types";
+import type { SpawnOptions, SpawnResult, ClaudeOutputMeta, ClaudeUsage, AgentBackend } from "./types";
 
 // tree-kill for killing process trees on Windows
 import treeKill from "tree-kill";
@@ -164,11 +164,102 @@ function findClaudeBinary(): ResolvedBinary {
   return { bin: "claude", prefixArgs: [], originalPath: "claude" };
 }
 
-// ─── Claude Code Output Parser ───────────────────────────────────────────────
+// ─── Codex Binary Detection ─────────────────────────────────────────────────
+
+let cachedCodexBinary: ResolvedBinary | null = null;
+
+function findCodexBinary(): ResolvedBinary {
+  if (cachedCodexBinary) return cachedCodexBinary;
+
+  // 1. Check config override
+  try {
+    const config = loadConfig();
+    const codexPath = (config.execution as Record<string, unknown>).codexBinaryPath;
+    if (typeof codexPath === "string" && codexPath) {
+      logger.info("runner", `Using configured codex binary path: ${codexPath}`);
+      cachedCodexBinary = { bin: codexPath, prefixArgs: [], originalPath: codexPath };
+      return cachedCodexBinary;
+    }
+  } catch { /* config load failed, continue with auto-detect */ }
+
+  // 2. Check common install locations
+  const candidates: string[] = [];
+  const home = process.env.HOME ?? "";
+
+  if (process.platform === "win32") {
+    const appData = process.env.APPDATA ?? "";
+    const localAppData = process.env.LOCALAPPDATA ?? "";
+    candidates.push(
+      path.join(appData, "npm", "codex.cmd"),
+      path.join(appData, "npm", "codex"),
+      path.join(localAppData, "pnpm", "codex.cmd"),
+      path.join(localAppData, "pnpm", "codex"),
+    );
+  } else {
+    candidates.push(
+      path.join(home, ".local", "bin", "codex"),
+      path.join(home, ".npm-global", "bin", "codex"),
+      "/usr/local/bin/codex",
+      "/usr/bin/codex",
+    );
+  }
+
+  for (const candidate of candidates) {
+    if (candidate && existsSync(candidate)) {
+      logger.info("runner", `Found codex at: ${candidate}`);
+      cachedCodexBinary = { bin: candidate, prefixArgs: [], originalPath: candidate };
+      return cachedCodexBinary;
+    }
+  }
+
+  // 3. Try which/where
+  try {
+    const cmd = process.platform === "win32" ? "where codex" : "which codex";
+    const result = execSync(cmd, { encoding: "utf-8", timeout: 5000 }).trim().split("\n")[0].trim();
+    if (result) {
+      logger.info("runner", `Found codex via PATH: ${result}`);
+      cachedCodexBinary = { bin: result, prefixArgs: [], originalPath: result };
+      return cachedCodexBinary;
+    }
+  } catch { /* not found in PATH */ }
+
+  // 4. Fallback
+  logger.warn("runner", "Could not auto-detect codex binary. Install Codex CLI (npm i -g @openai/codex) or set 'codexBinaryPath' in daemon-config.json");
+  return { bin: "codex", prefixArgs: [], originalPath: "codex" };
+}
+
+// ─── CLI Output Parsers ─────────────────────────────────────────────────────
 
 /**
- * Parse Claude Code's JSON stdout (--output-format json) into structured metadata.
- * Returns null-safe fields for every property. Handles non-JSON gracefully.
+ * Parse a single JSON object into ClaudeOutputMeta fields.
+ */
+function parseMetaFromObject(parsed: Record<string, unknown>): ClaudeOutputMeta {
+  const meta: ClaudeOutputMeta = {
+    totalCostUsd: typeof parsed.total_cost_usd === "number" ? parsed.total_cost_usd : null,
+    numTurns: typeof parsed.num_turns === "number" ? parsed.num_turns : null,
+    subtype: typeof parsed.subtype === "string" ? parsed.subtype : null,
+    sessionId: typeof parsed.session_id === "string" ? parsed.session_id : null,
+    isError: parsed.is_error === true,
+    usage: null,
+  };
+
+  if (parsed.usage && typeof parsed.usage === "object") {
+    const u = parsed.usage as Record<string, unknown>;
+    meta.usage = {
+      inputTokens: typeof u.input_tokens === "number" ? u.input_tokens : 0,
+      outputTokens: typeof u.output_tokens === "number" ? u.output_tokens : 0,
+      cacheReadInputTokens: typeof u.cache_read_input_tokens === "number" ? u.cache_read_input_tokens : 0,
+      cacheCreationInputTokens: typeof u.cache_creation_input_tokens === "number" ? u.cache_creation_input_tokens : 0,
+    };
+  }
+
+  return meta;
+}
+
+/**
+ * Parse Claude Code's output into structured metadata.
+ * Supports both --output-format json (single JSON blob) and
+ * --output-format stream-json (JSONL where last line is the result).
  */
 export function parseClaudeOutput(stdout: string): ClaudeOutputMeta {
   const empty: ClaudeOutputMeta = {
@@ -181,33 +272,31 @@ export function parseClaudeOutput(stdout: string): ClaudeOutputMeta {
   };
 
   try {
+    // Try single JSON blob first (--output-format json)
     const parsed = JSON.parse(stdout) as Record<string, unknown>;
-
-    const meta: ClaudeOutputMeta = {
-      totalCostUsd: typeof parsed.total_cost_usd === "number" ? parsed.total_cost_usd : null,
-      numTurns: typeof parsed.num_turns === "number" ? parsed.num_turns : null,
-      subtype: typeof parsed.subtype === "string" ? parsed.subtype : null,
-      sessionId: typeof parsed.session_id === "string" ? parsed.session_id : null,
-      isError: parsed.is_error === true,
-      usage: null,
-    };
-
-    // Parse nested usage object
-    if (parsed.usage && typeof parsed.usage === "object") {
-      const u = parsed.usage as Record<string, unknown>;
-      const usage: ClaudeUsage = {
-        inputTokens: typeof u.input_tokens === "number" ? u.input_tokens : 0,
-        outputTokens: typeof u.output_tokens === "number" ? u.output_tokens : 0,
-        cacheReadInputTokens: typeof u.cache_read_input_tokens === "number" ? u.cache_read_input_tokens : 0,
-        cacheCreationInputTokens: typeof u.cache_creation_input_tokens === "number" ? u.cache_creation_input_tokens : 0,
-      };
-      meta.usage = usage;
-    }
-
-    return meta;
+    return parseMetaFromObject(parsed);
   } catch {
-    return empty;
+    // Fall through to stream-json parsing
   }
+
+  // Stream-json: parse last non-empty line (the result message)
+  try {
+    const lines = stdout.trim().split("\n").filter(Boolean);
+    for (let i = lines.length - 1; i >= 0; i--) {
+      try {
+        const parsed = JSON.parse(lines[i]) as Record<string, unknown>;
+        if (parsed.type === "result") {
+          return parseMetaFromObject(parsed);
+        }
+      } catch {
+        continue;
+      }
+    }
+  } catch {
+    // Not parseable
+  }
+
+  return empty;
 }
 
 // ─── Agent Runner ────────────────────────────────────────────────────────────
@@ -220,36 +309,52 @@ export class AgentRunner {
   }
 
   /**
-   * Spawn a Claude Code session with the given prompt.
+   * Spawn an agent CLI session with the given prompt.
+   * Supports both Claude Code and Codex CLI backends.
    * Returns when the process exits or times out.
    */
   async spawnAgent(opts: SpawnOptions): Promise<SpawnResult & { pid: number }> {
-    const resolved = findClaudeBinary();
+    const backend: AgentBackend = opts.backend ?? "claude";
+    const resolved = backend === "codex" ? findCodexBinary() : findClaudeBinary();
 
     if (!validateBinary(resolved.originalPath)) {
       throw new Error(`Security: binary "${resolved.originalPath}" is not in the allowed list`);
     }
 
-    // Build args array (NOT string interpolation — prevents shell injection)
-    // prefixArgs contains the JS entry point when spawning via node.exe
-    const args: string[] = [
-      ...resolved.prefixArgs,
-      "-p", opts.prompt,
-      "--output-format", "json",
-      "--max-turns", String(opts.maxTurns),
-    ];
+    let args: string[];
 
-    if (opts.skipPermissions) {
-      args.push("--dangerously-skip-permissions");
-      logger.security("runner", "Spawning with --dangerously-skip-permissions");
-    } else if (opts.allowedTools && opts.allowedTools.length > 0) {
-      args.push("--allowedTools", ...opts.allowedTools);
-      logger.info("runner", `Allowed tools: ${opts.allowedTools.join(", ")}`);
+    if (backend === "codex") {
+      // Codex CLI: codex -q --full-auto "<prompt>"
+      args = [
+        ...resolved.prefixArgs,
+        "-q",
+        "--full-auto",
+        opts.prompt,
+      ];
+      logger.info("runner", "Using Codex CLI backend");
+    } else {
+      // Claude Code: claude -p "<prompt>" --verbose --output-format stream-json --max-turns N
+      // --verbose is required when combining -p with --output-format stream-json
+      args = [
+        ...resolved.prefixArgs,
+        "-p", opts.prompt,
+        "--verbose",
+        "--output-format", "stream-json",
+        "--max-turns", String(opts.maxTurns),
+      ];
+
+      if (opts.skipPermissions) {
+        args.push("--dangerously-skip-permissions");
+        logger.security("runner", "Spawning with --dangerously-skip-permissions");
+      } else if (opts.allowedTools && opts.allowedTools.length > 0) {
+        args.push("--allowedTools", ...opts.allowedTools);
+        logger.info("runner", `Allowed tools: ${opts.allowedTools.join(", ")}`);
+      }
     }
 
     const safeEnv = buildSafeEnv({ agentTeams: opts.agentTeams });
 
-    logger.debug("runner", `Spawning: ${resolved.bin} ${resolved.prefixArgs.length ? resolved.prefixArgs[0] + " " : ""}-p "<prompt>" --max-turns ${opts.maxTurns}`);
+    logger.debug("runner", `Spawning [${backend}]: ${resolved.bin} ${resolved.prefixArgs.length ? resolved.prefixArgs[0] + " " : ""}-p "<prompt>" --max-turns ${opts.maxTurns}`);
     logger.debug("runner", `CWD: ${opts.cwd || this.cwd}`);
 
     return new Promise<SpawnResult & { pid: number }>((resolve) => {
@@ -270,10 +375,45 @@ export class AgentRunner {
       let timedOut = false;
       let settled = false;
 
-      // Capture stdout with size limit
+      // Set up JSONL stream file if requested
+      let streamWriter: ReturnType<typeof createWriteStream> | null = null;
+      if (opts.streamFile) {
+        try {
+          const streamDir = path.dirname(opts.streamFile);
+          mkdirSync(streamDir, { recursive: true });
+          streamWriter = createWriteStream(opts.streamFile, { flags: "a" });
+        } catch (err) {
+          logger.warn("runner", `Failed to create stream file ${opts.streamFile}: ${err instanceof Error ? err.message : String(err)}`);
+        }
+      }
+
+      // Buffer for incomplete lines from stdout chunks
+      let lineBuffer = "";
+
+      // Capture stdout with size limit + write to stream file
       child.stdout?.on("data", (chunk: Buffer) => {
+        const text = chunk.toString();
         if (stdout.length < MAX_STDOUT_SIZE) {
-          stdout += chunk.toString();
+          stdout += text;
+        }
+
+        // Write complete lines to the JSONL stream file
+        if (streamWriter) {
+          lineBuffer += text;
+          const lines = lineBuffer.split("\n");
+          // Keep the last partial line in the buffer
+          lineBuffer = lines.pop() ?? "";
+          for (const line of lines) {
+            if (line.trim()) {
+              if (backend === "codex") {
+                // Codex outputs plain text — wrap each line as a JSON object
+                streamWriter.write(JSON.stringify({ type: "assistant", content: [{ type: "text", text: line }] }) + "\n");
+              } else {
+                // Claude stream-json outputs JSONL natively
+                streamWriter.write(line + "\n");
+              }
+            }
+          }
         }
       });
 
@@ -305,6 +445,14 @@ export class AgentRunner {
         if (settled) return;
         settled = true;
         clearTimeout(timer);
+
+        // Flush remaining buffer and close stream file
+        if (streamWriter) {
+          if (lineBuffer.trim()) {
+            streamWriter.write(lineBuffer + "\n");
+          }
+          streamWriter.end();
+        }
 
         // Diagnostic logging on failure — helps debug silent exit code 1 issues
         if (exitCode !== null && exitCode !== 0 && !timedOut) {

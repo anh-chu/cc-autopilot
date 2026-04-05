@@ -182,7 +182,7 @@ export function SidebarFooter({ collapsed }: SidebarFooterProps) {
       ) : (
         <div className="border-t p-3 flex items-center gap-2">
           <p className="text-xs text-sidebar-foreground/40 flex-1">
-            Mission Control v0.10
+            Task Control v0.10
           </p>
           {statusDotButton}
           {killSwitchButton}

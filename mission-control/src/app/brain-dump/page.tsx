@@ -129,7 +129,7 @@ export default function BrainDumpPage() {
   if (loading) {
     return (
       <div className="space-y-6">
-        <BreadcrumbNav items={[{ label: "Brain Dump" }]} />
+        <BreadcrumbNav items={[{ label: "Quick Capture" }]} />
         <div className="space-y-2">
           <EntryRowSkeleton />
           <EntryRowSkeleton />
@@ -142,7 +142,7 @@ export default function BrainDumpPage() {
   if (dumpError) {
     return (
       <div className="space-y-6">
-        <BreadcrumbNav items={[{ label: "Brain Dump" }]} />
+        <BreadcrumbNav items={[{ label: "Quick Capture" }]} />
         <ErrorState message={dumpError} onRetry={refetch} />
       </div>
     );
@@ -150,11 +150,11 @@ export default function BrainDumpPage() {
 
   return (
     <div className="space-y-6">
-      <BreadcrumbNav items={[{ label: "Brain Dump" }]} />
+      <BreadcrumbNav items={[{ label: "Quick Capture" }]} />
       <div className="flex items-center justify-between">
         <h1 className="text-xl font-bold flex items-center gap-2">
           <Lightbulb className="h-5 w-5 text-primary" />
-          Brain Dump
+          Quick Capture
         </h1>
         {unprocessed.length > 0 && (
           <Tip content="Automatically process all entries">
@@ -189,7 +189,7 @@ export default function BrainDumpPage() {
               onKeyDown={handleKeyDown}
               className="min-h-[60px] flex-1 resize-none"
             />
-            <Tip content="Save brain dump entry">
+            <Tip content="Save quick capture entry">
               <Button onClick={handleAdd} className="self-end" disabled={!newContent.trim()}>
                 Capture
               </Button>
@@ -346,7 +346,7 @@ export default function BrainDumpPage() {
         open={!!deletingEntryId}
         onOpenChange={(open) => { if (!open) setDeletingEntryId(null); }}
         title="Delete entry?"
-        description="This will permanently remove this brain dump entry. This action cannot be undone."
+        description="This will permanently remove this quick capture entry. This action cannot be undone."
         onConfirm={() => {
           if (deletingEntryId) deleteEntry(deletingEntryId);
         }}
