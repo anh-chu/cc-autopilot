@@ -168,3 +168,49 @@ export async function POST(
     spawned,
   });
 }
+
+// ─── DELETE: Remove a comment from a task ───────────────────────────────────
+
+export async function DELETE(
+  request: Request,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  const { id: taskId } = await params;
+
+  const url = new URL(request.url);
+  const commentId = url.searchParams.get("commentId");
+  if (!commentId) {
+    return NextResponse.json({ error: "commentId query param is required" }, { status: 400 });
+  }
+
+  const tasksPath = path.join(DATA_DIR, "tasks.json");
+  const tasksData = readJSON<{ tasks: TaskEntry[] }>(tasksPath);
+  if (!tasksData) {
+    return NextResponse.json({ error: "Could not read tasks" }, { status: 500 });
+  }
+
+  const task = tasksData.tasks.find((t) => t.id === taskId);
+  if (!task) {
+    return NextResponse.json({ error: "Task not found" }, { status: 404 });
+  }
+
+  if (!Array.isArray(task.comments)) {
+    return NextResponse.json({ error: "Comment not found" }, { status: 404 });
+  }
+
+  const idx = task.comments.findIndex((c) => c.id === commentId);
+  if (idx === -1) {
+    return NextResponse.json({ error: "Comment not found" }, { status: 404 });
+  }
+
+  task.comments.splice(idx, 1);
+  task.updatedAt = new Date().toISOString();
+
+  try {
+    writeFileSync(tasksPath, JSON.stringify(tasksData, null, 2), "utf-8");
+  } catch {
+    return NextResponse.json({ error: "Failed to write task" }, { status: 500 });
+  }
+
+  return NextResponse.json({ deleted: commentId });
+}

@@ -180,6 +180,25 @@ export function TaskDetailPanel({ task, projects, goals, allTasks, onUpdate, onD
     }
   }, [commentText, task]);
 
+  const handleDeleteComment = useCallback(async (commentId: string) => {
+    try {
+      const res = await apiFetch(`/api/tasks/${task.id}/comment?commentId=${encodeURIComponent(commentId)}`, {
+        method: "DELETE",
+      });
+      if (!res.ok) {
+        toast.error("Failed to delete comment");
+        return;
+      }
+      // Optimistically remove from local state
+      if (Array.isArray(task.comments)) {
+        task.comments = task.comments.filter((c) => c.id !== commentId);
+      }
+      toast.success("Comment deleted");
+    } catch {
+      toast.error("Failed to delete comment");
+    }
+  }, [task]);
+
   const quadrant = getQuadrant(task);
   const qi = quadrantLabels[quadrant];
   const project = projects.find((p) => p.id === task.projectId);
@@ -422,7 +441,7 @@ export function TaskDetailPanel({ task, projects, goals, allTasks, onUpdate, onD
                       <div
                         key={comment.id}
                         className={cn(
-                          "flex gap-2",
+                          "flex gap-2 group/comment",
                           isAgent && "pl-2 border-l-2 border-blue-500/30"
                         )}
                       >
@@ -440,6 +459,14 @@ export function TaskDetailPanel({ task, projects, goals, allTasks, onUpdate, onD
                             <span className="text-[10px] text-muted-foreground">
                               {new Date(comment.createdAt).toLocaleDateString()} {new Date(comment.createdAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
                             </span>
+                            <button
+                              type="button"
+                              className="opacity-0 group-hover/comment:opacity-100 transition-opacity text-muted-foreground hover:text-red-500 ml-auto"
+                              onClick={() => handleDeleteComment(comment.id)}
+                              aria-label="Delete comment"
+                            >
+                              <Trash2 className="h-3 w-3" />
+                            </button>
                           </div>
                           <CommentContent content={comment.content} />
                         </div>
