@@ -343,14 +343,16 @@ export default function InitiativeDetailPage() {
 
       </div>
 
-      <Card>
-        <CardHeader className="pb-3">
-          <CardTitle className="text-sm font-medium text-muted-foreground">Autonomy Level</CardTitle>
-        </CardHeader>
-        <CardContent className="pt-0">
-          <AutonomySelector value={initiative.autonomyLevel ?? null} onChange={handleAutonomyChange} showInherit />
-        </CardContent>
-      </Card>
+      <div className="max-w-md">
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="text-sm font-medium text-muted-foreground">Autonomy Level</CardTitle>
+          </CardHeader>
+          <CardContent className="pt-0">
+            <AutonomySelector value={initiative.autonomyLevel ?? null} onChange={handleAutonomyChange} showInherit />
+          </CardContent>
+        </Card>
+      </div>
 
       {pendingApprovals.length > 0 && (
         <Card>
