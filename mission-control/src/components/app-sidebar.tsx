@@ -7,31 +7,21 @@ import {
   Grid2x2,
   Crosshair,
   Lightbulb,
-  Rocket,
-  Bot,
-  Search,
-  Code,
-  Megaphone,
-  BarChart3,
   User,
   Inbox,
   Activity,
   HelpCircle,
   X,
   Users,
-  BookOpen,
   Zap,
   Shield,
-  Wrench,
   Globe,
-  Brain,
-  Palette,
-  HeartPulse,
-  Flag,
-  Radio,
   Lock,
-  KeyRound,
-  Sparkles,
+  Layers,
+  CheckSquare,
+  FolderKanban,
+  Settings2,
+  Radio,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -40,46 +30,37 @@ import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from "@/comp
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { SidebarFooter } from "@/components/sidebar-footer";
+import { WorkspaceSwitcher } from "@/components/workspace-switcher";
 import type { AgentDefinition } from "@/lib/types";
 
 const mainLinks = [
   { href: "/", label: "Dashboard", icon: LayoutDashboard },
-  { href: "/ventures", label: "Projects", icon: Sparkles },
   { href: "/brain-dump", label: "Quick Capture", icon: Lightbulb },
-  { href: "/checkpoints", label: "Checkpoints", icon: Flag },
   { href: "/autopilot", label: "Automation", icon: Zap },
-  { href: "/guide", label: "Guide", icon: BookOpen },
 ];
 
 const workbenchLinks = [
+  { href: "/ventures", label: "Projects", icon: FolderKanban },
   { href: "/objectives", label: "Objectives", icon: Crosshair },
-  { href: "/field-ops/missions", label: "Initiatives", icon: Rocket },
+  { href: "/initiatives", label: "Initiatives", icon: Layers },
   { href: "/priority-matrix", label: "Tasks", icon: Grid2x2 },
+  { href: "/crew", label: "Agents", icon: Users },
 ];
 
 const commsLinks = [
   { href: "/inbox", label: "Inbox", icon: Inbox, badgeKey: "unreadInbox" as const },
-  { href: "/activity", label: "Activity", icon: Activity, badgeKey: null },
+  { href: "/activity", label: "Logbook", icon: Activity, badgeKey: null },
   { href: "/decisions", label: "Decisions", icon: HelpCircle, badgeKey: "pendingDecisions" as const },
+  { href: "/approvals", label: "Approvals", icon: CheckSquare, badgeKey: "pendingActionApprovals" as const },
+  { href: "/actions/activity", label: "Activity", icon: Radio, badgeKey: null },
 ];
 
-const fieldOpsLinks = [
-  { href: "/field-ops", label: "Dashboard", icon: Radio },
+const settingsLinks = [
+  { href: "/settings", label: "General", icon: Settings2 },
   { href: "/field-ops/services", label: "Services", icon: Globe },
   { href: "/field-ops/vault", label: "Vault", icon: Lock },
   { href: "/field-ops/safety", label: "Safety", icon: Shield },
-  { href: "/field-ops/activity", label: "Activity", icon: KeyRound },
 ];
-
-// Dynamic icon lookup by name
-const iconMap: Record<string, typeof User> = {
-  User, Search, Code, Megaphone, BarChart3, Bot, Zap,
-  Shield, Wrench, BookOpen, Globe, Brain, Palette, HeartPulse,
-};
-
-function getAgentIcon(iconName: string) {
-  return iconMap[iconName] ?? Bot;
-}
 
 interface NavLinkProps {
   href: string;
@@ -158,19 +139,16 @@ interface AppSidebarProps {
   collapsed: boolean;
   unreadInbox?: number;
   pendingDecisions?: number;
-  pendingFieldApprovals?: number;
+  pendingActionApprovals?: number;
   isMobile?: boolean;
   onClose?: () => void;
   agents?: AgentDefinition[];
 }
 
-export function AppSidebar({ collapsed, unreadInbox = 0, pendingDecisions = 0, pendingFieldApprovals = 0, isMobile = false, onClose, agents = [] }: AppSidebarProps) {
+export function AppSidebar({ collapsed, unreadInbox = 0, pendingDecisions = 0, pendingActionApprovals = 0, isMobile = false, onClose, agents = [] }: AppSidebarProps) {
   const pathname = usePathname();
-  const badges = { unreadInbox, pendingDecisions };
+  const badges = { unreadInbox, pendingDecisions, pendingActionApprovals };
 
-  const activeAgents = agents.filter((a) => a.status === "active");
-
-  // On mobile: render as full-height overlay drawer (always expanded)
   if (isMobile) {
     return (
       <TooltipProvider delayDuration={0}>
@@ -180,7 +158,6 @@ export function AppSidebar({ collapsed, unreadInbox = 0, pendingDecisions = 0, p
             collapsed ? "-translate-x-full" : "translate-x-0"
           )}
         >
-          {/* Mobile close button */}
           <div className="flex h-14 items-center justify-between border-b px-4">
             <span className="text-sm font-semibold">Task Control</span>
             <Button variant="ghost" size="icon" onClick={onClose} className="shrink-0" aria-label="Close sidebar">
@@ -189,7 +166,9 @@ export function AppSidebar({ collapsed, unreadInbox = 0, pendingDecisions = 0, p
           </div>
 
           <ScrollArea className="flex-1">
-            {/* Main Navigation */}
+            <div className="pt-2">
+              <WorkspaceSwitcher collapsed={false} />
+            </div>
             <nav className="space-y-0.5 p-2">
               {mainLinks.map(({ href, label, icon: Icon }) => {
                 const isActive = pathname === href || (href !== "/" && pathname.startsWith(href));
@@ -212,13 +191,12 @@ export function AppSidebar({ collapsed, unreadInbox = 0, pendingDecisions = 0, p
               })}
             </nav>
 
-            {/* Workbench */}
             <Separator className="mx-2 my-2" />
             <div className="px-3 pb-1">
               <p className="text-xs font-semibold uppercase tracking-wider text-sidebar-foreground/50">
                 Workbench
               </p>
-              <p className="text-[10px] text-sidebar-foreground/30 mt-0.5">Objectives, initiatives, and tasks</p>
+              <p className="text-[10px] text-sidebar-foreground/30 mt-0.5">Work, projects, and agents</p>
             </div>
             <nav className="space-y-0.5 px-2">
               {workbenchLinks.map(({ href, label, icon: Icon }) => {
@@ -242,43 +220,6 @@ export function AppSidebar({ collapsed, unreadInbox = 0, pendingDecisions = 0, p
               })}
             </nav>
 
-            {/* Integrations */}
-            <Separator className="mx-2 my-2" />
-            <div className="px-3 pb-1">
-              <p className="text-xs font-semibold uppercase tracking-wider text-sidebar-foreground/50">
-                Integrations
-              </p>
-              <p className="text-[10px] text-sidebar-foreground/30 mt-0.5">External services, approvals, and safety</p>
-            </div>
-            <nav className="space-y-0.5 px-2">
-              {fieldOpsLinks.map(({ href, label, icon: Icon }) => {
-                const isActive = pathname === href || (href !== "/field-ops" && pathname.startsWith(href));
-                const showFieldBadge = href === "/field-ops" && pendingFieldApprovals > 0;
-                return (
-                  <Link
-                    key={href}
-                    href={href}
-                    onClick={onClose}
-                    className={cn(
-                      "flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors",
-                      isActive
-                        ? "bg-sidebar-accent text-sidebar-accent-foreground"
-                        : "text-sidebar-foreground hover:bg-sidebar-accent/50 hover:text-sidebar-accent-foreground"
-                    )}
-                  >
-                    <Icon className="h-4 w-4 shrink-0" />
-                    <span className="flex-1">{label}</span>
-                    {showFieldBadge && (
-                      <Badge className="h-5 min-w-5 justify-center px-1.5 text-xs bg-emerald-500/20 text-emerald-400 border-emerald-500/30">
-                        {pendingFieldApprovals}
-                      </Badge>
-                    )}
-                  </Link>
-                );
-              })}
-            </nav>
-
-            {/* Messages */}
             <Separator className="mx-2 my-2" />
             <div className="px-3 pb-1">
               <p className="text-xs font-semibold uppercase tracking-wider text-sidebar-foreground/50">
@@ -314,76 +255,41 @@ export function AppSidebar({ collapsed, unreadInbox = 0, pendingDecisions = 0, p
               })}
             </nav>
 
-            {/* Agents */}
             <Separator className="mx-2 my-2" />
             <div className="px-3 pb-1">
               <p className="text-xs font-semibold uppercase tracking-wider text-sidebar-foreground/50">
-                Agents
+                Settings
               </p>
-              <p className="text-[10px] text-sidebar-foreground/30 mt-0.5">Your team of AI workers and their skills</p>
             </div>
-            <div className="space-y-0.5 px-2">
-              {/* Crew overview link */}
-              <Link
-                href="/crew"
-                onClick={onClose}
-                className={cn(
-                  "flex items-center gap-3 rounded-lg px-3 py-1.5 text-sm transition-colors",
-                  pathname === "/crew" || pathname.startsWith("/crew/")
-                    ? "bg-sidebar-accent text-sidebar-accent-foreground"
-                    : "text-sidebar-foreground/80 hover:bg-sidebar-accent/50 hover:text-sidebar-accent-foreground"
-                )}
-              >
-                <Users className="h-3.5 w-3.5 shrink-0" />
-                <span className="truncate text-xs font-medium">All Agents</span>
-              </Link>
-              {/* Dynamic agent list */}
-              {activeAgents.map((agent) => {
-                const Icon = getAgentIcon(agent.icon);
-                const isActive = pathname === `/team/${agent.id}`;
+            <nav className="space-y-0.5 px-2">
+              {settingsLinks.map(({ href, label, icon: Icon }) => {
+                const isActive = pathname === href || pathname.startsWith(href + "/");
                 return (
                   <Link
-                    key={agent.id}
-                    href={`/team/${agent.id}`}
+                    key={href}
+                    href={href}
                     onClick={onClose}
                     className={cn(
-                      "flex items-center gap-3 rounded-lg px-3 py-1.5 text-sm transition-colors",
+                      "flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors",
                       isActive
                         ? "bg-sidebar-accent text-sidebar-accent-foreground"
-                        : "text-sidebar-foreground/80 hover:bg-sidebar-accent/50 hover:text-sidebar-accent-foreground"
+                        : "text-sidebar-foreground hover:bg-sidebar-accent/50 hover:text-sidebar-accent-foreground"
                     )}
                   >
-                    <Icon className="h-3.5 w-3.5 shrink-0" />
-                    <span className="truncate text-xs">{agent.name}</span>
+                    <Icon className="h-4 w-4 shrink-0" />
+                    <span>{label}</span>
                   </Link>
                 );
               })}
-              {/* Skills library link */}
-              <Link
-                href="/skills"
-                onClick={onClose}
-                className={cn(
-                  "flex items-center gap-3 rounded-lg px-3 py-1.5 text-sm transition-colors",
-                  pathname === "/skills" || pathname.startsWith("/skills/")
-                    ? "bg-sidebar-accent text-sidebar-accent-foreground"
-                    : "text-sidebar-foreground/80 hover:bg-sidebar-accent/50 hover:text-sidebar-accent-foreground"
-                )}
-              >
-                <BookOpen className="h-3.5 w-3.5 shrink-0" />
-                <span className="truncate text-xs font-medium">Skills Library</span>
-              </Link>
-            </div>
-
+            </nav>
           </ScrollArea>
 
-          {/* Footer */}
           <SidebarFooter collapsed={false} />
         </aside>
       </TooltipProvider>
     );
   }
 
-  // Desktop: collapsible sidebar
   return (
     <TooltipProvider delayDuration={0}>
       <aside
@@ -393,6 +299,9 @@ export function AppSidebar({ collapsed, unreadInbox = 0, pendingDecisions = 0, p
         )}
       >
         <ScrollArea className="flex-1">
+          <div className="pt-2">
+            <WorkspaceSwitcher collapsed={collapsed} />
+          </div>
           <nav className="space-y-0.5 p-2">
             {mainLinks.map(({ href, label, icon }) => (
               <NavLink
@@ -410,7 +319,7 @@ export function AppSidebar({ collapsed, unreadInbox = 0, pendingDecisions = 0, p
           {!collapsed && (
             <div className="px-3 pb-1">
               <p className="text-xs font-semibold uppercase tracking-wider text-sidebar-foreground/50">Workbench</p>
-              <p className="text-[10px] text-sidebar-foreground/30 mt-0.5">Objectives, initiatives, and tasks</p>
+              <p className="text-[10px] text-sidebar-foreground/30 mt-0.5">Work, projects, and agents</p>
             </div>
           )}
           <nav className="space-y-0.5 px-2">
@@ -424,36 +333,6 @@ export function AppSidebar({ collapsed, unreadInbox = 0, pendingDecisions = 0, p
                 collapsed={collapsed}
               />
             ))}
-          </nav>
-
-          <Separator className="mx-2 my-2" />
-          {!collapsed && (
-            <div className="px-3 pb-1">
-              <p className="text-xs font-semibold uppercase tracking-wider text-sidebar-foreground/50">Integrations</p>
-              <p className="text-[10px] text-sidebar-foreground/30 mt-0.5">External services, approvals, and safety</p>
-            </div>
-          )}
-          <nav className="space-y-0.5 px-2">
-            {fieldOpsLinks.map(({ href, label, icon }) => {
-              const showBadge = href === "/field-ops" && pendingFieldApprovals > 0;
-              return (
-                <NavLink
-                  key={href}
-                  href={href}
-                  label={label}
-                  icon={icon}
-                  isActive={pathname === href || (href !== "/field-ops" && pathname.startsWith(href))}
-                  collapsed={collapsed}
-                  badge={showBadge ? (
-                    <Badge className="h-5 min-w-5 justify-center px-1.5 text-xs bg-emerald-500/20 text-emerald-400 border-emerald-500/30">
-                      {pendingFieldApprovals}
-                    </Badge>
-                  ) : undefined}
-                  badgeDot={showBadge ? "bg-emerald-500" : undefined}
-                  tooltipSuffix={showBadge ? ` (${pendingFieldApprovals} pending)` : undefined}
-                />
-              );
-            })}
           </nav>
 
           <Separator className="mx-2 my-2" />
@@ -489,45 +368,21 @@ export function AppSidebar({ collapsed, unreadInbox = 0, pendingDecisions = 0, p
           <Separator className="mx-2 my-2" />
           {!collapsed && (
             <div className="px-3 pb-1">
-              <p className="text-xs font-semibold uppercase tracking-wider text-sidebar-foreground/50">Agents</p>
-              <p className="text-[10px] text-sidebar-foreground/30 mt-0.5">Your team of AI workers and their skills</p>
+              <p className="text-xs font-semibold uppercase tracking-wider text-sidebar-foreground/50">Settings</p>
             </div>
           )}
-          <div className="space-y-0.5 px-2">
-            <NavLink
-              href="/crew"
-              label="All Agents"
-              icon={Users}
-              isActive={pathname === "/crew" || pathname.startsWith("/crew/")}
-              collapsed={collapsed}
-              size="small"
-            />
-            {activeAgents.map((agent) => (
+          <nav className="space-y-0.5 px-2">
+            {settingsLinks.map(({ href, label, icon }) => (
               <NavLink
-                key={agent.id}
-                href={`/team/${agent.id}`}
-                label={agent.name}
-                icon={getAgentIcon(agent.icon)}
-                isActive={pathname === `/team/${agent.id}`}
+                key={href}
+                href={href}
+                label={label}
+                icon={icon}
+                isActive={pathname === href || pathname.startsWith(href + "/")}
                 collapsed={collapsed}
-                size="small"
-                tooltipContent={
-                  <>
-                    <p className="font-medium">{agent.name}</p>
-                    <p className="text-xs text-muted-foreground">{agent.description}</p>
-                  </>
-                }
               />
             ))}
-            <NavLink
-              href="/skills"
-              label="Skills Library"
-              icon={BookOpen}
-              isActive={pathname === "/skills" || pathname.startsWith("/skills/")}
-              collapsed={collapsed}
-              size="small"
-            />
-          </div>
+          </nav>
         </ScrollArea>
 
         <SidebarFooter collapsed={collapsed} />

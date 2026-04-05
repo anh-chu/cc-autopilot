@@ -21,22 +21,100 @@ import type {
   SafetyLimitsFile,
   ServiceCatalogFile,
   FieldTaskTemplatesFile,
+  WorkspacesFile,
+  InitiativesFile,
+  ActionsFile,
 } from "./types";
 
 const DATA_DIR = path.join(process.cwd(), "data");
 const CHECKPOINTS_DIR = path.join(DATA_DIR, "checkpoints");
 const FIELD_OPS_DIR = path.join(DATA_DIR, "field-ops");
 
+// ─── Workspace path helpers ───────────────────────────────────────────────────
+
+let _currentWorkspaceId = "default";
+
+export function getCurrentWorkspace(): string {
+  return _currentWorkspaceId;
+}
+
+export function setCurrentWorkspace(id: string): void {
+  _currentWorkspaceId = id;
+}
+
+export function getWorkspaceDataDir(workspaceId: string): string {
+  return path.join(DATA_DIR, "workspaces", workspaceId);
+}
+
 function filePath(name: string): string {
-  return path.join(DATA_DIR, name);
+  return path.join(getWorkspaceDataDir(_currentWorkspaceId), name);
 }
 
 function fieldOpsPath(name: string): string {
-  return path.join(FIELD_OPS_DIR, name);
+  return path.join(getWorkspaceDataDir(_currentWorkspaceId), "field-ops", name);
 }
 
 export async function ensureFieldOpsDir(): Promise<void> {
   await mkdir(FIELD_OPS_DIR, { recursive: true });
+}
+
+export async function ensureWorkspaceDir(workspaceId: string): Promise<void> {
+  const wsDir = getWorkspaceDataDir(workspaceId);
+  await mkdir(wsDir, { recursive: true });
+  await mkdir(path.join(wsDir, "field-ops"), { recursive: true });
+  // Seed empty JSON files if they don't exist
+  const seedFiles: Record<string, unknown> = {
+    "tasks.json": { tasks: [] },
+    "tasks-archive.json": { tasks: [] },
+    "goals.json": { goals: [] },
+    "initiatives.json": { initiatives: [] },
+    "actions.json": { actions: [] },
+    "projects.json": { projects: [] },
+    "brain-dump.json": { entries: [] },
+    "activity-log.json": { events: [] },
+    "inbox.json": { messages: [] },
+    "decisions.json": { decisions: [] },
+    "agents.json": { agents: [] },
+    "skills-library.json": { skills: [] },
+    "active-runs.json": { runs: [] },
+    "daemon-config.json": {},
+  };
+  await Promise.all(
+    Object.entries(seedFiles).map(async ([filename, empty]) => {
+      const fp = path.join(wsDir, filename);
+      try {
+        await readFile(fp, "utf-8"); // already exists, skip
+      } catch {
+        await writeFile(fp, JSON.stringify(empty, null, 2), "utf-8");
+      }
+    })
+  );
+  // Seed empty field-ops files
+  const fieldOpsSeedFiles: Record<string, unknown> = {
+    "missions.json": { missions: [] },
+    "tasks.json": { tasks: [] },
+    "services.json": { services: [] },
+    "activity-log.json": { events: [] },
+    "approval-config.json": { config: { mode: "approve-all", overrides: {} } },
+    "safety-limits.json": {
+      global: { enabled: true, dailyBudgetUsd: 100, weeklyBudgetUsd: 500, monthlyBudgetUsd: 2000, pauseOnBreach: true },
+      services: {},
+      spendLog: [],
+      updatedAt: new Date().toISOString(),
+      updatedBy: "me",
+    },
+    "templates.json": { templates: [] },
+  };
+  await Promise.all(
+    Object.entries(fieldOpsSeedFiles).map(async ([filename, empty]) => {
+      const fp = path.join(wsDir, "field-ops", filename);
+      try {
+        await readFile(fp, "utf-8");
+      } catch {
+        await writeFile(fp, JSON.stringify(empty, null, 2), "utf-8");
+      }
+    })
+  );
 }
 
 export function getCheckpointsDir(): string {
@@ -850,6 +928,113 @@ export async function mutateFieldTemplates<T>(fn: (data: FieldTaskTemplatesFile)
     }
     const result = await fn(data);
     await _writeFieldOpsJson("templates.json", data);
+    return result;
+  });
+}
+
+// ─── Workspaces (root-level, not workspace-scoped) ────────────────────────────
+
+const workspacesMutex = new Mutex();
+const WORKSPACES_FILE = path.join(DATA_DIR, "workspaces.json");
+
+export async function getWorkspaces(): Promise<WorkspacesFile> {
+  try {
+    const raw = await readFile(WORKSPACES_FILE, "utf-8");
+    return JSON.parse(raw) as WorkspacesFile;
+  } catch {
+    return {
+      workspaces: [{
+        id: "default",
+        name: "Personal",
+        description: "",
+        color: "#6366f1",
+        isDefault: true,
+        settings: { autonomyLevel: "approve-all" },
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      }],
+    };
+  }
+}
+
+export async function mutateWorkspaces<T>(fn: (data: WorkspacesFile) => Promise<T>): Promise<T> {
+  return workspacesMutex.runExclusive(async () => {
+    let data: WorkspacesFile;
+    try {
+      const raw = await readFile(WORKSPACES_FILE, "utf-8");
+      data = JSON.parse(raw) as WorkspacesFile;
+    } catch {
+      data = {
+        workspaces: [{
+          id: "default",
+          name: "Personal",
+          description: "",
+          color: "#6366f1",
+          isDefault: true,
+          settings: { autonomyLevel: "approve-all" },
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+        }],
+      };
+    }
+    const result = await fn(data);
+    await writeFile(WORKSPACES_FILE, JSON.stringify(data, null, 2), "utf-8");
+    return result;
+  });
+}
+
+// ─── Initiatives ──────────────────────────────────────────────────────────────
+
+const initiativesMutex = new Mutex();
+
+export async function getInitiatives(): Promise<InitiativesFile> {
+  try {
+    const raw = await readFile(filePath("initiatives.json"), "utf-8");
+    return JSON.parse(raw) as InitiativesFile;
+  } catch {
+    return { initiatives: [] };
+  }
+}
+
+export async function mutateInitiatives<T>(fn: (data: InitiativesFile) => Promise<T>): Promise<T> {
+  return initiativesMutex.runExclusive(async () => {
+    let data: InitiativesFile;
+    try {
+      const raw = await readFile(filePath("initiatives.json"), "utf-8");
+      data = JSON.parse(raw) as InitiativesFile;
+    } catch {
+      data = { initiatives: [] };
+    }
+    const result = await fn(data);
+    await writeFile(filePath("initiatives.json"), JSON.stringify(data, null, 2), "utf-8");
+    return result;
+  });
+}
+
+// ─── Actions ──────────────────────────────────────────────────────────────────
+
+const actionsMutex = new Mutex();
+
+export async function getActions(): Promise<ActionsFile> {
+  try {
+    const raw = await readFile(filePath("actions.json"), "utf-8");
+    return JSON.parse(raw) as ActionsFile;
+  } catch {
+    return { actions: [] };
+  }
+}
+
+export async function mutateActions<T>(fn: (data: ActionsFile) => Promise<T>): Promise<T> {
+  return actionsMutex.runExclusive(async () => {
+    let data: ActionsFile;
+    try {
+      const raw = await readFile(filePath("actions.json"), "utf-8");
+      data = JSON.parse(raw) as ActionsFile;
+    } catch {
+      data = { actions: [] };
+    }
+    const result = await fn(data);
+    await writeFile(filePath("actions.json"), JSON.stringify(data, null, 2), "utf-8");
     return result;
   });
 }

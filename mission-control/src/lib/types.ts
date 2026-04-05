@@ -167,6 +167,7 @@ export interface Task {
   kanban: KanbanStatus;
   projectId: string | null;
   milestoneId: string | null;
+  initiativeId?: string | null;
   assignedTo: AgentRole | null;
   collaborators: string[];
   dailyActions: DailyAction[];
@@ -676,3 +677,82 @@ export interface ServiceCatalogFile {
 
 // Re-export financial types from adapter layer for convenience
 export type { FinancialMetric, FinancialSnapshot } from "@/lib/adapters/types";
+
+// ─── Workspace ────────────────────────────────────────────────────────────────
+
+export interface WorkspaceSettings {
+  autonomyLevel: AutonomyLevel;
+}
+
+export interface Workspace {
+  id: string;
+  name: string;
+  description: string;
+  color: string;
+  isDefault: boolean;
+  settings: WorkspaceSettings;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface WorkspacesFile {
+  workspaces: Workspace[];
+}
+
+// ─── Initiative ───────────────────────────────────────────────────────────────
+
+export type InitiativeStatus = "active" | "paused" | "completed" | "archived";
+
+export interface Initiative {
+  id: string;
+  title: string;
+  description: string;
+  status: InitiativeStatus;
+  parentGoalId: string | null;
+  color: string;
+  teamMembers: string[];
+  autonomyLevel: AutonomyLevel | null;
+  taskIds: string[];
+  actionIds: string[];
+  tags: string[];
+  createdAt: string;
+  updatedAt: string;
+  completedAt: string | null;
+  deletedAt: string | null;
+}
+
+export interface InitiativesFile {
+  initiatives: Initiative[];
+}
+
+// ─── Action ───────────────────────────────────────────────────────────────────
+
+export interface Action {
+  id: string;
+  initiativeId: string | null;
+  title: string;
+  description: string;
+  type: FieldTaskType;
+  serviceId: string | null;
+  assignedTo: AgentRole | null;
+  status: FieldTaskStatus;
+  approvalRequired: boolean;
+  autonomyOverride: AutonomyLevel | null;
+  payload: Record<string, unknown>;
+  result: Record<string, unknown>;
+  attachments: FieldTaskAttachment[];
+  linkedTaskId: string | null;
+  blockedBy: string[];
+  rejectionFeedback: string | null;
+  approvedBy: string | null;
+  rejectedBy: string | null;
+  scheduledFor?: string | null;
+  createdAt: string;
+  updatedAt: string;
+  executedAt: string | null;
+  completedAt: string | null;
+}
+
+export interface ActionsFile {
+  actions: Action[];
+}

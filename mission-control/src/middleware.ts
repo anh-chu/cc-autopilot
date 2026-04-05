@@ -24,6 +24,11 @@ function timingSafeEqual(a: string, b: string): boolean {
  * compatible for local-only development with zero configuration).
  */
 export function middleware(request: NextRequest) {
+  // ── Workspace header injection ────────────────────────────────────────────
+  const workspaceId = request.cookies.get("workspace_id")?.value ?? "default";
+  const requestHeaders = new Headers(request.headers);
+  requestHeaders.set("x-workspace-id", workspaceId);
+
   // ── CSRF Protection: validate Origin on state-changing requests ──
   const method = request.method.toUpperCase();
   if (["POST", "PUT", "DELETE", "PATCH"].includes(method)) {
@@ -52,7 +57,7 @@ export function middleware(request: NextRequest) {
   const token = process.env.MC_API_TOKEN;
 
   // No token configured = open access (default local dev experience)
-  if (!token) return NextResponse.next();
+  if (!token) return NextResponse.next({ request: { headers: requestHeaders } });
 
   const authHeader = request.headers.get("authorization");
   if (!authHeader) {
@@ -62,7 +67,6 @@ export function middleware(request: NextRequest) {
     );
   }
 
-  // Expect "Bearer <token>"
   const parts = authHeader.split(" ");
   if (parts.length !== 2 || parts[0] !== "Bearer") {
     return NextResponse.json(
@@ -78,7 +82,7 @@ export function middleware(request: NextRequest) {
     );
   }
 
-  return NextResponse.next();
+  return NextResponse.next({ request: { headers: requestHeaders } });
 }
 
 export const config = {

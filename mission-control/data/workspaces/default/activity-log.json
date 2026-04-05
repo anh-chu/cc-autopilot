@@ -1,0 +1,94 @@
+{
+  "events": [
+    {
+      "id": "evt_LSGe4n4XfbKF",
+      "type": "task_delegated",
+      "actor": "system",
+      "taskId": "task_QWhtbJwGosxW",
+      "summary": "Task delegated to business-analyst: collect feedback",
+      "details": "\"collect feedback\" was assigned to business-analyst.",
+      "timestamp": "2026-04-04T19:17:23.473Z"
+    },
+    {
+      "id": "evt_9s2uMGTJdCdC",
+      "type": "task_delegated",
+      "actor": "system",
+      "taskId": "task_QWhtbJwGosxW",
+      "summary": "Task delegated to researcher: collect feedback",
+      "details": "\"collect feedback\" was assigned to researcher (previously: business-analyst).",
+      "timestamp": "2026-04-04T19:23:43.511Z"
+    },
+    {
+      "id": "evt_1775332786640",
+      "type": "agent_checkin",
+      "actor": "system",
+      "taskId": null,
+      "summary": "Emergency stop activated — all autonomous activity frozen",
+      "details": "Daemon stopped. 0 active mission(s) paused. Vault session cleared",
+      "timestamp": "2026-04-04T19:59:46.640Z"
+    },
+    {
+      "id": "evt_1775332868264",
+      "type": "task_completed",
+      "actor": "researcher",
+      "taskId": "task_QWhtbJwGosxW",
+      "summary": "Completed task: task_QWhtbJwGosxW",
+      "details": "Done. Here's a summary of what was found and categorized:\n\n---\n\n## Feedback from Linear — Categorized\n\n### AI (4 issues)\n| Issue | Priority | Summary |\n|-------|----------|---------|\n| KAT-7 | **Urgent** | Kai Page Interaction corrupts all test cases — ignores selection scope (data-loss bug) |\n| KAT-8 | High | Kai quality/UX insufficient — beta users say don't ship in current state |\n| KAT-5 | High | AI test gen misses scenarios, over-combines steps — losing to ChatGPT comparisons |\n| KAT-6 | Hi",
+      "timestamp": "2026-04-04T20:01:08.262Z"
+    },
+    {
+      "id": "evt_BcE_1pkV5cTi",
+      "type": "message_sent",
+      "actor": "me",
+      "taskId": "task_QWhtbJwGosxW",
+      "summary": "Comment on \"collect feedback\" mentioning @researcher",
+      "details": "@researcher put this into a doc on linear",
+      "timestamp": "2026-04-05T08:44:30.906Z"
+    },
+    {
+      "id": "evt_1775378675453",
+      "type": "agent_checkin",
+      "actor": "researcher",
+      "taskId": "task_QWhtbJwGosxW",
+      "summary": "@researcher responded to comment on \"collect feedback\"",
+      "details": "",
+      "timestamp": "2026-04-05T08:44:35.453Z"
+    },
+    {
+      "id": "evt_-MV61lVArXZ5",
+      "type": "message_sent",
+      "actor": "me",
+      "taskId": "task_QWhtbJwGosxW",
+      "summary": "Comment on \"collect feedback\" mentioning @researcher",
+      "details": "@researcher put this into a doc on linear",
+      "timestamp": "2026-04-05T08:46:44.882Z"
+    },
+    {
+      "id": "evt_1775378809199",
+      "type": "agent_checkin",
+      "actor": "researcher",
+      "taskId": "task_QWhtbJwGosxW",
+      "summary": "@researcher responded to comment on \"collect feedback\"",
+      "details": "",
+      "timestamp": "2026-04-05T08:46:49.199Z"
+    },
+    {
+      "id": "evt_JGEr1cvB-8RO",
+      "type": "message_sent",
+      "actor": "me",
+      "taskId": "task_QWhtbJwGosxW",
+      "summary": "Comment on \"collect feedback\" mentioning @researcher",
+      "details": "@researcher save the list to a doc in the linear project",
+      "timestamp": "2026-04-05T10:19:39.494Z"
+    },
+    {
+      "id": "evt_1775384420191",
+      "type": "agent_checkin",
+      "actor": "researcher",
+      "taskId": "task_QWhtbJwGosxW",
+      "summary": "@researcher responded to comment on \"collect feedback\"",
+      "details": "",
+      "timestamp": "2026-04-05T10:20:20.191Z"
+    }
+  ]
+}

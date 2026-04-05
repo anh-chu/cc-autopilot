@@ -109,6 +109,7 @@ export const taskCreateSchema = z.object({
   notes: z.string().max(LIMITS.NOTES).optional().default(""),
   dueDate: z.string().max(30).nullable().optional().default(null),
   deletedAt: z.string().nullable().optional().default(null),
+  initiativeId: z.string().nullable().optional().default(null),
 });
 
 export const taskUpdateSchema = z.object({
@@ -134,6 +135,7 @@ export const taskUpdateSchema = z.object({
   notes: z.string().max(LIMITS.NOTES).optional(),
   dueDate: z.string().max(30).nullable().optional(),
   deletedAt: z.string().nullable().optional(),
+  initiativeId: z.string().nullable().optional(),
 });
 
 // ─── Goal schemas ──────────────────────────────────────────────────────────────
@@ -530,6 +532,77 @@ export const fieldBatchSchema = z.object({
   taskIds: z.array(z.string().min(1)).min(1).max(50),
   actor: z.string().max(50).optional().default("system"),
   rejectionFeedback: z.string().max(LIMITS.DESCRIPTION).optional(),
+});
+
+// ─── Initiative schemas ────────────────────────────────────────────────────────
+
+const initiativeStatusEnum = z.enum(["active", "paused", "completed", "archived"]);
+
+export const initiativeCreateSchema = z.object({
+  title: z.string().min(1, "Title is required").max(LIMITS.TITLE),
+  description: z.string().max(LIMITS.DESCRIPTION).optional().default(""),
+  status: initiativeStatusEnum.optional().default("active"),
+  parentGoalId: z.string().nullable().optional().default(null),
+  color: z.string().max(20).optional().default("#6366f1"),
+  teamMembers: z.array(z.string().max(50)).max(20).optional().default([]),
+  autonomyLevel: autonomyLevelEnum.nullable().optional().default(null),
+  tags: z.array(z.string().max(LIMITS.TAG)).max(LIMITS.MAX_TAGS).optional().default([]),
+});
+
+export const initiativeUpdateSchema = z.object({
+  id: z.string().min(1, "Initiative ID is required"),
+  title: z.string().min(1).max(LIMITS.TITLE).optional(),
+  description: z.string().max(LIMITS.DESCRIPTION).optional(),
+  status: initiativeStatusEnum.optional(),
+  parentGoalId: z.string().nullable().optional(),
+  color: z.string().max(20).optional(),
+  teamMembers: z.array(z.string().max(50)).max(20).optional(),
+  autonomyLevel: autonomyLevelEnum.nullable().optional(),
+  taskIds: z.array(z.string()).max(200).optional(),
+  actionIds: z.array(z.string()).max(200).optional(),
+  tags: z.array(z.string().max(LIMITS.TAG)).max(LIMITS.MAX_TAGS).optional(),
+  completedAt: z.string().nullable().optional(),
+  deletedAt: z.string().nullable().optional(),
+});
+
+// ─── Action schemas ────────────────────────────────────────────────────────────
+
+export const actionCreateSchema = z.object({
+  title: z.string().min(1, "Title is required").max(LIMITS.TITLE),
+  type: fieldTaskTypeEnum,
+  description: z.string().max(LIMITS.DESCRIPTION).optional().default(""),
+  initiativeId: z.string().nullable().optional().default(null),
+  serviceId: z.string().nullable().optional().default(null),
+  assignedTo: agentRoleEnum.nullable().optional().default(null),
+  approvalRequired: z.boolean().optional().default(true),
+  autonomyOverride: autonomyLevelEnum.nullable().optional().default(null),
+  payload: z.record(z.string(), z.unknown()).optional().default({}).refine(
+    (val) => JSON.stringify(val).length <= 10240,
+    "Payload exceeds 10KB limit",
+  ),
+  linkedTaskId: z.string().nullable().optional().default(null),
+});
+
+export const actionUpdateSchema = z.object({
+  id: z.string().min(1, "Action ID is required"),
+  title: z.string().min(1).max(LIMITS.TITLE).optional(),
+  type: fieldTaskTypeEnum.optional(),
+  description: z.string().max(LIMITS.DESCRIPTION).optional(),
+  initiativeId: z.string().nullable().optional(),
+  serviceId: z.string().nullable().optional(),
+  assignedTo: agentRoleEnum.nullable().optional(),
+  status: fieldTaskStatusEnum.optional(),
+  approvalRequired: z.boolean().optional(),
+  autonomyOverride: autonomyLevelEnum.nullable().optional(),
+  payload: z.record(z.string(), z.unknown()).optional().refine(
+    (val) => !val || JSON.stringify(val).length <= 10240,
+    "Payload exceeds 10KB limit",
+  ),
+  result: z.record(z.string(), z.unknown()).optional(),
+  linkedTaskId: z.string().nullable().optional(),
+  blockedBy: z.array(z.string()).max(LIMITS.MAX_BLOCKED_BY).optional(),
+  rejectionFeedback: z.string().max(LIMITS.DESCRIPTION).nullable().optional(),
+  scheduledFor: z.string().max(30).nullable().optional(),
 });
 
 // ─── Validation helper ─────────────────────────────────────────────────────────

@@ -1,0 +1,71 @@
+{
+  "runs": [
+    {
+      "id": "run_1775332748180",
+      "taskId": "task_QWhtbJwGosxW",
+      "agentId": "researcher",
+      "projectId": null,
+      "missionId": null,
+      "pid": 1189745,
+      "status": "completed",
+      "startedAt": "2026-04-04T19:59:08.180Z",
+      "completedAt": "2026-04-04T20:01:08.261Z",
+      "exitCode": 0,
+      "error": null,
+      "costUsd": 0.28825530000000005,
+      "numTurns": 11,
+      "continuationIndex": 0
+    },
+    {
+      "id": "run_cmt_1775378671123",
+      "taskId": "task_QWhtbJwGosxW",
+      "agentId": "researcher",
+      "projectId": null,
+      "missionId": null,
+      "pid": 1667343,
+      "status": "failed",
+      "startedAt": "2026-04-05T08:44:31.123Z",
+      "completedAt": "2026-04-05T08:44:35.452Z",
+      "exitCode": 1,
+      "error": "Error: When using --print, --output-format=stream-json requires --verbose\n",
+      "costUsd": null,
+      "numTurns": null,
+      "continuationIndex": 0,
+      "streamFile": "/home/sil/ccmc/mission-control/data/agent-streams/run_cmt_1775378671123.jsonl"
+    },
+    {
+      "id": "run_cmt_1775378805025",
+      "taskId": "task_QWhtbJwGosxW",
+      "agentId": "researcher",
+      "projectId": null,
+      "missionId": null,
+      "pid": 1668971,
+      "status": "failed",
+      "startedAt": "2026-04-05T08:46:45.025Z",
+      "completedAt": "2026-04-05T08:46:49.198Z",
+      "exitCode": 1,
+      "error": "Error: When using --print, --output-format=stream-json requires --verbose\n",
+      "costUsd": null,
+      "numTurns": null,
+      "continuationIndex": 0,
+      "streamFile": "/home/sil/ccmc/mission-control/data/agent-streams/run_cmt_1775378805025.jsonl"
+    },
+    {
+      "id": "run_cmt_1775384379706",
+      "taskId": "task_QWhtbJwGosxW",
+      "agentId": "researcher",
+      "projectId": null,
+      "missionId": null,
+      "pid": 1741336,
+      "status": "completed",
+      "startedAt": "2026-04-05T10:19:39.706Z",
+      "completedAt": "2026-04-05T10:20:20.190Z",
+      "exitCode": 0,
+      "error": null,
+      "costUsd": 0.32050625000000005,
+      "numTurns": 6,
+      "continuationIndex": 0,
+      "streamFile": "/home/sil/ccmc/mission-control/data/agent-streams/run_cmt_1775384379706.jsonl"
+    }
+  ]
+}

@@ -1,12 +1,8 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import {
-  ShieldCheck,
-  ShieldAlert,
-  ShieldOff,
-} from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { AutonomySelector } from "@/components/autonomy-selector";
 import {
   Dialog,
   DialogContent,
@@ -25,34 +21,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { cn } from "@/lib/utils";
 import type { AutonomyLevel, FieldMission, Project } from "@/lib/types";
-
-// ─── Autonomy mode definitions (reused from dashboard) ─────────────────────
-
-const AUTONOMY_MODES = [
-  {
-    mode: "approve-all" as AutonomyLevel,
-    label: "Manual Approval",
-    icon: ShieldCheck,
-    description: "Every task requires your explicit approval. Safest mode.",
-    activeClasses: "bg-emerald-600 text-white hover:bg-emerald-700 border-emerald-600",
-  },
-  {
-    mode: "approve-high-risk" as AutonomyLevel,
-    label: "Supervised",
-    icon: ShieldAlert,
-    description: "Only high and medium risk tasks need approval. Low risk auto-approves.",
-    activeClasses: "bg-amber-600 text-white hover:bg-amber-700 border-amber-600",
-  },
-  {
-    mode: "full-autonomy" as AutonomyLevel,
-    label: "Full Autonomy",
-    icon: ShieldOff,
-    description: "Only HIGH risk tasks (payments, ads) still require approval. Everything else auto-approves.",
-    activeClasses: "bg-red-600 text-white hover:bg-red-700 border-red-600",
-  },
-];
 
 // ─── Props ──────────────────────────────────────────────────────────────────
 
@@ -92,8 +61,6 @@ export function MissionFormDialog({
       setLinkedProjectId(mission?.linkedProjectId ?? null);
     }
   }, [open, mission]);
-
-  const currentMode = AUTONOMY_MODES.find((m) => m.mode === autonomyLevel) ?? AUTONOMY_MODES[0];
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -153,31 +120,10 @@ export function MissionFormDialog({
             {/* Autonomy Level */}
             <div className="space-y-2">
               <Label>Approval Level</Label>
-              <div className="flex gap-2">
-                {AUTONOMY_MODES.map((modeInfo) => {
-                  const Icon = modeInfo.icon;
-                  const isActive = autonomyLevel === modeInfo.mode;
-                  return (
-                    <Button
-                      key={modeInfo.mode}
-                      type="button"
-                      variant={isActive ? "default" : "outline"}
-                      size="sm"
-                      onClick={() => setAutonomyLevel(modeInfo.mode)}
-                      className={cn(
-                        "gap-1.5 flex-1 transition-all",
-                        isActive && modeInfo.activeClasses,
-                      )}
-                    >
-                      <Icon className="h-3.5 w-3.5" />
-                      <span className="text-xs">{modeInfo.label}</span>
-                    </Button>
-                  );
-                })}
-              </div>
-              <p className="text-xs text-muted-foreground">
-                {currentMode.description}
-              </p>
+              <AutonomySelector
+                value={autonomyLevel}
+                onChange={(v) => setAutonomyLevel(v ?? "approve-all")}
+              />
               <p className="text-xs text-amber-400">
                 Note: HIGH risk tasks (payments, ad campaigns) always require approval regardless of this setting.
               </p>

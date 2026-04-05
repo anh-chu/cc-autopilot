@@ -1,0 +1,16 @@
+{
+  "workspaces": [
+    {
+      "id": "default",
+      "name": "Katalon",
+      "description": "",
+      "isDefault": true,
+      "color": "#6366f1",
+      "settings": {
+        "autonomyLevel": "approve-all"
+      },
+      "createdAt": "2026-04-05T15:43:19.117Z",
+      "updatedAt": "2026-04-05T15:43:19.117Z"
+    }
+  ]
+}

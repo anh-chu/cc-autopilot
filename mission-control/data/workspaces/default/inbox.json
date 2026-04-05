@@ -1,0 +1,76 @@
+{
+  "messages": [
+    {
+      "id": "msg_0TVhXoK4KPk_",
+      "from": "system",
+      "to": "business-analyst",
+      "type": "delegation",
+      "taskId": "task_QWhtbJwGosxW",
+      "subject": "New assignment: collect feedback",
+      "body": "You have been assigned as lead to: \"collect feedback\"\n\nList feedback from linear, categorized by AI/Manual Testing/Reporting. Respond in comment",
+      "status": "read",
+      "createdAt": "2026-04-04T19:17:23.471Z",
+      "readAt": "2026-04-04T19:18:09.754Z"
+    },
+    {
+      "id": "msg_lvEduxeP26c3",
+      "from": "system",
+      "to": "researcher",
+      "type": "delegation",
+      "taskId": "task_QWhtbJwGosxW",
+      "subject": "New assignment: collect feedback",
+      "body": "You have been assigned as lead to: \"collect feedback\"\n\nList feedback from linear, categorized by AI/Manual Testing/Reporting. Respond in comment",
+      "status": "read",
+      "createdAt": "2026-04-04T19:23:43.509Z",
+      "readAt": "2026-04-04T19:45:20.952Z"
+    },
+    {
+      "id": "msg_1775332868263",
+      "from": "researcher",
+      "to": "me",
+      "type": "report",
+      "taskId": "task_QWhtbJwGosxW",
+      "subject": "Completed: collect feedback",
+      "body": "Done. Here's a summary of what was found and categorized:\n\n---\n\n## Feedback from Linear — Categorized\n\n### AI (4 issues)\n| Issue | Priority | Summary |\n|-------|----------|---------|\n| KAT-7 | **Urgent** | Kai Page Interaction corrupts all test cases — ignores selection scope (data-loss bug) |\n| KAT-8 | High | Kai quality/UX insufficient — beta users say don't ship in current state |\n| KAT-5 | High | AI test gen misses scenarios, over-combines steps — losing to ChatGPT comparisons |\n| KAT-6 | Hi",
+      "status": "read",
+      "createdAt": "2026-04-04T20:01:08.262Z",
+      "readAt": "2026-04-05T08:13:40.021Z"
+    },
+    {
+      "id": "msg_1775378675453",
+      "from": "researcher",
+      "to": "me",
+      "type": "update",
+      "taskId": "task_QWhtbJwGosxW",
+      "subject": "Reply on: collect feedback",
+      "body": "(no response)",
+      "status": "read",
+      "createdAt": "2026-04-05T08:44:35.453Z",
+      "readAt": "2026-04-05T08:44:48.222Z"
+    },
+    {
+      "id": "msg_1775378809199",
+      "from": "researcher",
+      "to": "me",
+      "type": "update",
+      "taskId": "task_QWhtbJwGosxW",
+      "subject": "Reply on: collect feedback",
+      "body": "(no response)",
+      "status": "read",
+      "createdAt": "2026-04-05T08:46:49.199Z",
+      "readAt": "2026-04-05T08:46:57.058Z"
+    },
+    {
+      "id": "msg_1775384420191",
+      "from": "researcher",
+      "to": "me",
+      "type": "update",
+      "taskId": "task_QWhtbJwGosxW",
+      "subject": "Reply on: collect feedback",
+      "body": "Done. Created the document **\"Customer Feedback — Categorized\"** in the True project on Linear:\n\nhttps://linear.app/katalon-pm/document/customer-feedback-categorized-722de043fc7f\n\nIt contains all 13 categorized issues (AI, Manual Testing, Reporting) with links back to each Linear issue.",
+      "status": "read",
+      "createdAt": "2026-04-05T10:20:20.191Z",
+      "readAt": "2026-04-05T10:20:25.829Z"
+    }
+  ]
+}

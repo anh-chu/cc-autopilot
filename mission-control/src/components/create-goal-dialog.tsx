@@ -11,13 +11,6 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import type { GoalType, Project, Goal } from "@/lib/types";
 
 interface CreateGoalDialogProps {
@@ -34,30 +27,22 @@ interface CreateGoalDialogProps {
   }) => void;
 }
 
-export function CreateGoalDialog({ open, onOpenChange, projects, goals, onSubmit }: CreateGoalDialogProps) {
+export function CreateGoalDialog({ open, onOpenChange, projects: _projects, goals: _goals, onSubmit }: CreateGoalDialogProps) {
   const [title, setTitle] = useState("");
-  const [type, setType] = useState<GoalType>("long-term");
   const [timeframe, setTimeframe] = useState("");
-  const [projectId, setProjectId] = useState<string | null>(null);
-  const [parentGoalId, setParentGoalId] = useState<string | null>(null);
-
-  const longTermGoals = goals.filter((g) => g.type === "long-term");
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!title.trim()) return;
     onSubmit({
       title: title.trim(),
-      type,
+      type: "long-term",
       timeframe,
-      projectId,
-      parentGoalId: type === "medium-term" ? parentGoalId : null,
+      projectId: null,
+      parentGoalId: null,
     });
     setTitle("");
-    setType("long-term");
     setTimeframe("");
-    setProjectId(null);
-    setParentGoalId(null);
     onOpenChange(false);
   };
 
@@ -66,7 +51,7 @@ export function CreateGoalDialog({ open, onOpenChange, projects, goals, onSubmit
       <DialogContent className="max-w-md">
         <DialogHeader>
           <DialogTitle>Create Objective</DialogTitle>
-          <DialogDescription>Define a new objective or milestone.</DialogDescription>
+          <DialogDescription>Define a new long-term objective.</DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
@@ -80,71 +65,15 @@ export function CreateGoalDialog({ open, onOpenChange, projects, goals, onSubmit
             />
           </div>
 
-          <div className="grid grid-cols-2 gap-3">
-            <div className="space-y-2">
-              <Label>Type</Label>
-              <Select value={type} onValueChange={(v) => setType(v as GoalType)}>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="long-term">Long-Term Objective</SelectItem>
-                  <SelectItem value="medium-term">Milestone</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="goal-timeframe">Timeframe</Label>
-              <Input
-                id="goal-timeframe"
-                value={timeframe}
-                onChange={(e) => setTimeframe(e.target.value)}
-                placeholder="e.g., Q1 2026"
-              />
-            </div>
-          </div>
-
           <div className="space-y-2">
-            <Label>Project</Label>
-            <Select
-              value={projectId ?? "none"}
-              onValueChange={(v) => setProjectId(v === "none" ? null : v)}
-            >
-              <SelectTrigger>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="none">No Project</SelectItem>
-                {projects.map((p) => (
-                  <SelectItem key={p.id} value={p.id}>
-                    {p.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <Label htmlFor="goal-timeframe">Timeframe</Label>
+            <Input
+              id="goal-timeframe"
+              value={timeframe}
+              onChange={(e) => setTimeframe(e.target.value)}
+              placeholder="e.g., Q1 2026"
+            />
           </div>
-
-          {type === "medium-term" && (
-            <div className="space-y-2">
-              <Label>Parent Objective</Label>
-              <Select
-                value={parentGoalId ?? "none"}
-                onValueChange={(v) => setParentGoalId(v === "none" ? null : v)}
-              >
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="none">No Parent Objective</SelectItem>
-                  {longTermGoals.map((g) => (
-                    <SelectItem key={g.id} value={g.id}>
-                      {g.title}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-          )}
 
           <div className="flex justify-end gap-2 pt-2">
             <Button type="button" variant="ghost" onClick={() => onOpenChange(false)}>

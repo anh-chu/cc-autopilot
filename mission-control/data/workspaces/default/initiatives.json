@@ -1,0 +1,41 @@
+{
+  "initiatives": [
+    {
+      "id": "goal_oY88I_r4rfwj",
+      "title": "test",
+      "description": "",
+      "status": "active",
+      "parentGoalId": null,
+      "color": "#6366f1",
+      "teamMembers": [],
+      "autonomyLevel": null,
+      "taskIds": [
+        "task_8XE0yqyRU58j",
+        "task_tCUcHDjV3Cm9"
+      ],
+      "actionIds": [],
+      "tags": [],
+      "createdAt": "2026-04-05T15:07:15.034Z",
+      "updatedAt": "2026-04-05T16:42:00.050Z",
+      "completedAt": null,
+      "deletedAt": null
+    },
+    {
+      "id": "proj_mzf8tIXZX6Na",
+      "title": "test",
+      "description": "",
+      "status": "active",
+      "parentGoalId": null,
+      "color": "#6366f1",
+      "teamMembers": [],
+      "autonomyLevel": null,
+      "taskIds": [],
+      "actionIds": [],
+      "tags": [],
+      "createdAt": "2026-04-05T12:32:51.715Z",
+      "updatedAt": "2026-04-05T15:46:29.362Z",
+      "completedAt": null,
+      "deletedAt": "2026-04-05T12:32:59.314Z"
+    }
+  ]
+}

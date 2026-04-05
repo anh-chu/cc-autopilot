@@ -18,7 +18,7 @@ import type { Project, Goal, Importance, Urgency, KanbanStatus, AgentRole, Task,
 // import { AGENT_ROLES } from "@/lib/types";
 import { LIMITS } from "@/lib/validations";
 import { cn } from "@/lib/utils";
-import { useAgents } from "@/hooks/use-data";
+import { useAgents, useInitiatives } from "@/hooks/use-data";
 import { getAgentIcon } from "@/lib/agent-icons";
 import { Badge } from "@/components/ui/badge";
 import { Users } from "lucide-react";
@@ -31,6 +31,7 @@ export interface TaskFormData {
   kanban: KanbanStatus;
   projectId: string | null;
   milestoneId: string | null;
+  initiativeId: string | null;
   assignedTo: AgentRole | null;
   collaborators: string[];
   tags: string;
@@ -53,9 +54,12 @@ interface TaskFormProps {
   submitLabel?: string;
 }
 
-export function TaskForm({ initial, projects, goals, allTasks, currentTaskId, onSubmit, onCancel, submitLabel = "Save" }: TaskFormProps) {
+// projects and goals kept in props for backward compat with callers
+export function TaskForm({ initial, projects: _projects, goals: _goals, allTasks, currentTaskId, onSubmit, onCancel, submitLabel = "Save" }: TaskFormProps) {
   const { agents } = useAgents();
   const activeAgents = agents.filter((a) => a.status === "active");
+  const { initiatives } = useInitiatives();
+  const activeInitiatives = initiatives.filter((i) => !i.deletedAt);
 
   const [form, setForm] = useState<TaskFormData>({
     title: initial?.title ?? "",
@@ -65,6 +69,7 @@ export function TaskForm({ initial, projects, goals, allTasks, currentTaskId, on
     kanban: initial?.kanban ?? "not-started",
     projectId: initial?.projectId ?? null,
     milestoneId: initial?.milestoneId ?? null,
+    initiativeId: initial?.initiativeId ?? null,
     assignedTo: initial?.assignedTo ?? null,
     collaborators: initial?.collaborators ?? [],
     tags: initial?.tags ?? "",
@@ -90,10 +95,6 @@ export function TaskForm({ initial, projects, goals, allTasks, currentTaskId, on
       return next;
     });
   };
-
-  const milestones = goals.filter(
-    (g) => g.type === "medium-term" && (form.projectId ? g.projectId === form.projectId : true)
-  );
 
   // Available tasks for dependency picker (exclude self)
   const depTasks = allTasks?.filter((t) => t.id !== currentTaskId) ?? [];
@@ -354,45 +355,32 @@ export function TaskForm({ initial, projects, goals, allTasks, currentTaskId, on
         </div>
       )}
 
-      <div className="grid grid-cols-2 gap-3">
-        <div className="space-y-2">
-          <Label>Project</Label>
-          <Select
-            value={form.projectId ?? "none"}
-            onValueChange={(v) => setForm({ ...form, projectId: v === "none" ? null : v, milestoneId: null })}
-          >
-            <SelectTrigger>
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="none">No Project</SelectItem>
-              {projects.map((p) => (
-                <SelectItem key={p.id} value={p.id}>
-                  {p.name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-        <div className="space-y-2">
-          <Label>Milestone</Label>
-          <Select
-            value={form.milestoneId ?? "none"}
-            onValueChange={(v) => setForm({ ...form, milestoneId: v === "none" ? null : v })}
-          >
-            <SelectTrigger>
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="none">No Milestone</SelectItem>
-              {milestones.map((m) => (
-                <SelectItem key={m.id} value={m.id}>
-                  {m.title}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
+      <div className="space-y-2">
+        <Label>Initiative</Label>
+        <Select
+          value={form.initiativeId ?? "none"}
+          onValueChange={(v) => setForm({ ...form, initiativeId: v === "none" ? null : v })}
+        >
+          <SelectTrigger>
+            <SelectValue placeholder="No Initiative" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="none">No Initiative</SelectItem>
+            {activeInitiatives.map((initiative) => (
+              <SelectItem key={initiative.id} value={initiative.id}>
+                <span className="flex items-center gap-2">
+                  {initiative.color && (
+                    <span
+                      className="inline-block h-2 w-2 rounded-full shrink-0"
+                      style={{ backgroundColor: initiative.color }}
+                    />
+                  )}
+                  {initiative.title}
+                </span>
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
       </div>
 
       {/* Estimated time */}

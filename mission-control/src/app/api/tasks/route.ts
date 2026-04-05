@@ -1,8 +1,9 @@
 import { NextResponse } from "next/server";
-import { getTasks, getTasksArchive, mutateTasks, mutateInbox, mutateActivityLog, mutateGoals } from "@/lib/data";
+import { getTasks, getTasksArchive, mutateTasks, mutateInbox, mutateActivityLog, mutateGoals, mutateInitiatives, getInitiatives } from "@/lib/data";
 import type { Task, AgentRole, InboxMessage, ActivityEvent } from "@/lib/types";
 import { taskCreateSchema, taskUpdateSchema, validateBody, DEFAULT_LIMIT } from "@/lib/validations";
 import { generateId } from "@/lib/utils";
+import { applyWorkspaceContext } from "@/lib/workspace-context";
 
 // ─── Side-effect helpers (now atomic via mutate*) ───────────────────────────
 
@@ -164,11 +165,13 @@ async function handleUnblocking(completedTask: Task) {
 // ─── API Routes ──────────────────────────────────────────────────────────────
 
 export async function GET(request: Request) {
+  await applyWorkspaceContext();
   const { searchParams } = new URL(request.url);
   const id = searchParams.get("id");
   const assignedTo = searchParams.get("assignedTo");
   const kanban = searchParams.get("kanban");
   const projectId = searchParams.get("projectId");
+  const initiativeId = searchParams.get("initiativeId");
   const quadrant = searchParams.get("quadrant");
   const fields = searchParams.get("fields");
   const include = searchParams.get("include");
@@ -210,6 +213,12 @@ export async function GET(request: Request) {
   if (assignedTo) tasks = tasks.filter((t) => t.assignedTo === assignedTo);
   if (kanban) tasks = tasks.filter((t) => t.kanban === kanban);
   if (projectId) tasks = tasks.filter((t) => t.projectId === projectId);
+  if (initiativeId) {
+    const initiativesData = await getInitiatives();
+    const initiative = initiativesData.initiatives.find((i) => i.id === initiativeId);
+    const taskIdSet = new Set(initiative?.taskIds ?? []);
+    tasks = tasks.filter((t) => taskIdSet.has(t.id));
+  }
   if (quadrant) {
     const q = quadrant.toLowerCase();
     tasks = tasks.filter((t) => {
@@ -261,6 +270,7 @@ export async function GET(request: Request) {
 }
 
 export async function POST(request: Request) {
+  await applyWorkspaceContext();
   const validation = await validateBody(request, taskCreateSchema);
   if (!validation.success) return validation.error;
   const body = validation.data;
@@ -298,6 +308,17 @@ export async function POST(request: Request) {
     return task;
   });
 
+  // Link task to initiative if provided
+  if (body.initiativeId) {
+    await mutateInitiatives(async (data) => {
+      const initiative = data.initiatives.find((i) => i.id === body.initiativeId);
+      if (initiative && !initiative.taskIds.includes(newTask.id)) {
+        initiative.taskIds.push(newTask.id);
+        initiative.updatedAt = new Date().toISOString();
+      }
+    });
+  }
+
   // Side effects (best-effort, after atomic write)
   if (isAgent(newTask.assignedTo)) {
     await handleDelegation(newTask, null);
@@ -310,6 +331,7 @@ export async function POST(request: Request) {
 }
 
 export async function PUT(request: Request) {
+  await applyWorkspaceContext();
   const validation = await validateBody(request, taskUpdateSchema);
   if (!validation.success) return validation.error;
   const body = validation.data;
@@ -337,6 +359,32 @@ export async function PUT(request: Request) {
   }
 
   const { updatedTask, oldTask, wasCompleted } = result;
+
+  // Update initiative taskIds if initiativeId changed
+  if ("initiativeId" in body) {
+    const oldInitiativeId = (oldTask as Task & { initiativeId?: string | null }).initiativeId ?? null;
+    const newInitiativeId = body.initiativeId ?? null;
+    if (oldInitiativeId !== newInitiativeId) {
+      await mutateInitiatives(async (data) => {
+        // Remove from old initiative
+        if (oldInitiativeId) {
+          const old = data.initiatives.find((i) => i.id === oldInitiativeId);
+          if (old) {
+            old.taskIds = old.taskIds.filter((tid) => tid !== updatedTask.id);
+            old.updatedAt = new Date().toISOString();
+          }
+        }
+        // Add to new initiative
+        if (newInitiativeId) {
+          const next = data.initiatives.find((i) => i.id === newInitiativeId);
+          if (next && !next.taskIds.includes(updatedTask.id)) {
+            next.taskIds.push(updatedTask.id);
+            next.updatedAt = new Date().toISOString();
+          }
+        }
+      });
+    }
+  }
 
   // Side effects (best-effort)
   if (updatedTask.assignedTo !== oldTask.assignedTo) {

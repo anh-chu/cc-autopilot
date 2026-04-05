@@ -9,6 +9,7 @@ interface SidebarData {
   unreadInbox: number;
   pendingDecisions: number;
   pendingFieldApprovals: number;
+  pendingActionApprovals: number;
   agents: AgentDefinition[];
 }
 
@@ -20,6 +21,7 @@ export function useSidebar() {
   const [unreadInbox, setUnreadInbox] = useState(0);
   const [pendingDecisions, setPendingDecisions] = useState(0);
   const [pendingFieldApprovals, setPendingFieldApprovals] = useState(0);
+  const [pendingActionApprovals, setPendingActionApprovals] = useState(0);
   const [loading, setLoading] = useState(true);
   const initialLoadDone = useRef(false);
 
@@ -34,6 +36,7 @@ export function useSidebar() {
       setUnreadInbox(json.unreadInbox);
       setPendingDecisions(json.pendingDecisions);
       setPendingFieldApprovals(json.pendingFieldApprovals ?? 0);
+      setPendingActionApprovals(json.pendingActionApprovals ?? 0);
       initialLoadDone.current = true;
     } catch {
       // Silently fail on polls — sidebar badges are non-critical
@@ -60,5 +63,5 @@ export function useSidebar() {
     };
   }, [refetch]);
 
-  return { tasks, agents, unreadInbox, pendingDecisions, pendingFieldApprovals, loading, refetch };
+  return { tasks, agents, unreadInbox, pendingDecisions, pendingFieldApprovals, pendingActionApprovals, loading, refetch };
 }

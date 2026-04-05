@@ -1,7 +1,8 @@
 "use client";
 
 import { useState, useRef, useEffect, useCallback, useMemo } from "react";
-import { Zap, Search, PanelLeftClose, PanelLeft, Lightbulb, Bot, X, Menu } from "lucide-react";
+import Link from "next/link";
+import { Zap, Search, PanelLeftClose, PanelLeft, Lightbulb, Bot, X, Menu, BookOpen } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Tip } from "@/components/ui/tip";
@@ -25,14 +26,12 @@ export function CommandBar({ onCapture, sidebarOpen, onToggleSidebar, isMobile =
   const [showSuggestions, setShowSuggestions] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  // Compute matching skills when typing "/"
   const matchingSkills = useMemo(() => {
     if (!value.startsWith("/")) return [];
     const query = value.trim().toLowerCase();
     return SKILLS.filter((s) => s.command.startsWith(query));
   }, [value]);
 
-  // Compute matching tasks for search (when typing "?" prefix or 3+ chars)
   const matchingTasks = useMemo(() => {
     const query = value.startsWith("?") ? value.slice(1).trim() : value.trim();
     if (query.length < 2 || value.startsWith("/")) return [];
@@ -45,12 +44,10 @@ export function CommandBar({ onCapture, sidebarOpen, onToggleSidebar, isMobile =
 
   const showTaskResults = focused && matchingTasks.length > 0 && !value.startsWith("/");
 
-  // Show/hide suggestions
   useEffect(() => {
     setShowSuggestions(value.startsWith("/") && matchingSkills.length > 0 && focused);
   }, [value, matchingSkills.length, focused]);
 
-  // Global keyboard shortcut: "/" to focus
   useEffect(() => {
     function handleKeyDown(e: KeyboardEvent) {
       if (e.key === "/" && !["INPUT", "TEXTAREA", "SELECT"].includes((e.target as HTMLElement).tagName)) {
@@ -97,7 +94,6 @@ export function CommandBar({ onCapture, sidebarOpen, onToggleSidebar, isMobile =
 
   return (
     <header className="sticky top-0 z-40 flex h-14 items-center gap-3 border-b bg-background/80 backdrop-blur-md px-4">
-      {/* Sidebar toggle */}
       <Tip content="Toggle sidebar">
         <Button
           variant="ghost"
@@ -116,7 +112,6 @@ export function CommandBar({ onCapture, sidebarOpen, onToggleSidebar, isMobile =
         </Button>
       </Tip>
 
-      {/* Quick capture input */}
       <div className={cn(
         "relative flex flex-1 items-center gap-2 rounded-lg border bg-card px-3 transition-all",
         focused ? "border-primary ring-1 ring-primary/30" : "border-border"
@@ -171,7 +166,6 @@ export function CommandBar({ onCapture, sidebarOpen, onToggleSidebar, isMobile =
           </Tip>
         )}
 
-        {/* Slash command autocomplete dropdown */}
         {showSuggestions && (
           <div className="absolute top-full left-0 right-0 mt-1 rounded-lg border bg-popover shadow-lg z-50">
             <p className="px-3 py-1.5 text-xs text-muted-foreground border-b">
@@ -194,7 +188,6 @@ export function CommandBar({ onCapture, sidebarOpen, onToggleSidebar, isMobile =
           </div>
         )}
 
-        {/* Task search results dropdown */}
         {showTaskResults && (
           <div className="absolute top-full left-0 right-0 mt-1 rounded-lg border bg-popover shadow-lg z-50">
             <p className="px-3 py-1.5 text-xs text-muted-foreground border-b flex items-center gap-1.5">
@@ -224,7 +217,6 @@ export function CommandBar({ onCapture, sidebarOpen, onToggleSidebar, isMobile =
           </div>
         )}
 
-        {/* Slash command notification */}
         {slashNotification && (
           <div className="absolute top-full left-0 right-0 mt-1 z-50">
             <div className="flex items-center gap-2 rounded-lg border bg-popover px-3 py-2 shadow-lg">
@@ -244,6 +236,20 @@ export function CommandBar({ onCapture, sidebarOpen, onToggleSidebar, isMobile =
           </div>
         )}
       </div>
+
+      <Tip content="Guide">
+        <Button
+          variant="ghost"
+          size="icon"
+          className="shrink-0 text-muted-foreground hover:text-foreground"
+          aria-label="Open guide"
+          asChild
+        >
+          <Link href="/guide">
+            <BookOpen className="h-5 w-5" />
+          </Link>
+        </Button>
+      </Tip>
 
     </header>
   );
