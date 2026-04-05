@@ -165,7 +165,7 @@ function MissionActivitySection({ missionId }: { missionId: string }) {
         <div className="flex items-center justify-between">
           <CardTitle className="text-base flex items-center gap-2">
             <Activity className="h-4 w-4" />
-            Mission Activity
+            Initiative Activity
             {!loading && events.length > 0 && (
               <Badge variant="outline" className="text-[10px] px-1.5 py-0 ml-1">
                 {events.length}
@@ -549,18 +549,18 @@ export default function MissionDetailPage() {
       <div className="space-y-6">
         <BreadcrumbNav items={[
           { label: "Integrations", href: "/field-ops" },
-          { label: "Missions", href: "/field-ops/missions" },
+          { label: "Initiatives", href: "/field-ops/missions" },
           { label: "Not Found" },
         ]} />
         <Card>
           <CardContent className="py-12 text-center">
-            <h2 className="text-lg font-medium">Mission not found</h2>
+            <h2 className="text-lg font-medium">Initiative not found</h2>
             <p className="text-sm text-muted-foreground mt-1">
-              This mission may have been deleted.
+              This initiative may have been deleted.
             </p>
             <Link href="/field-ops/missions">
               <Button className="mt-4 gap-1.5">
-                <ArrowLeft className="h-4 w-4" /> Back to Missions
+                <ArrowLeft className="h-4 w-4" /> Back to Initiatives
               </Button>
             </Link>
           </CardContent>
@@ -575,7 +575,7 @@ export default function MissionDetailPage() {
     <div className="space-y-6">
       <BreadcrumbNav items={[
         { label: "Integrations", href: "/field-ops" },
-        { label: "Missions", href: "/field-ops/missions" },
+        { label: "Initiatives", href: "/field-ops/missions" },
         { label: mission.title },
       ]} />
 
@@ -609,7 +609,7 @@ export default function MissionDetailPage() {
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
               <DropdownMenuItem onClick={() => setEditDialogOpen(true)}>
-                <Pencil className="h-3.5 w-3.5 mr-2" /> Edit Mission
+                <Pencil className="h-3.5 w-3.5 mr-2" /> Edit Initiative
               </DropdownMenuItem>
               <DropdownMenuItem onClick={handleTogglePause}>
                 {mission.status === "paused" ? (
@@ -620,12 +620,12 @@ export default function MissionDetailPage() {
               </DropdownMenuItem>
               {mission.status !== "completed" && (
                 <DropdownMenuItem onClick={handleCompleteMission}>
-                  <CheckCircle2 className="h-3.5 w-3.5 mr-2" /> Complete Mission
+                  <CheckCircle2 className="h-3.5 w-3.5 mr-2" /> Complete Initiative
                 </DropdownMenuItem>
               )}
               <DropdownMenuSeparator />
               <DropdownMenuItem className="text-red-400" onClick={handleDeleteMission}>
-                <Trash2 className="h-3.5 w-3.5 mr-2" /> Delete Mission
+                <Trash2 className="h-3.5 w-3.5 mr-2" /> Delete Initiative
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
@@ -698,7 +698,7 @@ export default function MissionDetailPage() {
             <div>
               <h3 className="font-medium text-red-400">Circuit Breaker Triggered</h3>
               <p className="text-sm text-muted-foreground mt-1">
-                3 or more consecutive tasks have failed. Consider pausing this mission to investigate
+                3 or more consecutive tasks have failed. Consider pausing this initiative to investigate
                 before continuing. This prevents cascading failures from damaging external services.
               </p>
               <Button
@@ -708,7 +708,7 @@ export default function MissionDetailPage() {
                 onClick={handleTogglePause}
               >
                 <Pause className="h-3 w-3" />
-                Pause Mission
+                Pause Initiative
               </Button>
             </div>
           </CardContent>

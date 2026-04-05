@@ -111,18 +111,18 @@ export default function MissionsPage() {
     <div className="space-y-6">
       <BreadcrumbNav items={[
         { label: "Integrations", href: "/field-ops" },
-        { label: "Missions" },
+        { label: "Initiatives" },
       ]} />
 
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
           <Rocket className="h-6 w-6" />
-          <h1 className="text-2xl font-bold">Missions</h1>
+          <h1 className="text-2xl font-bold">Initiatives</h1>
         </div>
         <Button size="sm" className="gap-1.5" onClick={() => setFormOpen(true)}>
           <Plus className="h-4 w-4" />
-          New Mission
+          New Initiative
         </Button>
       </div>
 
@@ -154,10 +154,10 @@ export default function MissionsPage() {
       {/* Empty state */}
       {!loading && filtered.length === 0 && statusFilter === "all" && (
         <GettingStartedCard
-          title="What are Missions?"
-          description="Missions are containers for related field tasks. Each mission has its own autonomy level that controls whether tasks need your approval. Think of a mission as a campaign — like 'Social Media Launch' or 'Payment Processing Setup'."
+          title="What are Initiatives?"
+          description="Initiatives are containers for related field tasks. Each initiative has its own autonomy level that controls whether tasks need your approval. Think of an initiative as a campaign — like 'Social Media Launch' or 'Payment Processing Setup'."
           steps={[
-            "Click '+ New Mission' above",
+            "Click '+ New Initiative' above",
             "Give it a title and choose an autonomy level",
             "Add field tasks to execute through your connected services",
           ]}
@@ -170,17 +170,17 @@ export default function MissionsPage() {
           <CardContent className="flex flex-col items-center justify-center py-12 text-center">
             <Rocket className="h-12 w-12 text-muted-foreground/30 mb-4" />
             <h3 className="font-medium text-lg">
-              {statusFilter === "all" ? "No missions yet" : `No ${statusFilter} missions`}
+              {statusFilter === "all" ? "No initiatives yet" : `No ${statusFilter} initiatives`}
             </h3>
             <p className="text-sm text-muted-foreground mt-1 max-w-sm">
               {statusFilter === "all"
-                ? "Create your first field ops mission to start managing external tasks with security controls."
-                : "Try changing the filter to see other missions."}
+                ? "Create your first field ops initiative to start managing external tasks with security controls."
+                : "Try changing the filter to see other initiatives."}
             </p>
             {statusFilter === "all" && (
               <Button className="mt-4 gap-1.5" onClick={() => setFormOpen(true)}>
                 <Plus className="h-4 w-4" />
-                Create First Mission
+                Create First Initiative
               </Button>
             )}
           </CardContent>

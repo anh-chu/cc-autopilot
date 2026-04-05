@@ -67,7 +67,7 @@ const commsLinks = [
 
 const fieldOpsLinks = [
   { href: "/field-ops", label: "Dashboard", icon: Radio },
-  { href: "/field-ops/missions", label: "Missions", icon: Rocket },
+  { href: "/field-ops/missions", label: "Initiatives", icon: Rocket },
   { href: "/field-ops/services", label: "Services", icon: Globe },
   { href: "/field-ops/vault", label: "Vault", icon: Lock },
   { href: "/field-ops/safety", label: "Safety", icon: Shield },
@@ -148,6 +148,7 @@ export function AppSidebar({ collapsed, unreadInbox = 0, pendingDecisions = 0, p
               <p className="text-xs font-semibold uppercase tracking-wider text-sidebar-foreground/50">
                 Tasks
               </p>
+              <p className="text-[10px] text-sidebar-foreground/30 mt-0.5">Prioritize and track work</p>
             </div>
             <nav className="space-y-0.5 px-2">
               {taskLinks.map(({ href, label, icon: Icon }) => {
@@ -171,12 +172,13 @@ export function AppSidebar({ collapsed, unreadInbox = 0, pendingDecisions = 0, p
               })}
             </nav>
 
-            {/* Field Ops */}
+            {/* Integrations */}
             <Separator className="mx-2 my-2" />
             <div className="px-3 pb-1">
               <p className="text-xs font-semibold uppercase tracking-wider text-sidebar-foreground/50">
                 Integrations
               </p>
+              <p className="text-[10px] text-sidebar-foreground/30 mt-0.5">External services, approvals, and safety</p>
             </div>
             <nav className="space-y-0.5 px-2">
               {fieldOpsLinks.map(({ href, label, icon: Icon }) => {
@@ -206,12 +208,13 @@ export function AppSidebar({ collapsed, unreadInbox = 0, pendingDecisions = 0, p
               })}
             </nav>
 
-            {/* Communications */}
+            {/* Messages */}
             <Separator className="mx-2 my-2" />
             <div className="px-3 pb-1">
               <p className="text-xs font-semibold uppercase tracking-wider text-sidebar-foreground/50">
                 Messages
               </p>
+              <p className="text-[10px] text-sidebar-foreground/30 mt-0.5">Agent reports, decisions, and activity</p>
             </div>
             <nav className="space-y-0.5 px-2">
               {commsLinks.map(({ href, label, icon: Icon, badgeKey }) => {
@@ -241,12 +244,13 @@ export function AppSidebar({ collapsed, unreadInbox = 0, pendingDecisions = 0, p
               })}
             </nav>
 
-            {/* Crew */}
+            {/* Agents */}
             <Separator className="mx-2 my-2" />
             <div className="px-3 pb-1">
               <p className="text-xs font-semibold uppercase tracking-wider text-sidebar-foreground/50">
                 Agents
               </p>
+              <p className="text-[10px] text-sidebar-foreground/30 mt-0.5">Your team of AI workers and their skills</p>
             </div>
             <div className="space-y-0.5 px-2">
               {/* Crew overview link */}
@@ -359,6 +363,9 @@ export function AppSidebar({ collapsed, unreadInbox = 0, pendingDecisions = 0, p
               <p className="text-xs font-semibold uppercase tracking-wider text-sidebar-foreground/50">
                 Tasks
               </p>
+              <p className="text-[10px] text-sidebar-foreground/30 mt-0.5">
+                Prioritize and track work
+              </p>
             </div>
           )}
           <nav className="space-y-0.5 px-2">
@@ -393,12 +400,15 @@ export function AppSidebar({ collapsed, unreadInbox = 0, pendingDecisions = 0, p
             })}
           </nav>
 
-          {/* Field Ops */}
+          {/* Integrations */}
           <Separator className="mx-2 my-2" />
           {!collapsed && (
             <div className="px-3 pb-1">
               <p className="text-xs font-semibold uppercase tracking-wider text-sidebar-foreground/50">
                 Integrations
+              </p>
+              <p className="text-[10px] text-sidebar-foreground/30 mt-0.5">
+                External services, approvals, and safety
               </p>
             </div>
           )}
@@ -454,12 +464,15 @@ export function AppSidebar({ collapsed, unreadInbox = 0, pendingDecisions = 0, p
             })}
           </nav>
 
-          {/* Communications */}
+          {/* Messages */}
           <Separator className="mx-2 my-2" />
           {!collapsed && (
             <div className="px-3 pb-1">
               <p className="text-xs font-semibold uppercase tracking-wider text-sidebar-foreground/50">
                 Messages
+              </p>
+              <p className="text-[10px] text-sidebar-foreground/30 mt-0.5">
+                Agent reports, decisions, and activity
               </p>
             </div>
           )}
@@ -515,12 +528,15 @@ export function AppSidebar({ collapsed, unreadInbox = 0, pendingDecisions = 0, p
             })}
           </nav>
 
-          {/* Crew */}
+          {/* Agents */}
           <Separator className="mx-2 my-2" />
           {!collapsed && (
             <div className="px-3 pb-1">
               <p className="text-xs font-semibold uppercase tracking-wider text-sidebar-foreground/50">
                 Agents
+              </p>
+              <p className="text-[10px] text-sidebar-foreground/30 mt-0.5">
+                Your team of AI workers and their skills
               </p>
             </div>
           )}

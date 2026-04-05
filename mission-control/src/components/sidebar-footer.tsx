@@ -204,7 +204,7 @@ export function SidebarFooter({ collapsed }: SidebarFooterProps) {
 
           <ul className="list-disc pl-6 text-sm space-y-1">
             <li>Stop the Autopilot daemon</li>
-            <li>Pause all active Field Ops missions</li>
+            <li>Pause all active initiatives</li>
             <li>Lock the credential vault</li>
             <li>Log the emergency stop event</li>
           </ul>

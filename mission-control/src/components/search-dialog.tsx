@@ -109,7 +109,7 @@ export function SearchDialog() {
 
   return (
     <CommandDialog open={open} onOpenChange={setOpen}>
-      <CommandInput placeholder="Search tasks, missions, objectives, ideas..." />
+      <CommandInput placeholder="Search tasks, initiatives, objectives, ideas..." />
       <CommandList>
         <CommandEmpty>No results found.</CommandEmpty>
 

@@ -117,11 +117,11 @@ export function MissionFormDialog({
       <DialogContent className="sm:max-w-[500px]">
         <form onSubmit={handleSubmit}>
           <DialogHeader>
-            <DialogTitle>{isEdit ? "Edit Mission" : "New Mission"}</DialogTitle>
+            <DialogTitle>{isEdit ? "Edit Initiative" : "New Initiative"}</DialogTitle>
             <DialogDescription>
               {isEdit
-                ? "Update mission details and security settings."
-                : "Create a new field operation mission with tasks and approval controls."}
+                ? "Update initiative details and security settings."
+                : "Create a new field operation initiative with tasks and approval controls."}
             </DialogDescription>
           </DialogHeader>
 
@@ -145,7 +145,7 @@ export function MissionFormDialog({
                 id="mission-desc"
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
-                placeholder="What should this mission accomplish?"
+                placeholder="What should this initiative accomplish?"
                 rows={3}
               />
             </div>
@@ -212,7 +212,7 @@ export function MissionFormDialog({
               Cancel
             </Button>
             <Button type="submit" disabled={!title.trim() || submitting}>
-              {submitting ? "Saving..." : isEdit ? "Save Changes" : "Create Mission"}
+              {submitting ? "Saving..." : isEdit ? "Save Changes" : "Create Initiative"}
             </Button>
           </DialogFooter>
         </form>

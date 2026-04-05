@@ -226,10 +226,10 @@ export default function GuidePage() {
             </ul>
           </div>
           <div>
-            <h3 className="font-semibold mb-1.5">Missions</h3>
+            <h3 className="font-semibold mb-1.5">Initiatives</h3>
             <ul className="list-disc pl-5 space-y-1 text-muted-foreground">
               <li>Grouped containers for related field tasks</li>
-              <li>Track overall mission progress, budget, and status</li>
+              <li>Track overall initiative progress, budget, and status</li>
             </ul>
           </div>
           <div>
@@ -244,7 +244,7 @@ export default function GuidePage() {
             <ul className="list-disc pl-5 space-y-1 text-muted-foreground">
               <li><strong className="text-foreground">Services catalog</strong> -- connect external platforms (APIs, tools, services)</li>
               <li><strong className="text-foreground">Approval queue</strong> -- review and approve/reject pending field tasks</li>
-              <li><strong className="text-foreground">Financial overview</strong> -- track balances, spend per mission, and budget limits</li>
+              <li><strong className="text-foreground">Financial overview</strong> -- track balances, spend per initiative, and budget limits</li>
             </ul>
           </div>
         </CardContent>

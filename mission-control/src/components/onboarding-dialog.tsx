@@ -72,7 +72,7 @@ const steps: Step[] = [
     icon: Database,
     title: "Load Demo Data?",
     description:
-      "Want to explore with sample data? We'll create example tasks, projects, goals, agent messages, and Field Ops missions so you can see everything in action.",
+      "Want to explore with sample data? We'll create example tasks, projects, goals, agent messages, and Field Ops initiatives so you can see everything in action.",
   },
   {
     type: "data-management",
@@ -187,7 +187,7 @@ export function OnboardingDialog() {
               <CheckCircle2 className="h-8 w-8 text-green-400 mx-auto" />
               <p className="text-sm font-medium">Demo Data Loaded</p>
               <p className="text-xs text-muted-foreground">
-                Sample tasks, projects, goals, and Field Ops missions are ready
+                Sample tasks, projects, goals, and Field Ops initiatives are ready
                 to explore.
               </p>
               <p className="text-xs text-muted-foreground/70 pt-1">
@@ -213,7 +213,7 @@ export function OnboardingDialog() {
               </div>
               <div className="rounded-md bg-muted/50 p-2">
                 <span className="font-semibold text-foreground">1</span> Field
-                Ops Mission
+                Ops Initiative
               </div>
             </div>
             <div className="flex gap-2">

@@ -103,9 +103,9 @@ const eventTypeLabels: Record<FieldOpsEventType, string> = {
   service_activated: "Service Activated",
   field_task_deleted: "Task Deleted",
   circuit_breaker_tripped: "Circuit Breaker",
-  mission_created: "Mission Created",
-  mission_status_changed: "Mission Status Changed",
-  mission_deleted: "Mission Deleted",
+  mission_created: "Initiative Created",
+  mission_status_changed: "Initiative Status Changed",
+  mission_deleted: "Initiative Deleted",
   approval_config_changed: "Config Changed",
 };
 
@@ -347,7 +347,7 @@ export default function FieldOpsPage() {
         </div>
         <Button size="sm" className="gap-1.5" onClick={() => setMissionFormOpen(true)}>
           <Plus className="h-4 w-4" />
-          New Mission
+          New Initiative
         </Button>
       </div>
 
@@ -389,12 +389,12 @@ export default function FieldOpsPage() {
       {/* Getting Started */}
       <GettingStartedCard
         title="Welcome to Integrations"
-        description="Integrations lets your AI agents take real actions — posting to social media, sending transactions, calling APIs — with your approval at every step. Start by connecting a service, then create a mission to organize your tasks."
+        description="Integrations lets your AI agents take real actions — posting to social media, sending transactions, calling APIs — with your approval at every step. Start by connecting a service, then create an initiative to organize your tasks."
         steps={[
           "Choose an autonomy level above (start with Manual Approval)",
           "Go to Services to browse and connect integrations",
-          "Create a Mission to group related tasks",
-          "Add tasks to your mission — they'll go through your approval workflow",
+          "Create an Initiative to group related tasks",
+          "Add tasks to your initiative — they'll go through your approval workflow",
         ]}
         learnMoreHref="/guide#field-ops"
         storageKey="mc-fieldops-dashboard-intro"
@@ -406,7 +406,7 @@ export default function FieldOpsPage() {
           <CardHeader className="pb-2">
             <CardDescription className="flex items-center gap-1.5">
               <Rocket className="h-3.5 w-3.5" />
-              Active Missions
+              Active Initiatives
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -477,12 +477,12 @@ export default function FieldOpsPage() {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Rocket className="h-5 w-5" />
-            Active Missions
+            Active Initiatives
           </CardTitle>
           <CardDescription>
             {activeMissions.length === 0
-              ? "No active missions. Create one to get started."
-              : `${activeMissions.length} mission${activeMissions.length !== 1 ? "s" : ""} in progress`}
+              ? "No active initiatives. Create one to get started."
+              : `${activeMissions.length} initiative${activeMissions.length !== 1 ? "s" : ""} in progress`}
           </CardDescription>
         </CardHeader>
         {activeMissions.length > 0 && (

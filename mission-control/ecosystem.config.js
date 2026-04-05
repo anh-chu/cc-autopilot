@@ -7,7 +7,8 @@ module.exports = {
       cwd: __dirname,
       env: {
         NODE_ENV: "production",
-        PORT: 3000,
+        PORT: 3030,
+        HOSTNAME: "0.0.0.0"
       },
       // Auto-restart on crash
       autorestart: true,

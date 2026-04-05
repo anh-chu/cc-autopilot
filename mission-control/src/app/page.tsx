@@ -544,7 +544,7 @@ export default function CommandCenterPage() {
                 <div>
                   <p className="text-sm font-semibold">Field Ops</p>
                   <p className="text-xs text-muted-foreground mt-0.5">
-                    {activeMissions} active operation{activeMissions !== 1 ? "s" : ""} · {connectedServices} service{connectedServices !== 1 ? "s" : ""} connected
+                    {activeMissions} active initiative{activeMissions !== 1 ? "s" : ""} · {connectedServices} service{connectedServices !== 1 ? "s" : ""} connected
                   </p>
                 </div>
               </div>

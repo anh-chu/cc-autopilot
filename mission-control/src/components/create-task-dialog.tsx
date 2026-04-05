@@ -32,7 +32,7 @@ export function CreateTaskDialog({
       <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Create Task</DialogTitle>
-          <DialogDescription>Add a new task to your mission.</DialogDescription>
+          <DialogDescription>Add a new task to your workspace.</DialogDescription>
         </DialogHeader>
         <TaskForm
           initial={defaultValues}

@@ -144,7 +144,7 @@ function relativeTime(iso: string): string {
 const FILTER_OPTIONS: { value: string; label: string }[] = [
   { value: "all", label: "All Events" },
   { value: "field_task_", label: "Field Tasks" },
-  { value: "mission_", label: "Missions" },
+  { value: "mission_", label: "Initiatives" },
   { value: "service_", label: "Services" },
   { value: "credential_", label: "Credentials" },
   { value: "circuit_breaker_", label: "Circuit Breaker" },
@@ -352,7 +352,7 @@ export default function FieldActivityPage() {
         </h1>
         {urlMissionId && (
           <Badge variant="outline" className="text-xs">
-            Mission: {urlMissionId}
+            Initiative: {urlMissionId}
           </Badge>
         )}
       </div>
