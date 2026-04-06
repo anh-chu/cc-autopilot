@@ -27,7 +27,9 @@ import { ConfirmDialog } from "@/components/confirm-dialog";
 import { Tip } from "@/components/ui/tip";
 import { cn, parseAgentMentions } from "@/lib/utils";
 import { toast } from "sonner";
-import { MentionTextarea, CommentContent } from "@/components/mention-textarea";
+import { MentionTextarea } from "@/components/mention-textarea";
+import { MarkdownContent } from "@/components/markdown-content";
+import type { CommentAttachment } from "@/lib/types";
 import { apiFetch } from "@/lib/api-client";
 
 const quadrantLabels: Record<string, { label: string; color: string }> = {
@@ -53,6 +55,7 @@ export function TaskDetailPanel({ task, projects, goals, allTasks, onUpdate, onD
   const { agents } = useAgents();
   const { decisions } = useDecisions();
   const [commentText, setCommentText] = useState("");
+  const [stagedAttachments, setStagedAttachments] = useState<CommentAttachment[]>([]);
   const mentionedAgentIds = parseAgentMentions(commentText);
   const [timelineOpen, setTimelineOpen] = useState(false);
   const [commentsOpen, setCommentsOpen] = useState(true);
@@ -155,7 +158,11 @@ export function TaskDetailPanel({ task, projects, goals, allTasks, onUpdate, onD
       const res = await apiFetch(`/api/tasks/${task.id}/comment`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ content: trimmed, author: "me" }),
+        body: JSON.stringify({
+          content: trimmed,
+          author: "me",
+          ...(stagedAttachments.length > 0 ? { attachments: stagedAttachments } : {}),
+        }),
       });
 
       if (!res.ok) {
@@ -169,6 +176,7 @@ export function TaskDetailPanel({ task, projects, goals, allTasks, onUpdate, onD
       if (!Array.isArray(task.comments)) task.comments = [];
       task.comments.push(data.comment);
       setCommentText("");
+      setStagedAttachments([]);
 
       const mentions = data.mentionedAgents as string[];
       if (mentions.length > 0) {
@@ -470,7 +478,31 @@ export function TaskDetailPanel({ task, projects, goals, allTasks, onUpdate, onD
                               <Trash2 className="h-3 w-3" />
                             </button>
                           </div>
-                          <CommentContent content={comment.content} />
+                          <MarkdownContent content={comment.content} />
+                          {comment.attachments && comment.attachments.length > 0 && (
+                            <div className="flex flex-wrap gap-2 mt-1.5">
+                              {comment.attachments.map((att) => (
+                                att.type === "image" ? (
+                                  <img
+                                    key={att.id}
+                                    src={att.url}
+                                    alt={att.filename}
+                                    className="rounded max-h-32 max-w-[200px] object-contain border border-border/50"
+                                  />
+                                ) : (
+                                  <a
+                                    key={att.id}
+                                    href={att.url}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="flex items-center gap-1 bg-muted rounded px-2 py-0.5 text-xs text-blue-400 hover:text-blue-300"
+                                  >
+                                    📎 {att.filename}
+                                  </a>
+                                )
+                              ))}
+                            </div>
+                          )}
                         </div>
                       </div>
                     );
@@ -481,13 +513,17 @@ export function TaskDetailPanel({ task, projects, goals, allTasks, onUpdate, onD
               )}
 
               {/* Add comment with @-mention support */}
-              <div className="flex gap-2">
-                <MentionTextarea
-                  value={commentText}
-                  onChange={setCommentText}
-                  agents={agents}
-                  onSubmit={handleAddComment}
-                />
+              <div className="flex gap-2 items-end">
+                <div className="flex-1 min-w-0">
+                  <MentionTextarea
+                    value={commentText}
+                    onChange={setCommentText}
+                    agents={activeAgents}
+                    onSubmit={handleAddComment}
+                    stagedAttachments={stagedAttachments}
+                    onAttachmentsChange={setStagedAttachments}
+                  />
+                </div>
                 <Tip content={mentionedAgentIds.length > 0 ? `Send to @${mentionedAgentIds.join(", @")}` : "Post comment"}>
                   <Button
                     size="icon"
