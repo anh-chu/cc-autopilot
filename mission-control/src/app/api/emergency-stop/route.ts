@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import fs from "fs";
 import path from "path";
 import { mutateFieldMissions, mutateActivityLog } from "@/lib/data";
+import { DATA_DIR } from "@/lib/paths";
 import { clear as clearVaultSession } from "@/lib/vault-session";
 import { addFieldActivityEvent } from "@/lib/field-ops-activity";
 
@@ -15,7 +16,7 @@ export async function POST() {
 
   // 1. Stop the daemon
   try {
-    const pidPath = path.join(process.cwd(), "data", "daemon.pid");
+    const pidPath = path.join(DATA_DIR, "daemon.pid");
     if (fs.existsSync(pidPath)) {
       const raw = fs.readFileSync(pidPath, "utf-8").trim();
       const pid = parseInt(raw, 10);

@@ -2,10 +2,9 @@ import { NextResponse } from "next/server";
 import { readFileSync, writeFileSync, existsSync } from "fs";
 import { spawn } from "child_process";
 import path from "path";
+import { DATA_DIR } from "@/lib/paths";
 
 export const dynamic = "force-dynamic";
-
-const DATA_DIR = path.resolve(process.cwd(), "data");
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 

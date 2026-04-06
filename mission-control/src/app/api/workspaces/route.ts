@@ -3,6 +3,7 @@ import { getWorkspaces, mutateWorkspaces, ensureWorkspaceDir } from "@/lib/data"
 import { rm } from "fs/promises";
 import path from "path";
 import { z } from "zod";
+import { DATA_DIR } from "@/lib/paths";
 import type { Workspace } from "@/lib/types";
 
 const CreateWorkspaceSchema = z.object({
@@ -77,7 +78,6 @@ export async function DELETE(request: NextRequest) {
   });
   // Best-effort directory removal
   try {
-    const DATA_DIR = path.join(process.cwd(), "data");
     await rm(path.join(DATA_DIR, "workspaces", id), { recursive: true, force: true });
   } catch { /* ignore */ }
   return NextResponse.json({ deleted: id });

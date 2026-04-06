@@ -44,7 +44,7 @@ export function generateAgentCommandMarkdown(
   }
 
   lines.push("## Standard Operating Procedures");
-  lines.push("1. Read `mission-control/data/ai-context.md` for current state");
+  lines.push("1. Read `~/.cmc/ai-context.md` for current state");
   lines.push(`2. Check inbox for messages addressed to you: filter \`to: "${agent.id}"\``);
   lines.push(`3. Work on assigned tasks (check \`assignedTo: "${agent.id}"\`)`);
   lines.push("4. Post completion reports to inbox when done");

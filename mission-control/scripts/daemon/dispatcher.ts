@@ -6,8 +6,7 @@ import { AgentRunner, parseClaudeOutput } from "./runner";
 import { HealthMonitor } from "./health";
 import { buildTaskPrompt, buildScheduledPrompt, getPendingTasks, isTaskUnblocked, hasPendingDecision } from "./prompt-builder";
 import type { DaemonConfig, ProjectRunsFile } from "./types";
-
-const DATA_DIR = path.resolve(__dirname, "../../data");
+import { DATA_DIR } from "../../src/lib/paths";
 const FIELD_OPS_DIR = path.join(DATA_DIR, "field-ops");
 const MISSIONS_FILE = path.join(DATA_DIR, "missions.json");
 const TASKS_FILE = path.join(DATA_DIR, "tasks.json");

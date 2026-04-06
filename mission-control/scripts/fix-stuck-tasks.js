@@ -1,7 +1,8 @@
 const fs = require('fs');
 const path = require('path');
+const os = require('os');
 
-const dataDir = path.join(__dirname, '..', 'data');
+const dataDir = process.env.CMC_DATA_DIR || path.join(os.homedir(), '.cmc');
 
 // 1. Reset IFA tasks 001-006 from "in-progress" to "not-started"
 const tasksFile = path.join(dataDir, 'tasks.json');

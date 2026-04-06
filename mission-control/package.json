@@ -13,6 +13,7 @@
     "check": "pnpm tsc --noEmit && pnpm lint",
     "verify": "pnpm check && pnpm build && pnpm test",
     "gen:context": "npx tsx scripts/generate-context.ts",
+    "migrate:data": "npx tsx scripts/migrate-to-home-dir.ts",
     "seed:demo": "npx tsx scripts/seed-demo.ts",
     "daemon:start": "npx tsx scripts/daemon/index.ts start",
     "daemon:stop": "npx tsx scripts/daemon/index.ts stop",

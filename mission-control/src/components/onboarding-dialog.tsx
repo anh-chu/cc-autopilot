@@ -279,7 +279,7 @@ export function OnboardingDialog() {
               <span>
                 All data files live in{" "}
                 <code className="text-xs bg-muted px-1 py-0.5 rounded">
-                  mission-control/data/
+                  ~/.cmc/
                 </code>
               </span>
             </li>

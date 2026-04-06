@@ -2,8 +2,7 @@ import { readFileSync, writeFileSync, existsSync } from "fs";
 import path from "path";
 import { logger } from "./logger";
 import type { DaemonConfig } from "./types";
-
-const DATA_DIR = path.resolve(__dirname, "../../data");
+import { DATA_DIR } from "../../src/lib/paths";
 const CONFIG_FILE = path.join(DATA_DIR, "daemon-config.json");
 
 // ─── Default Configuration ───────────────────────────────────────────────────

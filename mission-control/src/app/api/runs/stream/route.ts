@@ -1,8 +1,8 @@
 import { NextRequest } from "next/server";
 import { readFileSync, existsSync, statSync, watch, openSync, readSync, closeSync } from "fs";
 import path from "path";
+import { DATA_DIR } from "@/lib/paths";
 
-const DATA_DIR = path.resolve(process.cwd(), "data");
 const ACTIVE_RUNS_FILE = path.join(DATA_DIR, "active-runs.json");
 
 interface ActiveRunEntry {

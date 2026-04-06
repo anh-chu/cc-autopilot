@@ -5,8 +5,8 @@ import path from "path";
 import { getDaemonConfig, mutateDaemonConfig } from "@/lib/data";
 import { daemonConfigUpdateSchema, validateBody } from "@/lib/validations";
 import { requireOwner } from "@/lib/owner-guard";
+import { DATA_DIR } from "@/lib/paths";
 
-const DATA_DIR = path.resolve(process.cwd(), "data");
 const STATUS_FILE = path.join(DATA_DIR, "daemon-status.json");
 const PID_FILE = path.join(DATA_DIR, "daemon.pid");
 

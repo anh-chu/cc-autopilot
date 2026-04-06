@@ -22,7 +22,7 @@ import type { AgentBackend } from "./types";
 
 // ─── Paths ──────────────────────────────────────────────────────────────────
 
-const DATA_DIR = path.resolve(__dirname, "../../data");
+import { DATA_DIR } from "../../src/lib/paths";
 const ACTIONS_FILE = path.join(DATA_DIR, "workspaces", "default", "actions.json");
 const AGENTS_FILE = path.join(DATA_DIR, "agents.json");
 const SKILLS_FILE = path.join(DATA_DIR, "skills-library.json");

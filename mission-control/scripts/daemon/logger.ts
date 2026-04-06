@@ -2,12 +2,12 @@ import { writeFileSync, statSync, renameSync, existsSync } from "fs";
 import path from "path";
 import { scrubCredentials } from "./security";
 import type { LogLevel } from "./types";
+import { DATA_DIR } from "../../src/lib/paths";
 
 // ─── Configuration ───────────────────────────────────────────────────────────
 
 const MAX_LOG_SIZE = 1_000_000; // 1MB
 const MAX_ROTATIONS = 3;
-const DATA_DIR = path.resolve(__dirname, "../../data");
 const LOG_FILE = path.join(DATA_DIR, "daemon.log");
 
 // ─── Log Rotation ────────────────────────────────────────────────────────────

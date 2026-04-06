@@ -2,8 +2,9 @@
 // Creates the Mission Control Open-Source Launch project with all tasks
 const fs = require('fs');
 const path = require('path');
+const os = require('os');
 
-const dataDir = path.join(__dirname, '..', 'data');
+const dataDir = process.env.CMC_DATA_DIR || path.join(os.homedir(), '.cmc');
 const read = (f) => JSON.parse(fs.readFileSync(path.join(dataDir, f), 'utf8'));
 const write = (f, d) => fs.writeFileSync(path.join(dataDir, f), JSON.stringify(d, null, 2));
 

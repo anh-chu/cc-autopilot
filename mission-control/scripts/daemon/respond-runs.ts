@@ -12,8 +12,7 @@ import { readFileSync, writeFileSync, existsSync } from "fs";
 import path from "path";
 import type { RespondRunEntry, RespondRunsFile, ClaudeUsage } from "./types";
 import { logger } from "./logger";
-
-const DATA_DIR = path.resolve(__dirname, "../../data");
+import { DATA_DIR } from "../../src/lib/paths";
 const RESPOND_RUNS_FILE = path.join(DATA_DIR, "respond-runs.json");
 
 // ─── Read / Write ────────────────────────────────────────────────────────────

@@ -7,10 +7,9 @@ import { HealthMonitor } from "./health";
 import { AgentRunner } from "./runner";
 import { Dispatcher } from "./dispatcher";
 import { Scheduler } from "./scheduler";
+import { DATA_DIR } from "../../src/lib/paths";
 
 // ─── Constants ───────────────────────────────────────────────────────────────
-
-const DATA_DIR = path.resolve(__dirname, "../../data");
 const PID_FILE = path.join(DATA_DIR, "daemon.pid");
 const STATUS_FILE = path.join(DATA_DIR, "daemon-status.json");
 

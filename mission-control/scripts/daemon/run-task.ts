@@ -27,7 +27,7 @@ import type { ProjectRun, ProjectRunsFile, AgentBackend } from "./types";
 
 // ─── Paths ──────────────────────────────────────────────────────────────────
 
-const DATA_DIR = path.resolve(__dirname, "../../data");
+import { DATA_DIR } from "../../src/lib/paths";
 const ACTIVE_RUNS_FILE = path.join(DATA_DIR, "active-runs.json");
 const STREAMS_DIR = path.join(DATA_DIR, "agent-streams");
 const TASKS_FILE = path.join(DATA_DIR, "tasks.json");

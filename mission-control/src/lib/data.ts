@@ -26,7 +26,7 @@ import type {
   ActionsFile,
 } from "./types";
 
-const DATA_DIR = path.join(process.cwd(), "data");
+import { DATA_DIR } from "./paths";
 const CHECKPOINTS_DIR = path.join(DATA_DIR, "checkpoints");
 const FIELD_OPS_DIR = path.join(DATA_DIR, "field-ops");
 

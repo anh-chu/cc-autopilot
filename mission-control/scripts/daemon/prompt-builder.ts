@@ -5,7 +5,7 @@ import { fenceTaskData, enforcePromptLimit } from "./security";
 import type { ProjectRunsFile, ProjectRunTaskEntry } from "./types";
 
 // Paths relative to mission-control/
-const DATA_DIR = path.resolve(__dirname, "../../data");
+import { DATA_DIR } from "../../src/lib/paths";
 const FIELD_OPS_DIR = path.join(DATA_DIR, "field-ops");
 const WORKSPACE_ROOT = path.resolve(__dirname, "../../..");
 const COMMANDS_DIR = path.join(WORKSPACE_ROOT, ".claude", "commands");
@@ -169,7 +169,7 @@ function buildSOP(agentId: string, task: TaskDef): string {
     "## Standard Operating Procedures",
     "",
     "You MUST follow these steps:",
-    "1. Read `mission-control/data/ai-context.md` for current state",
+    "1. Read `~/.cmc/ai-context.md` for current state",
     `2. Check inbox for messages addressed to you: filter \`to: "${agentId}"\``,
     "3. Execute the work described in the task",
     "4. When done, write a clear summary of what was accomplished, results, and any follow-up needed",
@@ -189,11 +189,11 @@ function buildSOP(agentId: string, task: TaskDef): string {
     lines.push("");
     lines.push("## Subtask Progress Tracking");
     lines.push("");
-    lines.push("As you complete each subtask, update its `done` field to `true` in `mission-control/data/tasks.json`.");
+    lines.push("As you complete each subtask, update its `done` field to `true` in `~/.cmc/tasks.json`.");
     lines.push("This lets the dashboard show real-time progress to the user.");
     lines.push("");
     lines.push("To update a subtask:");
-    lines.push("1. Read `mission-control/data/tasks.json`");
+    lines.push("1. Read `~/.cmc/tasks.json`");
     lines.push(`2. Find the task with id \`${task.id}\``);
     lines.push("3. In its `subtasks` array, set `done: true` for the completed subtask");
     lines.push("4. Update the task's `updatedAt` to the current ISO timestamp");
@@ -209,9 +209,9 @@ function buildSOP(agentId: string, task: TaskDef): string {
   lines.push("");
   lines.push("## Requesting Human Input");
   lines.push("If you reach a decision point that requires human judgment:");
-  lines.push("1. Write a decision record to `mission-control/data/decisions.json` with this shape:");
+  lines.push("1. Write a decision record to `~/.cmc/decisions.json` with this shape:");
   lines.push('   `{ "id": "dec_{Date.now()}", "requestedBy": "<your-agent-id>", "taskId": "<task-id>", "question": "<your question>", "options": ["Option A", "Option B"], "context": "<background>", "status": "pending", "answer": null, "answeredAt": null, "createdAt": "<ISO timestamp>" }`');
-  lines.push("2. Post a partial progress report to `mission-control/data/inbox.json` summarising what was completed.");
+  lines.push("2. Post a partial progress report to `~/.cmc/inbox.json` summarising what was completed.");
   lines.push("3. **EXIT IMMEDIATELY** — do not continue past the decision point.");
   lines.push("The system will stop your session, present your question to the user, then re-run you with the answer injected into your prompt.");
 
@@ -528,7 +528,7 @@ export function buildScheduledPrompt(command: string): string {
 
   // Fallback: generic prompt
   logger.warn("prompt-builder", `No command file found for /${command}, using generic prompt`);
-  return `Run the /${command} workflow. Read mission-control/data/ai-context.md first for context.`;
+  return `Run the /${command} workflow. Read ~/.cmc/ai-context.md first for context.`;
 }
 
 /**

@@ -1,7 +1,6 @@
 import { readFile, writeFile } from "fs/promises";
 import path from "path";
-
-const DATA_DIR = path.join(process.cwd(), "data");
+import { DATA_DIR } from "../src/lib/paths";
 
 interface Task {
   id: string;

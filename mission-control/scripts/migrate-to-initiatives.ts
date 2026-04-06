@@ -1,7 +1,9 @@
 import { readFile, writeFile } from "fs/promises";
 import path from "path";
+import os from "os";
 
-const DEFAULT_DIR = path.join(process.cwd(), "data", "workspaces", "default");
+const DATA_DIR = process.env.CMC_DATA_DIR ?? path.join(os.homedir(), ".cmc");
+const DEFAULT_DIR = path.join(DATA_DIR, "workspaces", "default");
 const FIELD_OPS_DIR = path.join(DEFAULT_DIR, "field-ops");
 
 const NOW = new Date().toISOString();

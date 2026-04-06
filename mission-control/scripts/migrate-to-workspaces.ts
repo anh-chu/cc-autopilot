@@ -1,7 +1,8 @@
 import { mkdir, copyFile, writeFile, access } from "fs/promises";
 import path from "path";
+import os from "os";
 
-const DATA_DIR = path.join(process.cwd(), "data");
+const DATA_DIR = process.env.CMC_DATA_DIR ?? path.join(os.homedir(), ".cmc");
 const WORKSPACES_DIR = path.join(DATA_DIR, "workspaces");
 const DEFAULT_DIR = path.join(WORKSPACES_DIR, "default");
 const DEFAULT_FIELD_OPS_DIR = path.join(DEFAULT_DIR, "field-ops");

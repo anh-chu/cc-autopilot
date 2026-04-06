@@ -2,8 +2,7 @@ import { NextResponse } from "next/server";
 import { spawn } from "child_process";
 import { readFileSync, writeFileSync, existsSync } from "fs";
 import path from "path";
-
-const DATA_DIR = path.resolve(process.cwd(), "data");
+import { DATA_DIR } from "@/lib/paths";
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 

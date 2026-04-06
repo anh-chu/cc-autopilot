@@ -1,10 +1,11 @@
 import { NextResponse } from "next/server";
 import { readFileSync, existsSync } from "fs";
 import path from "path";
+import { DATA_DIR } from "@/lib/paths";
 
 export const dynamic = "force-dynamic";
 
-const RESPOND_RUNS_FILE = path.resolve(process.cwd(), "data", "respond-runs.json");
+const RESPOND_RUNS_FILE = path.join(DATA_DIR, "respond-runs.json");
 
 interface RespondRunEntry {
   id: string;

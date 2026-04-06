@@ -3,8 +3,7 @@ import { spawn } from "child_process";
 import { readFileSync, writeFileSync, existsSync } from "fs";
 import path from "path";
 import { parseAgentMentions, generateId } from "@/lib/utils";
-
-const DATA_DIR = path.resolve(process.cwd(), "data");
+import { DATA_DIR } from "@/lib/paths";
 
 function readJSON<T>(file: string): T | null {
   try {
