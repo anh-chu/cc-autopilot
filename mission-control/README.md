@@ -1,4 +1,4 @@
-# Task Control — Mission Control App
+# Task Control: Mission Control App
 
 The Next.js web app and Autopilot daemon. See the [main README](../README.md) for full documentation, philosophy, and architecture.
 
@@ -9,7 +9,7 @@ pnpm install
 pnpm dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000). Your workspace data is created at `~/.cmc/` on first launch — separate from this repo.
+Open [http://localhost:3000](http://localhost:3000). Your workspace data is created at `~/.cmc/` on first launch, separate from this repo.
 
 Click **"Load Demo Data"** on the welcome screen to explore with sample tasks, agents, and messages.
 
@@ -32,7 +32,7 @@ Click **"Load Demo Data"** on the welcome screen to explore with sample tasks, a
 
 ## Data
 
-All persistent data lives in **`~/.cmc/`** — never inside this repo directory. The app reads and writes there automatically. You can back it up, inspect it, or edit it directly.
+All persistent data lives in **`~/.cmc/`**, never inside this repo directory. The app reads and writes there automatically. You can back it up, inspect it, or edit it directly.
 
 ```
 ~/.cmc/
@@ -106,7 +106,7 @@ src/
 
 ## Claude Code Integration
 
-Task Control is designed to work alongside [Claude Code](https://docs.anthropic.com/en/docs/claude-code). Agents operate by reading and writing JSON files under `~/.cmc/workspaces/{id}/`. See [CLAUDE.md](../CLAUDE.md) for the full agent operations manual — data schemas, communication protocols, and slash commands.
+Task Control is designed to work alongside [Claude Code](https://docs.anthropic.com/en/docs/claude-code). Agents operate by reading and writing JSON files under `~/.cmc/workspaces/{id}/`. See [CLAUDE.md](../CLAUDE.md) for the full agent operations manual: data schemas, communication protocols, and slash commands.
 
 ## Troubleshooting
 

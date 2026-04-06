@@ -11,7 +11,7 @@
 
 <p align="center">
   <strong>Your AI agents work. You decide.</strong><br/>
-  A local-first command center for autonomous AI agent execution —<br/>
+  A local-first command center for autonomous AI agent execution,<br/>
   with real-time oversight, approval workflows, and crash-resilient background automation.
 </p>
 
@@ -24,7 +24,7 @@
 
 You capture an idea. Agents research, build, and deliver.<br/>
 You review their work and make the decisions that matter.<br/><br/>
-**They write the code, post the updates, call the APIs,<br/>and keep things running — even while you sleep.**<br/>
+**They write the code, post the updates, call the APIs,<br/>and keep things running even while you sleep.**<br/>
 You stay in control without micromanaging.
 
 <br/>
@@ -36,9 +36,9 @@ You stay in control without micromanaging.
 
 Task Control is a **local AI agent orchestration system**. It gives structure to autonomous AI work: agents have roles, operate on a shared task hierarchy, report back to your inbox, and pause for approval before taking consequential real-world actions.
 
-The core idea: **you are the decision-maker, not the executor.** You define what needs doing, assign it to agents, and set how much autonomy they get. The Autopilot daemon runs in the background 24/7 — picking up tasks, spawning agent sessions, recovering from crashes, and routing human-input requests back to you.
+The core idea: **you are the decision-maker, not the executor.** You define what needs doing, assign it to agents, and set how much autonomy they get. The Autopilot daemon runs in the background 24/7, picking up tasks, spawning agent sessions, recovering from crashes, and routing human-input requests back to you.
 
-Everything runs locally. Your data lives in `~/.cmc/` — no cloud, no telemetry, no API keys leaving your machine.
+Everything runs locally. Your data lives in `~/.cmc/` with no cloud, no telemetry, and no API keys leaving your machine.
 
 ---
 
@@ -50,13 +50,13 @@ Work is organized in a four-level hierarchy:
 Workspace
   └── Goals           (long-term outcomes you're working toward)
         └── Initiatives (projects grouping related work)
-              ├── Tasks   (cognitive/execution work — agents run these)
-              └── Actions (real-world side-effects — require your approval)
+              ├── Tasks   (cognitive/execution work; agents run these)
+              └── Actions (real-world side-effects; require your approval)
 ```
 
 **Tasks** are things agents *do*: research, write code, analyze, plan. They execute as Claude Code or Codex CLI sessions, stream output live, and mark themselves done.
 
-**Actions** are things agents *trigger in the world*: post to X, send ETH, call an API, send email. These flow through an approval queue — you approve or reject before anything happens.
+**Actions** are things agents *trigger in the world*: post to X, send ETH, call an API, send email. These flow through an approval queue; you approve or reject before anything happens.
 
 **Autonomy levels** cascade from workspace → initiative → action. Set it once at the workspace level, override per initiative or per action as needed.
 
@@ -66,10 +66,10 @@ Workspace
 
 AI agent tools usually mean handing your tasks, credentials, and decisions to a cloud service. Task Control takes the opposite approach:
 
-- **Data in `~/.cmc/`** — persists across app updates, never synced anywhere
-- **No database** — plain JSON files you can read, edit, or back up directly
-- **No vendor lock-in** — agents run via Claude Code or Codex CLI, both locally installed
-- **Full audit trail** — every agent action logged in activity-log.json
+- **Data in `~/.cmc/`:** persists across app updates, never synced anywhere
+- **No database:** plain JSON files you can read, edit, or back up directly
+- **No vendor lock-in:** agents run via Claude Code or Codex CLI, both locally installed
+- **Full audit trail:** every agent action logged in activity-log.json
 
 Agents read and write the same JSON files the UI uses. There's no API translation layer between "what the agent sees" and "what you see."
 
@@ -77,61 +77,61 @@ Agents read and write the same JSON files the UI uses. There's no API translatio
 
 ## Autopilot
 
-The daemon (`pnpm daemon:start`) is the engine. It runs as a detached background process — independent of the web server — and handles autonomous execution:
+The daemon (`pnpm daemon:start`) is the engine. It runs as a detached background process, independent of the web server, and handles autonomous execution:
 
 - **Polls for tasks** on a configurable interval (default: 5 min)
 - **Spawns agent sessions** up to your concurrency limit
-- **Persists across server restarts** — `autoStart: true` in daemon-config.json auto-relaunches on Next.js boot
-- **Crash recovery** — on restart, orphaned in-progress tasks are reset; interrupted Claude sessions resume via `--resume <sessionId>` using the persisted conversation ID
-- **Human-input pause** — when an agent needs a decision, it sets `awaiting-decision` status; Autopilot resumes automatically once you answer
-- **Exponential retry** — failed tasks retry with backoff, up to a configurable limit
-- **Scheduled commands** — runs `/daily-plan`, `/standup`, `/weekly-review` on cron schedules
+- **Persists across server restarts:** `autoStart: true` in daemon-config.json auto-relaunches on Next.js boot
+- **Crash recovery:** on restart, orphaned in-progress tasks are reset; interrupted Claude sessions resume via `--resume <sessionId>` using the persisted conversation ID
+- **Human-input pause:** when an agent needs a decision, it sets `awaiting-decision` status; Autopilot resumes automatically once you answer
+- **Exponential retry:** failed tasks retry with backoff, up to a configurable limit
+- **Scheduled commands:** runs `/daily-plan`, `/standup`, `/weekly-review` on cron schedules
 
 ---
 
 ## Features
 
 ### Work Management
-- **Eisenhower Matrix** — Prioritize by importance × urgency; drag-and-drop between Do, Schedule, Delegate, Eliminate
-- **Kanban Board** — Not Started → In Progress → Done (+ Awaiting Decision for paused agent tasks)
-- **Workspaces** — Isolated data contexts; switch workspaces from the sidebar header
-- **Goals + Initiatives** — Long-term goals broken into initiatives; each initiative owns its Tasks and Actions
-- **Quick Capture** — Capture ideas instantly, triage into tasks later
+- **Eisenhower Matrix:** Prioritize by importance x urgency; drag-and-drop between Do, Schedule, Delegate, Eliminate
+- **Kanban Board:** Not Started → In Progress → Done (+ Awaiting Decision for paused agent tasks)
+- **Workspaces:** Isolated data contexts; switch workspaces from the sidebar header
+- **Goals + Initiatives:** Long-term goals broken into initiatives; each initiative owns its Tasks and Actions
+- **Quick Capture:** Capture ideas instantly, triage into tasks later
 
 ### Agent Execution
-- **Autonomous Daemon** — 24/7 background process with concurrency control, retry queue, and live dashboard at `/daemon`
-- **One-Click Execution** — Press play on any task card to manually spawn an agent session
-- **Real-Time Streaming** — Watch agent output live: tool calls, responses, progress — as it happens
-- **Multi-CLI Backend** — Claude Code or Codex CLI, configurable per agent
-- **@-Mention in Comments** — Tag any agent in a task or action comment; they read the context and respond inline
-- **Continuous Missions** — Run an entire project; tasks auto-dispatch as dependencies resolve
-- **Loop Detection** — Detects agents stuck in failure loops; escalates after 3 attempts
+- **Autonomous Daemon:** 24/7 background process with concurrency control, retry queue, and live dashboard at `/daemon`
+- **One-Click Execution:** Press play on any task card to manually spawn an agent session
+- **Real-Time Streaming:** Watch agent output live: tool calls, responses, progress as it happens
+- **Multi-CLI Backend:** Claude Code or Codex CLI, configurable per agent
+- **@-Mention in Comments:** Tag any agent in a task or action comment; they read the context and respond inline
+- **Continuous Missions:** Run an entire project; tasks auto-dispatch as dependencies resolve
+- **Loop Detection:** Detects agents stuck in failure loops; escalates after 3 attempts
 
 ### Resilience
-- **Auto-Start on Boot** — Daemon relaunches automatically when the Next.js server starts
-- **Session Resume** — Claude session IDs captured from stream output; crashed sessions resume mid-conversation
-- **Crash Recovery Sweep** — Orphaned in-progress tasks detected on startup and reset for redispatch
-- **Persistent Retry Queue** — Survives daemon restarts; retries resume with correct backoff timing
+- **Auto-Start on Boot:** Daemon relaunches automatically when the Next.js server starts
+- **Session Resume:** Claude session IDs captured from stream output; crashed sessions resume mid-conversation
+- **Crash Recovery Sweep:** Orphaned in-progress tasks detected on startup and reset for redispatch
+- **Persistent Retry Queue:** Survives daemon restarts; retries resume with correct backoff timing
 
 ### Actions & Integrations
-- **Approval Queue** — Cross-initiative view of pending Actions; filter by risk, batch approve/reject
-- **3-Tier Autonomy** — Action-level → initiative-level → workspace-level autonomy cascade
-- **64-Service Catalog** — Pre-configured services across 16 categories
-- **Working Adapters** — X/Twitter, Ethereum (+ MetaMask wallet signing), Reddit
-- **Encrypted Vault** — AES-256-GCM, scrypt key derivation, session-locked
-- **Financial Safety Controls** — Per-service + global spend limits, circuit breaker, emergency stop
+- **Approval Queue:** Cross-initiative view of pending Actions; filter by risk, batch approve/reject
+- **3-Tier Autonomy:** Action-level → initiative-level → workspace-level autonomy cascade
+- **64-Service Catalog:** Pre-configured services across 16 categories
+- **Working Adapters:** X/Twitter, Ethereum (+ MetaMask wallet signing), Reddit
+- **Encrypted Vault:** AES-256-GCM, scrypt key derivation, session-locked
+- **Financial Safety Controls:** Per-service and global spend limits, circuit breaker, emergency stop
 
 ### Rich Task Detail
-- **Markdown Descriptions** — Full markdown rendering in task descriptions; click to edit
-- **File Attachments** — Attach images and files to task descriptions and comments; stored in `~/.cmc/uploads/`
-- **Inline Previews** — Images render inline in comments; other files as download links
-- **Comments on Actions** — Full comment thread + @-mention support on Actions, not just Tasks
+- **Markdown Descriptions:** Full markdown rendering in task descriptions; click to edit
+- **File Attachments:** Attach images and files to task descriptions and comments; stored in `~/.cmc/uploads/`
+- **Inline Previews:** Images render inline in comments; other files as download links
+- **Comments on Actions:** Full comment thread and @-mention support on Actions, not just Tasks
 
 ### Monitoring
-- **Cost & Token Tracking** — Input, output, cache read/write tokens per session, cumulative totals
-- **Live Session Console** — Expandable stream view for active sessions on the Automation page
-- **SSE Stream API** — `GET /api/runs/stream?runId=X` for programmatic live output access
-- **Activity Logbook** — Timestamped event log of all agent and system activity
+- **Cost & Token Tracking:** Input, output, cache read/write tokens per session, cumulative totals
+- **Live Session Console:** Expandable stream view for active sessions on the Automation page
+- **SSE Stream API:** `GET /api/runs/stream?runId=X` for programmatic live output access
+- **Activity Logbook:** Timestamped event log of all agent and system activity
 
 ---
 
@@ -159,7 +159,7 @@ pnpm dev
 
 Open [http://localhost:3000](http://localhost:3000). On first run, click **"Load Demo Data"** to explore with sample tasks, agents, and messages.
 
-Your workspace data is created at **`~/.cmc/`** on first launch — separate from the repo, so `git pull` never touches your data.
+Your workspace data is created at **`~/.cmc/`** on first launch, separate from the repo, so `git pull` never touches your data.
 
 ### Enable Autopilot
 
@@ -171,9 +171,9 @@ Or start it from **Settings → Autopilot** in the UI. Once started, Autopilot w
 
 ### First Steps
 
-1. Open the **Priority Matrix** — drag tasks into Do, Schedule, Delegate, or Eliminate
-2. Click a task to open the detail panel — add a description, subtasks, or attach a file
-3. Press **Launch** on a task assigned to an agent — watch it execute live on the Automation page
+1. Open the **Priority Matrix** and drag tasks into Do, Schedule, Delegate, or Eliminate
+2. Click a task to open the detail panel and add a description, subtasks, or attach a file
+3. Press **Launch** on a task assigned to an agent and watch it execute live on the Automation page
 4. Check your **Inbox** for agent completion reports and questions
 5. Go to **Integrations** to set up real-world actions with approval workflows
 
@@ -257,7 +257,7 @@ All write endpoints use **Zod validation** and **async-mutex locking** for concu
 
 | Role | Handles |
 |------|---------|
-| **Me** | Decisions, approvals, creative direction — human only |
+| **Me** | Decisions, approvals, creative direction (human only) |
 | **Researcher** | Market research, competitive analysis, evaluation |
 | **Developer** | Code, bug fixes, testing, deployment |
 | **Marketer** | Copy, growth strategy, content, SEO |
@@ -265,14 +265,14 @@ All write endpoints use **Zod validation** and **async-mutex locking** for concu
 | **Tester** | QA testing, bug reporting, performance analysis |
 | **+ Custom** | Unlimited custom agents with unique instructions and skills |
 
-Each agent can use Claude Code or Codex CLI as its backend — configurable from the Agents page.
+Each agent can use Claude Code or Codex CLI as its backend, configurable from the Agents page.
 
 ---
 
 ## Data & Architecture
 
 ```
-~/.cmc/                                  All persistent data — never inside the repo
+~/.cmc/                                  All persistent data, never inside the repo
   workspaces.json                        Workspace registry
   workspaces/{id}/
     tasks.json                           Tasks (Eisenhower + kanban + agent assignment)
@@ -280,7 +280,7 @@ Each agent can use Claude Code or Codex CLI as its backend — configurable from
     actions.json                         Actions (real-world side-effects + approval state)
     goals.json                           Long-term goals
     agents.json                          Agent registry (persona, instructions, backend)
-    inbox.json                           Agent ↔ human messages
+    inbox.json                           Agent <-> human messages
     decisions.json                       Pending decisions awaiting human input
     activity-log.json                    Full event log
     daemon-config.json                   Autopilot config (polling, concurrency, autoStart)
@@ -289,7 +289,7 @@ Each agent can use Claude Code or Codex CLI as its backend — configurable from
   agent-streams/                         Live JSONL output per active agent session
   uploads/                               File attachments (served at /uploads/[filename])
 
-mission-control/                         Next.js 15 app (source only — no data here)
+mission-control/                         Next.js 15 app (source only, no data here)
   instrumentation.ts                     Boot hooks: upload cleanup + daemon auto-start
   scripts/daemon/
     index.ts                             Daemon start/stop/status + startup crash recovery
@@ -305,11 +305,11 @@ mission-control/                         Next.js 15 app (source only — no data
 
 ### Design Principles
 
-- **Local-first** — No database. No cloud. Plain JSON in `~/.cmc/`. Yours forever.
-- **Agent-first API** — Every endpoint optimized for token-efficient agent reads and writes.
-- **Daemon-first execution** — Autopilot is the default path, not an optional add-on.
-- **Resilience by default** — Crash recovery, session resume, and retry queues built into the daemon.
-- **Defense in depth** — Encrypted vault, spend limits, autonomy levels, approval workflows, emergency stop.
+- **Local-first:** No database. No cloud. Plain JSON in `~/.cmc/`. Yours forever.
+- **Agent-first API:** Every endpoint optimized for token-efficient agent reads and writes.
+- **Daemon-first execution:** Autopilot is the default path, not an optional add-on.
+- **Resilience by default:** Crash recovery, session resume, and retry queues built into the daemon.
+- **Defense in depth:** Encrypted vault, spend limits, autonomy levels, approval workflows, emergency stop.
 
 ---
 
@@ -355,7 +355,7 @@ Built on [Mission Control](https://github.com/MeisnerDan/mission-control) by Dan
 
 ## License
 
-[AGPL-3.0](LICENSE) — free to use, modify, and self-host. If you offer it as a hosted service, you must open-source your modifications under the same license.
+[AGPL-3.0](LICENSE): free to use, modify, and self-host. If you offer it as a hosted service, you must open-source your modifications under the same license.
 
 ---
 
