@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
-import { Plus, X, CheckSquare, Square, Link2, Clock, CalendarDays } from "lucide-react";
+import { useState, useRef, useCallback } from "react";
+import { Plus, X, CheckSquare, Square, Link2, Clock, CalendarDays, Paperclip } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
@@ -60,6 +60,24 @@ export function TaskForm({ initial, projects: _projects, goals: _goals, allTasks
   const activeAgents = agents.filter((a) => a.status === "active");
   const { initiatives } = useInitiatives();
   const activeInitiatives = initiatives.filter((i) => !i.deletedAt);
+
+  const descFileInputRef = useRef<HTMLInputElement>(null);
+  const handleDescFileAttach = useCallback(async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    e.target.value = "";
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+      const res = await fetch("/api/upload", { method: "POST", body: formData });
+      if (!res.ok) return;
+      const data = await res.json() as { url: string; filename: string };
+      const md = file.type.startsWith("image/")
+        ? `![${data.filename}](${data.url})`
+        : `[${data.filename}](${data.url})`;
+      setForm((prev) => ({ ...prev, description: prev.description ? `${prev.description}\n${md}` : md }));
+    } catch { /* non-fatal */ }
+  }, []);
 
   const [form, setForm] = useState<TaskFormData>({
     title: initial?.title ?? "",
@@ -189,9 +207,26 @@ export function TaskForm({ initial, projects: _projects, goals: _goals, allTasks
       <div className="space-y-2">
         <div className="flex items-center justify-between">
           <Label htmlFor="description">Description</Label>
-          <span className={cn("text-[10px] tabular-nums", form.description.length > LIMITS.DESCRIPTION ? "text-destructive" : "text-muted-foreground")}>
-            {form.description.length}/{LIMITS.DESCRIPTION}
-          </span>
+          <div className="flex items-center gap-2">
+            <span className={cn("text-[10px] tabular-nums", form.description.length > LIMITS.DESCRIPTION ? "text-destructive" : "text-muted-foreground")}>
+              {form.description.length}/{LIMITS.DESCRIPTION}
+            </span>
+            <button
+              type="button"
+              title="Attach file"
+              className="h-5 w-5 flex items-center justify-center rounded text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
+              onClick={() => descFileInputRef.current?.click()}
+            >
+              <Paperclip className="h-3 w-3" />
+            </button>
+            <input
+              ref={descFileInputRef}
+              type="file"
+              className="hidden"
+              accept="image/*,.pdf,.txt,.md"
+              onChange={handleDescFileAttach}
+            />
+          </div>
         </div>
         <Textarea
           id="description"
