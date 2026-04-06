@@ -9,36 +9,17 @@
 
 <h1 align="center">Task Control</h1>
 
-<p align="center">
-  <strong>Your AI agents work. You decide.</strong><br/>
-  A local-first command center for autonomous AI agent execution,<br/>
-  with real-time oversight, approval workflows, and crash-resilient background automation.
-</p>
-
 <p align="center"><img src="mission-control/docs/demo.gif" alt="Task Control Demo" width="800" /></p>
-
-<div align="center">
-<br/>
-
-**Capture** &middot; &middot; &middot; **Prioritize** &middot; &middot; &middot; **Delegate** &middot; &middot; &middot; **Execute** &middot; &middot; &middot; **Review**
-
-You capture an idea. Agents research, build, and deliver.<br/>
-You review their work and make the decisions that matter.<br/><br/>
-**They write the code, post the updates, call the APIs,<br/>and keep things running even while you sleep.**<br/>
-You stay in control without micromanaging.
-
-<br/>
-</div>
 
 ---
 
 ## What This Is
 
-Task Control is a **local AI agent orchestration system**. It gives structure to autonomous AI work: agents have roles, operate on a shared task hierarchy, report back to your inbox, and pause for approval before taking consequential real-world actions.
+A self-hosted web app where you break down your work into tasks, assign them to AI agents, and let a background daemon execute them autonomously using Claude Code or Codex CLI.
 
-The core idea: **you are the decision-maker, not the executor.** You define what needs doing, assign it to agents, and set how much autonomy they get. The Autopilot daemon runs in the background 24/7, picking up tasks, spawning agent sessions, recovering from crashes, and routing human-input requests back to you.
+You use the UI to capture ideas, set priorities, and review what agents have done. The daemon (called Autopilot) runs continuously, picks up tasks, spawns agent sessions, and routes anything requiring a decision back to you. When an agent needs to take a real-world action, like posting to X or sending a payment, it goes into an approval queue first.
 
-Everything runs locally. Your data lives in `~/.cmc/` with no cloud, no telemetry, and no API keys leaving your machine.
+Everything runs on your machine. Data lives in `~/.cmc/`. Nothing is sent to a cloud service.
 
 ---
 
