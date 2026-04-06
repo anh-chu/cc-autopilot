@@ -155,7 +155,7 @@ async function handleStart(): Promise<void> {
   health.flush();
 
   logger.info("daemon", "Daemon is running. Press Ctrl+C to stop.");
-  logger.info("daemon", `Config: polling=${config.polling.enabled} (every ${config.polling.intervalMinutes}min), concurrency=${config.concurrency.maxParallelAgents}, maxTurns=${config.execution.maxTurns}, timeout=${config.execution.timeoutMinutes}min, allowedTools=[${config.execution.allowedTools.join(",")}]`);
+  logger.info("daemon", `Config: watching=${config.polling.enabled}, concurrency=${config.concurrency.maxParallelAgents}, maxTurns=${config.execution.maxTurns}, timeout=${config.execution.timeoutMinutes}min, allowedTools=[${config.execution.allowedTools.join(",")}]`);
 
   // ─── Graceful Shutdown ──────────────────────────────────────────────────
 

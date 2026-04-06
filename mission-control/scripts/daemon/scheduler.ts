@@ -1,16 +1,28 @@
 import * as cron from "node-cron";
+import { watch, FSWatcher, existsSync } from "fs";
+import path from "path";
 import { logger } from "./logger";
 import { Dispatcher } from "./dispatcher";
 import type { DaemonConfig } from "./types";
 import { HealthMonitor } from "./health";
+import { DATA_DIR } from "../../src/lib/paths";
 
 type ScheduledTask = ReturnType<typeof cron.schedule>;
+
+// Filenames (not paths) that trigger a dispatch check when modified.
+// Directories are watched instead of individual files so watchers survive
+// the atomic tmp→rename writes used throughout this codebase.
+const DATA_DIR_WATCHED = new Set(["tasks.json", "decisions.json"]);
+const FIELD_OPS_DIR_WATCHED = new Set(["tasks.json"]);
+
+const WATCH_DEBOUNCE_MS = 5_000;
 
 // ─── Scheduler ───────────────────────────────────────────────────────────────
 
 export class Scheduler {
   private jobs: Map<string, ScheduledTask> = new Map();
-  private pollJob: ScheduledTask | null = null;
+  private watchers: FSWatcher[] = [];
+  private debounceTimer: NodeJS.Timeout | null = null;
   private config: DaemonConfig;
   private dispatcher: Dispatcher;
   private health: HealthMonitor;
@@ -22,22 +34,40 @@ export class Scheduler {
   }
 
   /**
-   * Start all configured schedules and the polling loop.
+   * Start all configured schedules and the file watchers.
    */
   start(): void {
     logger.info("scheduler", "Starting scheduler...");
 
-    // Start task polling
+    // Watch data directories for changes and dispatch immediately.
+    // Directories are watched (not individual files) so watchers survive
+    // the atomic tmp→rename write pattern used throughout this codebase.
     if (this.config.polling.enabled) {
-      const cronExpr = `*/${this.config.polling.intervalMinutes} * * * *`;
-      logger.info("scheduler", `Task polling: every ${this.config.polling.intervalMinutes} minutes (${cronExpr})`);
+      const trigger = (): void => {
+        if (this.debounceTimer) clearTimeout(this.debounceTimer);
+        this.debounceTimer = setTimeout(() => {
+          this.dispatcher.pollAndDispatch();
+        }, WATCH_DEBOUNCE_MS);
+      };
 
-      this.pollJob = cron.schedule(cronExpr, () => {
-        this.dispatcher.pollAndDispatch();
-      });
+      const watchDir = (dir: string, names: Set<string>, label: string): void => {
+        if (!existsSync(dir)) return;
+        try {
+          const watcher = watch(dir, (_, filename) => {
+            if (filename && names.has(filename)) trigger();
+          });
+          watcher.on("error", (err) => {
+            logger.warn("scheduler", `Watcher error on ${label}: ${err.message}`);
+          });
+          this.watchers.push(watcher);
+          logger.info("scheduler", `Task watching: monitoring ${label}/ for ${[...names].join(", ")}`);
+        } catch (err) {
+          logger.warn("scheduler", `Could not watch ${label}/: ${err instanceof Error ? err.message : String(err)}`);
+        }
+      };
 
-      // Calculate next poll time
-      this.health.setNextScheduledRun("poll", this.getNextCronRun(cronExpr));
+      watchDir(DATA_DIR, DATA_DIR_WATCHED, "data");
+      watchDir(path.join(DATA_DIR, "field-ops"), FIELD_OPS_DIR_WATCHED, "data/field-ops");
     }
 
     // Start scheduled commands
@@ -65,22 +95,31 @@ export class Scheduler {
       this.health.setNextScheduledRun(schedule.command, this.getNextCronRun(schedule.cron));
     }
 
-    const totalJobs = (this.pollJob ? 1 : 0) + this.jobs.size;
-    logger.info("scheduler", `Scheduler started with ${totalJobs} active schedule(s)`);
+    const parts: string[] = [];
+    if (this.config.polling.enabled) parts.push(`${this.watchers.length} watcher(s)`);
+    if (this.jobs.size > 0) parts.push(`${this.jobs.size} schedule(s)`);
+    logger.info("scheduler", `Scheduler started with ${parts.join(", ") || "nothing"} active`);
 
     this.health.flush();
   }
 
   /**
-   * Stop all scheduled jobs.
+   * Stop all scheduled jobs and file watchers.
    */
   stop(): void {
     logger.info("scheduler", "Stopping scheduler...");
 
-    if (this.pollJob) {
-      this.pollJob.stop();
-      this.pollJob = null;
+    // Cancel any pending debounce
+    if (this.debounceTimer) {
+      clearTimeout(this.debounceTimer);
+      this.debounceTimer = null;
     }
+
+    // Close file watchers
+    for (const watcher of this.watchers) {
+      watcher.close();
+    }
+    this.watchers = [];
 
     for (const [name, job] of this.jobs) {
       job.stop();

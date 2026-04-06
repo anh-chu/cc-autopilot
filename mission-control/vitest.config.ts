@@ -8,6 +8,10 @@ export default defineConfig({
     include: ["__tests__/**/*.test.ts"],
     fileParallelism: false,
     testTimeout: 15000,
+    globalSetup: "./__tests__/global-setup.ts",
+    env: {
+      CMC_DATA_DIR: path.join(__dirname, ".test-data"),
+    },
   },
   resolve: {
     alias: {

@@ -340,7 +340,6 @@ const scheduleEntrySchema = z.object({
 export const daemonConfigUpdateSchema = z.object({
   polling: z.object({
     enabled: z.boolean(),
-    intervalMinutes: z.number().int().min(1).max(60),
   }).optional(),
   concurrency: z.object({
     maxParallelAgents: z.number().int().min(1).max(10),

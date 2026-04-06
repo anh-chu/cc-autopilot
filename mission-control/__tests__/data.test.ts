@@ -17,6 +17,7 @@ import {
   getSkillsLibrary,
   withTasks,
   getTasksArchive,
+  getWorkspaceDataDir,
 } from "@/lib/data";
 import type { TasksFile, GoalsFile, ProjectsFile } from "@/lib/types";
 
@@ -257,7 +258,7 @@ describe("getTasksArchive", () => {
 // saveTasks also tries to acquire the same mutex.
 
 describe("withTasks (mutex-protected read-modify-write)", () => {
-  const tasksFilePath = path.join(DATA_DIR, "tasks.json");
+  const tasksFilePath = path.join(getWorkspaceDataDir("default"), "tasks.json");
 
   it("prevents concurrent writes from corrupting data", async () => {
     const original = await getTasks();

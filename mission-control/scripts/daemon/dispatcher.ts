@@ -49,6 +49,39 @@ export class Dispatcher {
     this.config = config;
   }
 
+  // ─── Inbox Notifications ────────────────────────────────────────────────
+
+  private writeInboxMessage(
+    from: string,
+    type: "delegation" | "report" | "update",
+    taskId: string | null,
+    subject: string,
+    body: string,
+  ): void {
+    const INBOX_FILE = path.join(DATA_DIR, "inbox.json");
+    try {
+      const raw = existsSync(INBOX_FILE) ? readFileSync(INBOX_FILE, "utf-8") : '{"messages":[]}';
+      const data = JSON.parse(raw) as { messages: unknown[] };
+      data.messages.push({
+        id: `msg_${Date.now()}`,
+        from,
+        to: "me",
+        type,
+        taskId,
+        subject,
+        body,
+        status: "unread",
+        createdAt: new Date().toISOString(),
+        readAt: null,
+      });
+      const tmp = INBOX_FILE + ".tmp";
+      writeFileSync(tmp, JSON.stringify(data, null, 2), "utf-8");
+      renameSync(tmp, INBOX_FILE);
+    } catch (err) {
+      logger.warn("dispatcher", `Failed to write inbox message: ${err instanceof Error ? err.message : String(err)}`);
+    }
+  }
+
   // ─── Retry Queue Persistence ────────────────────────────────────────────
 
   private loadRetryQueue(): void {
@@ -231,6 +264,15 @@ export class Dispatcher {
 
       const prompt = buildTaskPrompt(agentId, task);
 
+      // Notify inbox: task picked up
+      this.writeInboxMessage(
+        agentId,
+        "update",
+        taskId,
+        `Picked up: ${task.title}`,
+        `Agent "${agentId}" has started working on this task.`,
+      );
+
       // Start tracking the session
       const sessionId = this.health.startSession(agentId, taskId, "task", 0);
 
@@ -268,7 +310,22 @@ export class Dispatcher {
         if (result.exitCode === 0 && !result.timedOut) {
           logger.info("dispatcher", `Task ${taskId} completed successfully by ${agentId}`);
           clearSessionRecord(taskId);
+          this.writeInboxMessage(
+            agentId,
+            "report",
+            taskId,
+            `Completed: ${task.title}`,
+            `Agent "${agentId}" finished this task successfully.`,
+          );
         } else {
+          const reason = result.timedOut ? "timed out" : `exited with code ${result.exitCode}`;
+          this.writeInboxMessage(
+            agentId,
+            "report",
+            taskId,
+            `Failed: ${task.title}`,
+            `Agent "${agentId}" ${reason}. The task will be retried if attempts remain.\n\nStderr: ${result.stderr?.slice(0, 500) || "(none)"}`,
+          );
           this.handleFailure(taskId, agentId, result);
         }
       }).catch(err => {

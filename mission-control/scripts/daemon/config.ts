@@ -11,7 +11,6 @@ const DEFAULT_CONFIG: DaemonConfig = {
   autoStart: false,
   polling: {
     enabled: true,
-    intervalMinutes: 5,
   },
   concurrency: {
     maxParallelAgents: 3,
@@ -57,9 +56,6 @@ function validateConfig(config: unknown): DaemonConfig {
   if (c.polling && typeof c.polling === "object") {
     const p = c.polling as Record<string, unknown>;
     if (typeof p.enabled === "boolean") result.polling.enabled = p.enabled;
-    if (typeof p.intervalMinutes === "number" && p.intervalMinutes >= 1 && p.intervalMinutes <= 60) {
-      result.polling.intervalMinutes = p.intervalMinutes;
-    }
   }
 
   // Merge concurrency

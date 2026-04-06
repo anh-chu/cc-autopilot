@@ -86,7 +86,6 @@ export default function SettingsPage() {
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
 
   const [pollingEnabled, setPollingEnabled] = useState(true);
-  const [pollingInterval, setPollingInterval] = useState(5);
   const [maxParallelAgents, setMaxParallelAgents] = useState(3);
   const [daemonSaving, setDaemonSaving] = useState(false);
   const [daemonSaved, setDaemonSaved] = useState(false);
@@ -111,7 +110,6 @@ export default function SettingsPage() {
 
   useEffect(() => {
     setPollingEnabled(config.polling.enabled);
-    setPollingInterval(config.polling.intervalMinutes);
     setMaxParallelAgents(config.concurrency.maxParallelAgents);
   }, [config]);
 
@@ -164,7 +162,7 @@ export default function SettingsPage() {
     setDaemonSaving(true);
     try {
       await updateConfig({
-        polling: { enabled: pollingEnabled, intervalMinutes: pollingInterval },
+        polling: { enabled: pollingEnabled },
         concurrency: { maxParallelAgents },
       });
       setDaemonSaved(true);
@@ -375,20 +373,6 @@ export default function SettingsPage() {
               <Switch
                 checked={pollingEnabled}
                 onCheckedChange={setPollingEnabled}
-              />
-            </div>
-
-            <div className="space-y-1.5">
-              <Label htmlFor="polling-interval">Polling interval (minutes)</Label>
-              <Input
-                id="polling-interval"
-                type="number"
-                min={1}
-                max={60}
-                value={pollingInterval}
-                onChange={e => setPollingInterval(Math.max(1, Math.min(60, Number(e.target.value))))}
-                className="max-w-[120px]"
-                disabled={!pollingEnabled}
               />
             </div>
 

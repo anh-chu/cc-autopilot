@@ -117,14 +117,12 @@ export default function AutopilotPage() {
   const [maxTurns, setMaxTurns] = useState(10);
   const [timeoutMinutes, setTimeoutMinutes] = useState(30);
   const [retries, setRetries] = useState(1);
-  const [pollingInterval, setPollingInterval] = useState(5);
 
   function startEditing() {
     setMaxParallelAgents(config.concurrency.maxParallelAgents);
     setMaxTurns(config.execution.maxTurns);
     setTimeoutMinutes(config.execution.timeoutMinutes);
     setRetries(config.execution.retries);
-    setPollingInterval(config.polling.intervalMinutes);
     setEditingConfig(true);
   }
 
@@ -142,7 +140,7 @@ export default function AutopilotPage() {
         claudeBinaryPath: config.execution.claudeBinaryPath,
         maxTaskContinuations: config.execution.maxTaskContinuations,
       },
-      polling: { enabled: config.polling.enabled, intervalMinutes: pollingInterval },
+      polling: { enabled: config.polling.enabled },
     });
     setEditingConfig(false);
   }
@@ -432,8 +430,7 @@ export default function AutopilotPage() {
                 Schedule
               </CardTitle>
               <CardDescription className="mt-1.5">
-                Polling every {config.polling.intervalMinutes} minutes
-                {!config.polling.enabled && " (disabled)"}
+                Watches for task changes{!config.polling.enabled && " (disabled)"}
               </CardDescription>
             </div>
             <Tip content="Add a new scheduled skill">
@@ -623,17 +620,6 @@ export default function AutopilotPage() {
                     className="h-8"
                   />
                 </div>
-                <div className="space-y-1.5">
-                  <p className="text-muted-foreground text-xs">Polling Interval (min)</p>
-                  <Input
-                    type="number"
-                    min={1}
-                    max={60}
-                    value={pollingInterval}
-                    onChange={(e) => setPollingInterval(Math.max(1, Math.min(60, Number(e.target.value) || 1)))}
-                    className="h-8"
-                  />
-                </div>
               </div>
               <div className="flex items-center justify-end gap-2 pt-2">
                 <Tip content="Discard changes">
@@ -651,7 +637,7 @@ export default function AutopilotPage() {
               </div>
             </div>
           ) : (
-            <div className="grid grid-cols-2 md:grid-cols-5 gap-4 text-sm">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
               <div>
                 <p className="text-muted-foreground">Max Parallel Agents</p>
                 <p className="font-bold">{config.concurrency.maxParallelAgents}</p>
@@ -667,10 +653,6 @@ export default function AutopilotPage() {
               <div>
                 <p className="text-muted-foreground">Retries</p>
                 <p className="font-bold">{config.execution.retries}</p>
-              </div>
-              <div>
-                <p className="text-muted-foreground">Polling Interval</p>
-                <p className="font-bold">{config.polling.intervalMinutes} min</p>
               </div>
             </div>
           )}

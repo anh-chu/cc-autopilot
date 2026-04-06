@@ -207,8 +207,6 @@ describe("loadConfig", () => {
   it("has correct polling defaults", () => {
     const config = loadConfig();
     expect(config.polling.enabled).toBe(true);
-    expect(config.polling.intervalMinutes).toBeGreaterThanOrEqual(1);
-    expect(config.polling.intervalMinutes).toBeLessThanOrEqual(60);
   });
 
   it("has correct concurrency defaults", () => {
@@ -224,7 +222,7 @@ describe("loadConfig", () => {
     expect(config.execution.retries).toBeGreaterThanOrEqual(0);
     expect(config.execution.skipPermissions).toBe(false);
     expect(Array.isArray(config.execution.allowedTools)).toBe(true);
-    expect(config.execution.allowedTools).toEqual(["Edit", "Write", "Read", "Glob", "Grep", "Bash", "WebSearch", "WebFetch"]);
+    expect(config.execution.allowedTools).toEqual(["Edit", "Write"]);
   });
 
   it("has at least one schedule entry", () => {
@@ -320,7 +318,7 @@ import type {
 describe("daemon types", () => {
   it("DaemonConfig has all required fields", () => {
     const config: DaemonConfig = {
-      polling: { enabled: true, intervalMinutes: 5 },
+      polling: { enabled: true },
       concurrency: { maxParallelAgents: 3 },
       schedule: {
         test: { enabled: true, cron: "* * * * *", command: "test" },

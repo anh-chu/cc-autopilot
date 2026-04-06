@@ -47,7 +47,7 @@ interface DaemonStatus {
 }
 
 interface DaemonConfig {
-  polling: { enabled: boolean; intervalMinutes: number };
+  polling: { enabled: boolean };
   concurrency: { maxParallelAgents: number };
   schedule: Record<string, { enabled: boolean; cron: string; command: string }>;
   execution: {
@@ -94,7 +94,7 @@ export function useDaemon(): DaemonData {
     nextScheduledRuns: {},
   });
   const [config, setConfig] = useState<DaemonConfig>({
-    polling: { enabled: true, intervalMinutes: 5 },
+    polling: { enabled: true },
     concurrency: { maxParallelAgents: 3 },
     schedule: {},
     execution: { maxTurns: 25, timeoutMinutes: 30, retries: 1, retryDelayMinutes: 5, skipPermissions: false, allowedTools: ["Edit", "Write"], agentTeams: false, claudeBinaryPath: null, maxTaskContinuations: 2 },

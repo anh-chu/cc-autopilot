@@ -7,7 +7,7 @@ import { daemonConfigUpdateSchema } from "../src/lib/validations";
 describe("daemonConfigUpdateSchema", () => {
   it("accepts valid complete config", () => {
     const result = daemonConfigUpdateSchema.safeParse({
-      polling: { enabled: true, intervalMinutes: 5 },
+      polling: { enabled: true },
       concurrency: { maxParallelAgents: 3 },
       schedule: {
         dailyPlan: { enabled: true, cron: "0 7 * * *", command: "daily-plan" },
@@ -28,7 +28,7 @@ describe("daemonConfigUpdateSchema", () => {
 
   it("accepts partial updates (just polling)", () => {
     const result = daemonConfigUpdateSchema.safeParse({
-      polling: { enabled: false, intervalMinutes: 10 },
+      polling: { enabled: false },
     });
     expect(result.success).toBe(true);
   });
@@ -36,20 +36,6 @@ describe("daemonConfigUpdateSchema", () => {
   it("accepts empty object (no updates)", () => {
     const result = daemonConfigUpdateSchema.safeParse({});
     expect(result.success).toBe(true);
-  });
-
-  it("rejects intervalMinutes below minimum (0)", () => {
-    const result = daemonConfigUpdateSchema.safeParse({
-      polling: { enabled: true, intervalMinutes: 0 },
-    });
-    expect(result.success).toBe(false);
-  });
-
-  it("rejects intervalMinutes above maximum (61)", () => {
-    const result = daemonConfigUpdateSchema.safeParse({
-      polling: { enabled: true, intervalMinutes: 61 },
-    });
-    expect(result.success).toBe(false);
   });
 
   it("rejects maxParallelAgents above maximum (99999)", () => {
@@ -81,7 +67,7 @@ describe("daemonConfigUpdateSchema", () => {
 
   it("rejects unknown fields (.strict())", () => {
     const result = daemonConfigUpdateSchema.safeParse({
-      polling: { enabled: true, intervalMinutes: 5 },
+      polling: { enabled: true },
       malicious: "injected field",
     });
     expect(result.success).toBe(false);

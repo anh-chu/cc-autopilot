@@ -10,7 +10,6 @@ export interface DaemonConfig {
   autoStart?: boolean;
   polling: {
     enabled: boolean;
-    intervalMinutes: number;
   };
   concurrency: {
     maxParallelAgents: number;
