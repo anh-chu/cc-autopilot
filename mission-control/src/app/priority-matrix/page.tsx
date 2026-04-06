@@ -92,7 +92,7 @@ export default function TasksPage() {
   if (filterProject !== "all") boardTasks = boardTasks.filter((t) => t.projectId === filterProject);
   if (filterAssignee !== "all") boardTasks = boardTasks.filter((t) => (t.assignedTo ?? "unassigned") === filterAssignee);
 
-  const groupedByKanban: Record<KanbanStatus, Task[]> = { "not-started": [], "in-progress": [], done: [] };
+  const groupedByKanban: Record<KanbanStatus, Task[]> = { "not-started": [], "in-progress": [], done: [], "awaiting-decision": [] };
   for (const task of boardTasks) {
     groupedByKanban[task.kanban].push(task);
   }

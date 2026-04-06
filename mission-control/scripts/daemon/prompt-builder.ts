@@ -205,6 +205,16 @@ function buildSOP(agentId: string, task: TaskDef): string {
     lines.push("**THIS IS REQUIRED** — the user monitors progress in real-time through the dashboard.");
   }
 
+  // Requesting human input section
+  lines.push("");
+  lines.push("## Requesting Human Input");
+  lines.push("If you reach a decision point that requires human judgment:");
+  lines.push("1. Write a decision record to `mission-control/data/decisions.json` with this shape:");
+  lines.push('   `{ "id": "dec_{Date.now()}", "requestedBy": "<your-agent-id>", "taskId": "<task-id>", "question": "<your question>", "options": ["Option A", "Option B"], "context": "<background>", "status": "pending", "answer": null, "answeredAt": null, "createdAt": "<ISO timestamp>" }`');
+  lines.push("2. Post a partial progress report to `mission-control/data/inbox.json` summarising what was completed.");
+  lines.push("3. **EXIT IMMEDIATELY** — do not continue past the decision point.");
+  lines.push("The system will stop your session, present your question to the user, then re-run you with the answer injected into your prompt.");
+
   return lines.join("\n");
 }
 

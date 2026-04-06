@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { getDecisions, mutateDecisions, mutateActivityLog } from "@/lib/data";
+import { getDecisions, mutateDecisions, mutateActivityLog, mutateTasks } from "@/lib/data";
 import type { DecisionItem, ActivityEvent } from "@/lib/types";
 import { decisionCreateSchema, decisionUpdateSchema, validateBody, DEFAULT_LIMIT } from "@/lib/validations";
 import { generateId } from "@/lib/utils";
@@ -121,6 +121,33 @@ export async function PUT(request: Request) {
       };
       logData.events.push(event);
     });
+  }
+
+  // Auto-resume task if it was paused awaiting this decision
+  if (result.wasAnswered && result.decision.taskId) {
+    const taskId = result.decision.taskId;
+    let resumed = false;
+    await mutateTasks(async (tasksData) => {
+      const task = tasksData.tasks.find((t) => t.id === taskId);
+      if (task && task.kanban === "awaiting-decision") {
+        task.kanban = "not-started";
+        task.updatedAt = new Date().toISOString();
+        resumed = true;
+      }
+    });
+    if (resumed) {
+      await mutateActivityLog(async (logData) => {
+        logData.events.push({
+          id: generateId("evt"),
+          type: "task_updated",
+          actor: "system",
+          taskId,
+          summary: "Task re-queued after decision answered",
+          details: `Decision answered: "${result.decision.answer}"`,
+          timestamp: new Date().toISOString(),
+        });
+      });
+    }
   }
 
   return NextResponse.json(result.decision);

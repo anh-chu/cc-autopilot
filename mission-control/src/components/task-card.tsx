@@ -12,12 +12,14 @@ const kanbanDot: Record<KanbanStatus, string> = {
   "not-started": "bg-status-not-started",
   "in-progress": "bg-status-in-progress",
   done: "bg-status-done",
+  "awaiting-decision": "bg-amber-500",
 };
 
 const kanbanLabels: Record<KanbanStatus, string> = {
   "not-started": "Todo",
   "in-progress": "Active",
   done: "Done",
+  "awaiting-decision": "Paused",
 };
 
 interface TaskCardProps {

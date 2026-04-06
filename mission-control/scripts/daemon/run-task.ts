@@ -863,7 +863,18 @@ async function main() {
 
   // 7. Load execution config
   const config = loadConfig();
-  const { maxTurns, timeoutMinutes, skipPermissions, allowedTools } = config.execution;
+  const { maxTurns, timeoutMinutes, skipPermissions, allowedTools: configAllowedTools } = config.execution;
+
+  // Merge per-agent allowedTools with global config allowedTools
+  let agentAllowedToolsArr: string[] = [];
+  try {
+    const agentsRaw = readFileSync(AGENTS_FILE, "utf-8");
+    const agentsData = JSON.parse(agentsRaw) as { agents: Array<{ id: string; allowedTools?: string[] }> };
+    const agentDef = agentsData.agents.find((a) => a.id === task.assignedTo);
+    agentAllowedToolsArr = agentDef?.allowedTools ?? [];
+  } catch { /* non-fatal */ }
+  const allowedTools = [...new Set([...(configAllowedTools ?? []), ...agentAllowedToolsArr])];
+
   const maxTaskContinuations = config.execution.maxTaskContinuations ?? 2;
   const useAgentTeams = agentTeams || config.execution.agentTeams;
 
@@ -959,7 +970,12 @@ This is session ${continuationIndex + 1}. Previous session(s) ran out of turns o
   const backend = getAgentBackend(task.assignedTo);
   const runner = new AgentRunner(WORKSPACE_ROOT);
   try {
-    const result = await runner.spawnAgent({
+    const runStartedAt = new Date().toISOString();
+    let pendingDecisionFound = false;
+    let spawnedPid = 0;
+    let decisionWatcher: ReturnType<typeof setInterval> | null = null;
+
+    const spawnPromise = runner.spawnAgent({
       prompt,
       maxTurns,
       timeoutMinutes,
@@ -970,6 +986,7 @@ This is session ${continuationIndex + 1}. Previous session(s) ran out of turns o
       cwd: WORKSPACE_ROOT,
       streamFile,
       onSpawned: (pid) => {
+        spawnedPid = pid;
         // Update the PID in active-runs immediately after spawn
         try {
           const runs = readActiveRuns();
@@ -979,11 +996,90 @@ This is session ${continuationIndex + 1}. Previous session(s) ran out of turns o
             writeActiveRuns(runs);
           }
         } catch { /* non-fatal */ }
+
+        // Start decision watcher — poll every 8s for new pending decisions
+        decisionWatcher = setInterval(() => {
+          try {
+            const decisionsRaw = readFileSync(DECISIONS_FILE, "utf-8");
+            const decisionsData = JSON.parse(decisionsRaw) as { decisions: Array<{ taskId: string | null; status: string; createdAt: string }> };
+            const hasNewDecision = decisionsData.decisions.some(
+              (d) => d.taskId === taskId && d.status === "pending" && d.createdAt >= runStartedAt
+            );
+            if (hasNewDecision && !pendingDecisionFound) {
+              pendingDecisionFound = true;
+              logger.info("run-task", `Task ${taskId} wrote a pending decision — stopping agent gracefully`);
+              clearInterval(decisionWatcher!);
+              decisionWatcher = null;
+              runner.killSession(spawnedPid);
+            }
+          } catch { /* non-fatal — decisions.json may not exist */ }
+        }, 8_000);
       },
     });
 
+    const result = await spawnPromise;
+    if (decisionWatcher) {
+      clearInterval(decisionWatcher);
+      decisionWatcher = null;
+    }
+
     // Parse cost/usage metadata from Claude Code JSON output
     const meta = parseClaudeOutput(result.stdout);
+
+    // ── Awaiting-decision path: agent was killed because it wrote a pending decision ──
+    if (pendingDecisionFound) {
+      // Update run as completed (graceful stop)
+      const runs = readActiveRuns();
+      const run = runs.runs.find((r) => r.id === activeRunId);
+      if (run) {
+        run.status = "completed";
+        run.completedAt = new Date().toISOString();
+        run.exitCode = result.exitCode;
+        run.costUsd = meta.totalCostUsd;
+        run.numTurns = meta.numTurns;
+        writeActiveRuns(pruneOldRuns(runs));
+      }
+
+      // Set task kanban to awaiting-decision
+      try {
+        const tasksRaw = readFileSync(TASKS_FILE, "utf-8");
+        const tasksData = JSON.parse(tasksRaw) as { tasks: Array<Record<string, unknown>> };
+        const taskToUpdate = tasksData.tasks.find((t) => t.id === taskId);
+        if (taskToUpdate) {
+          taskToUpdate.kanban = "awaiting-decision";
+          taskToUpdate.updatedAt = new Date().toISOString();
+          writeFileSync(TASKS_FILE, JSON.stringify(tasksData, null, 2), "utf-8");
+        }
+      } catch (err) {
+        logger.error("run-task", `Failed to set task ${taskId} to awaiting-decision: ${err instanceof Error ? err.message : String(err)}`);
+      }
+
+      // Post inbox question message
+      try {
+        const inboxRaw = existsSync(INBOX_FILE)
+          ? readFileSync(INBOX_FILE, "utf-8")
+          : '{"messages":[]}';
+        const inboxData = JSON.parse(inboxRaw) as { messages: Array<Record<string, unknown>> };
+        inboxData.messages.push({
+          id: `msg_${Date.now()}`,
+          from: "system",
+          to: "me",
+          type: "question",
+          taskId,
+          subject: `Decision needed: ${task.title}`,
+          body: `Agent for task "${task.title}" has requested a human decision and paused execution. Review the pending decision at /decisions and answer it to resume the task.`,
+          status: "unread",
+          createdAt: new Date().toISOString(),
+          readAt: null,
+        });
+        writeFileSync(INBOX_FILE, JSON.stringify(inboxData, null, 2), "utf-8");
+      } catch (err) {
+        logger.error("run-task", `Failed to post inbox message for task ${taskId}: ${err instanceof Error ? err.message : String(err)}`);
+      }
+
+      logger.info("run-task", `Task ${taskId} paused awaiting human decision`);
+      return; // Skip normal completion/failure logic
+    }
 
     // Update run entry with final status + cost
     const runs = readActiveRuns();
@@ -1065,6 +1161,38 @@ This is session ${continuationIndex + 1}. Previous session(s) ran out of turns o
     // ── Failure path: all continuations exhausted ──
     if (finalStatus === "failed" || finalStatus === "timeout") {
       handleTaskFailure(taskId, task.assignedTo, errorMsg, continuationIndex);
+    }
+
+    // ── Permission failure detection ──
+    if (finalStatus === "failed" && result.exitCode !== 0) {
+      const outputToCheck = (result.stderr ?? "") + (result.stdout ?? "");
+      const permissionPattern = /tool.*(?:not allowed|denied|permission|unauthorized)|(?:permission|authorization).*(?:denied|required|needed).*tool/i;
+      if (permissionPattern.test(outputToCheck)) {
+        const toolMatch = outputToCheck.match(/tool[:\s]+["']?([a-zA-Z0-9_:*-]+)["']?/i);
+        const toolName = toolMatch?.[1] ?? "unknown tool";
+        try {
+          const inboxRaw = existsSync(INBOX_FILE)
+            ? readFileSync(INBOX_FILE, "utf-8")
+            : '{"messages":[]}';
+          const inboxData = JSON.parse(inboxRaw) as { messages: Array<Record<string, unknown>> };
+          inboxData.messages.push({
+            id: `msg_${Date.now()}`,
+            from: "system",
+            to: "me",
+            type: "report",
+            taskId,
+            subject: `Tool permission blocked: ${task.title}`,
+            body: `Agent "${task.assignedTo}" was denied permission for tool "${toolName}". Add it to the agent's Allowed Tools at /crew/${task.assignedTo} to prevent this in future runs.`,
+            status: "unread",
+            createdAt: new Date().toISOString(),
+            readAt: null,
+          });
+          writeFileSync(INBOX_FILE, JSON.stringify(inboxData, null, 2), "utf-8");
+          logger.info("run-task", `Posted tool permission failure message for task ${taskId} (tool: ${toolName})`);
+        } catch (err) {
+          logger.error("run-task", `Failed to post permission failure inbox message: ${err instanceof Error ? err.message : String(err)}`);
+        }
+      }
     }
 
     // Chain dispatch: if this task is part of a mission, continue to next batch

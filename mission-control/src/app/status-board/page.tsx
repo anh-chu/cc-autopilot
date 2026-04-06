@@ -66,7 +66,7 @@ export default function KanbanPage() {
     filteredTasks = filteredTasks.filter((t) => t.projectId === filterProject);
   }
 
-  const grouped: Record<KanbanStatus, Task[]> = { "not-started": [], "in-progress": [], done: [] };
+  const grouped: Record<KanbanStatus, Task[]> = { "not-started": [], "in-progress": [], done: [], "awaiting-decision": [] };
   for (const task of filteredTasks) {
     grouped[task.kanban].push(task);
   }

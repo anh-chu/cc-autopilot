@@ -5,7 +5,7 @@ import { NextResponse } from "next/server";
 
 const importanceEnum = z.enum(["important", "not-important"]);
 const urgencyEnum = z.enum(["urgent", "not-urgent"]);
-const kanbanEnum = z.enum(["not-started", "in-progress", "done"]);
+const kanbanEnum = z.enum(["not-started", "in-progress", "done", "awaiting-decision"]);
 const goalTypeEnum = z.enum(["long-term", "medium-term"]);
 const goalStatusEnum = z.enum(["not-started", "in-progress", "completed"]);
 const projectStatusEnum = z.enum(["active", "paused", "completed", "archived"]);
@@ -282,6 +282,7 @@ export const agentCreateSchema = z.object({
   skillIds: z.array(z.string().max(100)).max(50).optional().default([]),
   status: agentStatusEnum.optional().default("active"),
   backend: agentBackendEnum.optional().default("claude"),
+  allowedTools: z.array(z.string().min(1).max(200)).max(100).optional().default([]),
 });
 
 export const agentUpdateSchema = z.object({
@@ -294,6 +295,7 @@ export const agentUpdateSchema = z.object({
   skillIds: z.array(z.string().max(100)).max(50).optional(),
   status: agentStatusEnum.optional(),
   backend: agentBackendEnum.optional(),
+  allowedTools: z.array(z.string().min(1).max(200)).max(100).optional(),
 });
 
 // ─── Skill schemas ──────────────────────────────────────────────────────────

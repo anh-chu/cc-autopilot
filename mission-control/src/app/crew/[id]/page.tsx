@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useState, useEffect } from "react";
+import { useRouter, useParams } from "next/navigation";
 import {
   ArrowLeft,
   Save,
@@ -49,12 +49,15 @@ const ICON_OPTIONS = [
   { name: "HeartPulse", icon: HeartPulse },
 ];
 
-export default function NewAgentPage() {
+export default function EditAgentPage() {
   const router = useRouter();
-  const { create: createAgent } = useAgents();
+  const params = useParams();
+  const id = params.id as string;
+  const { agents, loading, update: updateAgent } = useAgents();
+
+  const agent = agents.find((a) => a.id === id);
 
   const [form, setForm] = useState({
-    id: "",
     name: "",
     icon: "Bot",
     description: "",
@@ -68,17 +71,24 @@ export default function NewAgentPage() {
   const [toolInput, setToolInput] = useState("");
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [initialized, setInitialized] = useState(false);
 
-  // Auto-generate ID from name
-  const handleNameChange = (name: string) => {
-    const id = name
-      .toLowerCase()
-      .replace(/[^a-z0-9\s-]/g, "")
-      .replace(/\s+/g, "-")
-      .replace(/-+/g, "-")
-      .slice(0, 50);
-    setForm((prev) => ({ ...prev, name, id }));
-  };
+  // Pre-populate form fields once agent is loaded
+  useEffect(() => {
+    if (agent && !initialized) {
+      setForm({
+        name: agent.name,
+        icon: agent.icon,
+        description: agent.description,
+        instructions: agent.instructions,
+        status: agent.status,
+        backend: agent.backend ?? "claude",
+      });
+      setCapabilities(agent.capabilities ?? []);
+      setAllowedTools(agent.allowedTools ?? []);
+      setInitialized(true);
+    }
+  }, [agent, initialized]);
 
   const addCapability = () => {
     const trimmed = capInput.trim();
@@ -111,30 +121,25 @@ export default function NewAgentPage() {
       setError("Name is required");
       return;
     }
-    if (!form.id.trim()) {
-      setError("ID is required");
-      return;
-    }
+    if (!agent) return;
 
     setSaving(true);
     try {
-      await createAgent({
-        id: form.id,
+      await updateAgent(agent.id, {
         name: form.name,
         icon: form.icon,
         description: form.description,
         instructions: form.instructions,
         capabilities,
-        skillIds: [],
+        skillIds: agent.skillIds,
         status: form.status,
         backend: form.backend,
         allowedTools,
-        createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
       });
       router.push("/crew");
     } catch {
-      setError("Failed to create agent. The ID may already be in use.");
+      setError("Failed to save agent.");
     } finally {
       setSaving(false);
     }
@@ -142,15 +147,39 @@ export default function NewAgentPage() {
 
   const SelectedIcon = ICON_OPTIONS.find((o) => o.name === form.icon)?.icon ?? Bot;
 
+  if (loading) {
+    return (
+      <div className="space-y-6 max-w-2xl">
+        <BreadcrumbNav items={[{ label: "Agents", href: "/crew" }, { label: "Edit Agent" }]} />
+        <p className="text-sm text-muted-foreground">Loading...</p>
+      </div>
+    );
+  }
+
+  if (!agent) {
+    return (
+      <div className="space-y-6 max-w-2xl">
+        <BreadcrumbNav items={[{ label: "Agents", href: "/crew" }, { label: "Edit Agent" }]} />
+        <p className="text-sm text-muted-foreground">Agent not found.</p>
+        <Button variant="ghost" onClick={() => router.push("/crew")}>
+          <ArrowLeft className="h-4 w-4 mr-2" />
+          Back to Agents
+        </Button>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6 max-w-2xl">
-      <BreadcrumbNav items={[{ label: "Agents", href: "/crew" }, { label: "New Agent" }]} />
+      <BreadcrumbNav
+        items={[{ label: "Agents", href: "/crew" }, { label: "Edit Agent" }]}
+      />
 
       <div className="flex items-center gap-3">
         <Button variant="ghost" size="icon" onClick={() => router.back()}>
           <ArrowLeft className="h-4 w-4" />
         </Button>
-        <h1 className="text-xl font-bold">Create New Agent</h1>
+        <h1 className="text-xl font-bold">Edit Agent</h1>
       </div>
 
       {error && (
@@ -167,30 +196,22 @@ export default function NewAgentPage() {
             id="name"
             placeholder="e.g. Legal Advisor"
             value={form.name}
-            onChange={(e) => handleNameChange(e.target.value)}
+            onChange={(e) => setForm((prev) => ({ ...prev, name: e.target.value }))}
           />
         </div>
 
-        {/* ID (auto-generated) */}
+        {/* ID (read-only on edit) */}
         <div className="space-y-2">
           <Label htmlFor="agent-id">ID (URL-safe slug)</Label>
           <Input
             id="agent-id"
-            placeholder="e.g. legal-advisor"
-            value={form.id}
-            onChange={(e) =>
-              setForm((prev) => ({
-                ...prev,
-                id: e.target.value
-                  .toLowerCase()
-                  .replace(/[^a-z0-9-]/g, "")
-                  .slice(0, 50),
-              }))
-            }
+            value={agent.id}
+            readOnly
+            disabled
             className="font-mono text-sm"
           />
           <p className="text-xs text-muted-foreground">
-            Used as the agent identifier in task assignments and commands.
+            Agent ID cannot be changed after creation.
           </p>
         </div>
 
@@ -389,7 +410,7 @@ export default function NewAgentPage() {
         <div className="flex gap-3 pt-2">
           <Button onClick={handleSubmit} disabled={saving} className="gap-1.5">
             <Save className="h-3.5 w-3.5" />
-            {saving ? "Creating..." : "Create Agent"}
+            {saving ? "Saving..." : "Save Changes"}
           </Button>
           <Button variant="ghost" onClick={() => router.back()}>
             Cancel

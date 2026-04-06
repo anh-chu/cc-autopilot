@@ -112,7 +112,7 @@ export default function ProjectDetailPage() {
   eActive.forEach((t) => { eGrouped[getQuadrant(t)].push(t); });
 
   // Kanban groups
-  const kGrouped: Record<KanbanStatus, Task[]> = { "not-started": [], "in-progress": [], done: [] };
+  const kGrouped: Record<KanbanStatus, Task[]> = { "not-started": [], "in-progress": [], done: [], "awaiting-decision": [] };
   projectTasks.forEach((t) => { kGrouped[t.kanban].push(t); });
 
   const progress = projectTasks.length > 0
