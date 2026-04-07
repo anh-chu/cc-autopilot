@@ -52,12 +52,19 @@ export function DraggableTaskCard({ task, project, onClick, isSelected, onToggle
   const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({ id: task.id });
   const style = transform ? { transform: `translate(${transform.x}px, ${transform.y}px)` } : undefined;
   const pointerStartRef = useRef<{ x: number; y: number } | null>(null);
+  // Set when right-click opens context menu; blocks handlePointerDown from tracking
+  // the click on a menu item as a card click (dnd-kit pointer capture fires pointerup
+  // on the card div even when the cursor is over a portal menu item).
+  const contextMenuOpenRef = useRef(false);
 
   // Merge our pointer tracking with dnd-kit's onPointerDown
   const handlePointerDown = useCallback(
     (e: React.PointerEvent) => {
       // Defense-in-depth: right-clicks should never start a drag
       if (e.button !== 0) return;
+      // Skip if a context menu is open — the pointerdown may be the user clicking
+      // a menu item, which dnd-kit pointer capture routes to this div anyway.
+      if (contextMenuOpenRef.current) return;
       pointerStartRef.current = { x: e.clientX, y: e.clientY };
       // Forward to dnd-kit so drag detection still works
       const dndListeners = listeners as Record<string, (e: React.PointerEvent) => void> | undefined;
@@ -95,6 +102,10 @@ export function DraggableTaskCard({ task, project, onClick, isSelected, onToggle
       style={style}
       {...attributes}
       className={cn(isSelected && "ring-2 ring-primary rounded-lg")}
+      onContextMenu={() => {
+        contextMenuOpenRef.current = true;
+        setTimeout(() => { contextMenuOpenRef.current = false; }, 800);
+      }}
       onPointerDown={handlePointerDown}
       onPointerUp={handlePointerUp}
     >
