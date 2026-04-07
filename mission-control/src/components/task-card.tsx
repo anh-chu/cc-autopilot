@@ -1,5 +1,6 @@
 "use client";
 
+import { useRef } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
@@ -41,6 +42,10 @@ interface TaskCardProps {
 }
 
 export function TaskCard({ task, project, agents = [], className, isDragging, onClick, allTasks, pendingDecisionTaskIds, isRunning, onRun, onStatusChange, onDuplicate, onDelete }: TaskCardProps) {
+  // Prevent context menu actions from also triggering the card's onClick (Radix fires a click on
+  // the trigger element when the menu closes after an item is selected).
+  const suppressNextClick = useRef(false);
+
   const assigneeAgent = task.assignedTo ? agents.find((a) => a.id === task.assignedTo) : null;
   const AssigneeIcon = task.assignedTo ? getAgentIcon(task.assignedTo, assigneeAgent?.icon) : null;
   const assigneeLabel = assigneeAgent?.name ?? task.assignedTo;
@@ -88,7 +93,12 @@ export function TaskCard({ task, project, agents = [], className, isDragging, on
   const dueLabel = formatDueLabel();
 
   return (
-    <ContextMenu>
+    <ContextMenu onOpenChange={(open) => {
+      if (!open) {
+        suppressNextClick.current = true;
+        setTimeout(() => { suppressNextClick.current = false; }, 150);
+      }
+    }}>
       <ContextMenuTrigger asChild>
         <Card
           className={cn(
@@ -102,7 +112,10 @@ export function TaskCard({ task, project, agents = [], className, isDragging, on
             isRunning && "ring-2 ring-green-500/50 border-green-500/30 shadow-green-500/10 shadow-md",
             className
           )}
-          onClick={onClick}
+          onClick={() => {
+            if (suppressNextClick.current) return;
+            onClick?.();
+          }}
         >
           <CardHeader className={cn("p-3 pb-1", isRunning && "bg-green-500/5 rounded-t-lg")}>
             <div className="flex items-start justify-between gap-2">

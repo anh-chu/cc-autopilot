@@ -7,6 +7,7 @@ import {
   Save,
   Plus,
   X,
+  Trash2,
   User,
   Search,
   Code,
@@ -29,6 +30,7 @@ import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
 import { BreadcrumbNav } from "@/components/breadcrumb-nav";
+import { ConfirmDialog } from "@/components/confirm-dialog";
 import { useAgents } from "@/hooks/use-data";
 import { cn } from "@/lib/utils";
 
@@ -53,7 +55,7 @@ export default function EditAgentPage() {
   const router = useRouter();
   const params = useParams();
   const id = params.id as string;
-  const { agents, loading, update: updateAgent } = useAgents();
+  const { agents, loading, update: updateAgent, remove: deleteAgent } = useAgents();
 
   const agent = agents.find((a) => a.id === id);
 
@@ -74,6 +76,7 @@ export default function EditAgentPage() {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [initialized, setInitialized] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
   // Pre-populate form fields once agent is loaded
   useEffect(() => {
@@ -181,11 +184,29 @@ export default function EditAgentPage() {
         items={[{ label: "Agents", href: "/crew" }, { label: "Edit Agent" }]}
       />
 
-      <div className="flex items-center gap-3">
-        <Button variant="ghost" size="icon" onClick={() => router.back()}>
-          <ArrowLeft className="h-4 w-4" />
-        </Button>
-        <h1 className="text-xl font-bold">Edit Agent</h1>
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <Button variant="ghost" size="icon" onClick={() => router.back()}>
+            <ArrowLeft className="h-4 w-4" />
+          </Button>
+          <h1 className="text-xl font-bold">Edit Agent</h1>
+        </div>
+        <div className="flex items-center gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={async () => {
+              const newStatus = agent.status === "active" ? "inactive" : "active";
+              await updateAgent(agent.id, { status: newStatus });
+            }}
+          >
+            {agent.status === "active" ? "Deactivate" : "Activate"}
+          </Button>
+          <Button variant="outline" size="sm" className="text-destructive hover:text-destructive" onClick={() => setShowDeleteConfirm(true)}>
+            <Trash2 className="h-3.5 w-3.5 mr-1.5" />
+            Delete
+          </Button>
+        </div>
       </div>
 
       {error && (
@@ -465,6 +486,18 @@ export default function EditAgentPage() {
           </Button>
         </div>
       </div>
+
+      <ConfirmDialog
+        open={showDeleteConfirm}
+        onOpenChange={setShowDeleteConfirm}
+        title="Delete agent"
+        description={`This will permanently delete "${agent.name}". Tasks assigned to this agent will not be deleted. This action cannot be undone.`}
+        confirmLabel="Delete"
+        onConfirm={async () => {
+          await deleteAgent(agent.id);
+          router.push("/crew");
+        }}
+      />
     </div>
   );
 }

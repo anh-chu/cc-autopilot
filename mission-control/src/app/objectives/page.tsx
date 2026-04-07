@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
-import { Plus, Target, Pencil, Trash2, Rocket } from "lucide-react";
+import { useState, useEffect, useRef } from "react";
+import { Plus, Target, Pencil, Trash2, Rocket, X } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { EmptyState } from "@/components/empty-state";
 import { Badge } from "@/components/ui/badge";
@@ -9,6 +9,8 @@ import { Button } from "@/components/ui/button";
 import { BreadcrumbNav } from "@/components/breadcrumb-nav";
 import { CreateGoalDialog } from "@/components/create-goal-dialog";
 import { EditGoalDialog } from "@/components/edit-goal-dialog";
+import { ContextMenu, ContextMenuTrigger } from "@/components/ui/context-menu";
+import { GoalContextMenuContent } from "@/components/context-menus/goal-context-menu";
 import { ConfirmDialog } from "@/components/confirm-dialog";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
@@ -78,6 +80,120 @@ function InitiativeCard({ initiative, tasks }: { initiative: Initiative; tasks: 
   );
 }
 
+function ObjectiveDetailPanel({ goal, initiatives, tasks, onClose }: {
+  goal: Goal;
+  initiatives: Initiative[];
+  tasks: Task[];
+  onClose: () => void;
+}) {
+  const panelRef = useRef<HTMLElement>(null);
+
+  useEffect(() => {
+    const handleKey = (e: KeyboardEvent) => { if (e.key === "Escape") onClose(); };
+    document.addEventListener("keydown", handleKey);
+    return () => document.removeEventListener("keydown", handleKey);
+  }, [onClose]);
+
+  useEffect(() => { panelRef.current?.focus(); }, []);
+
+  const goalTasks = tasks.filter((t) => t.initiativeId && initiatives.some((i) => i.id === t.initiativeId));
+  const completedTasks = goalTasks.filter((t) => t.kanban === "done").length;
+  const overallProgress = goalTasks.length > 0 ? (completedTasks / goalTasks.length) * 100 : 0;
+
+  const statusColors: Record<string, string> = {
+    "not-started": "text-muted-foreground",
+    "in-progress": "text-status-in-progress",
+    "completed": "text-status-done",
+  };
+
+  return (
+    <>
+      <div className="fixed inset-0 z-40 bg-black/40 backdrop-blur-sm cursor-pointer" onClick={onClose} />
+      <aside
+        ref={panelRef}
+        tabIndex={-1}
+        className="fixed right-0 top-0 z-50 flex h-full w-full max-w-full md:max-w-lg flex-col border-l bg-card shadow-2xl animate-in slide-in-from-right duration-200 outline-none"
+      >
+        <div className="flex items-center justify-between border-b px-4 py-3">
+          <div className="flex items-center gap-2 min-w-0">
+            <Target className="h-4 w-4 text-muted-foreground shrink-0" />
+            <h2 className="font-semibold truncate">{goal.title}</h2>
+            <Badge variant="outline" className={`text-xs capitalize shrink-0 ${statusColors[goal.status] ?? ""}`}>
+              {goal.status.replace("-", " ")}
+            </Badge>
+          </div>
+          <button onClick={onClose} className="ml-2 rounded p-1 hover:bg-accent" aria-label="Close">
+            <X className="h-4 w-4" />
+          </button>
+        </div>
+
+        <div className="flex-1 overflow-y-auto p-4 space-y-4">
+          {goal.timeframe && (
+            <p className="text-sm text-muted-foreground">Timeframe: {goal.timeframe}</p>
+          )}
+
+          {goalTasks.length > 0 && (
+            <div className="space-y-1.5">
+              <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground/60">Overall Progress</p>
+              <div className="flex items-center gap-3">
+                <ProgressBar value={overallProgress} />
+                <span className="text-xs text-muted-foreground whitespace-nowrap tabular-nums">
+                  {completedTasks}/{goalTasks.length} tasks
+                </span>
+              </div>
+            </div>
+          )}
+
+          <div className="space-y-2">
+            <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground/60">
+              Initiatives ({initiatives.length})
+            </p>
+            {initiatives.length === 0 ? (
+              <p className="text-sm text-muted-foreground">No initiatives yet.</p>
+            ) : (
+              initiatives.map((initiative) => {
+                const initTasks = tasks.filter((t) => t.initiativeId === initiative.id);
+                const initDone = initTasks.filter((t) => t.kanban === "done").length;
+                const initProgress = initTasks.length > 0 ? (initDone / initTasks.length) * 100 : 0;
+                return (
+                  <div key={initiative.id} className="rounded-lg border bg-card/50 p-3 space-y-2">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        {initiative.color && <span className="h-2 w-2 rounded-full shrink-0" style={{ backgroundColor: initiative.color }} />}
+                        <h4 className="font-medium text-sm">{initiative.title}</h4>
+                      </div>
+                      <Badge variant="outline" className="text-xs capitalize">{initiative.status}</Badge>
+                    </div>
+                    {initTasks.length > 0 && (
+                      <>
+                        <div className="flex items-center gap-3">
+                          <ProgressBar value={initProgress} />
+                          <span className="text-xs text-muted-foreground whitespace-nowrap tabular-nums">{initDone}/{initTasks.length}</span>
+                        </div>
+                        <div className="space-y-0.5 pt-1">
+                          {initTasks.map((task) => (
+                            <div key={task.id} className="flex items-center gap-2 text-xs">
+                              <span className={task.kanban === "done" ? "text-status-done" : "text-muted-foreground"}>
+                                {task.kanban === "done" ? "✓" : "○"}
+                              </span>
+                              <span className={task.kanban === "done" ? "line-through text-muted-foreground" : ""}>{task.title}</span>
+                              {task.kanban === "in-progress" && <Badge variant="secondary" className="ml-auto text-xs h-4 px-1">active</Badge>}
+                            </div>
+                          ))}
+                        </div>
+                      </>
+                    )}
+                  </div>
+                );
+              })
+            )}
+          </div>
+        </div>
+      </aside>
+    </>
+  );
+}
+
 export default function GoalsPage() {
   const { goals, loading: loadingGoals, create: createGoal, update: updateGoal, remove: deleteGoal, error: goalsError, refetch: refetchGoals } = useGoals();
   const { tasks, loading: loadingTasks } = useTasks();
@@ -91,6 +207,7 @@ export default function GoalsPage() {
   const [newInitTitle, setNewInitTitle] = useState("");
   const [newInitDesc, setNewInitDesc] = useState("");
   const [newInitSaving, setNewInitSaving] = useState(false);
+  const [selectedGoal, setSelectedGoal] = useState<Goal | null>(null);
 
   const longTermGoals = goals.filter((g) => g.type === "long-term");
   const activeInitiatives = initiatives.filter((i) => !i.deletedAt);
@@ -173,11 +290,18 @@ export default function GoalsPage() {
           const overallProgress = goalTasks.length > 0 ? (completedTasks / goalTasks.length) * 100 : 0;
 
           return (
-            <Card key={goal.id}>
+            <ContextMenu key={goal.id}>
+              <ContextMenuTrigger asChild>
+            <Card>
               <CardHeader className="pb-3">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
-                    <CardTitle className="text-base">{goal.title}</CardTitle>
+                    <CardTitle
+                      className="text-base cursor-pointer hover:text-primary transition-colors"
+                      onClick={() => setSelectedGoal(goal)}
+                    >
+                      {goal.title}
+                    </CardTitle>
                     <Tip content="Edit objective">
                       <Button
                         variant="ghost"
@@ -239,6 +363,14 @@ export default function GoalsPage() {
                 </CardContent>
               )}
             </Card>
+              </ContextMenuTrigger>
+              <GoalContextMenuContent
+                goal={goal}
+                onEdit={() => setEditingGoal(goal)}
+                onMarkComplete={goal.status !== "completed" ? () => updateGoal(goal.id, { status: "completed" }) : undefined}
+                onDelete={() => setDeletingGoalId(goal.id)}
+              />
+            </ContextMenu>
           );
         })
       )}
@@ -323,6 +455,13 @@ export default function GoalsPage() {
         confirmLabel="Delete"
         onConfirm={handleDeleteGoal}
       />
+
+      {selectedGoal && <ObjectiveDetailPanel
+        goal={selectedGoal}
+        initiatives={activeInitiatives.filter((i) => i.parentGoalId === selectedGoal.id)}
+        tasks={tasks}
+        onClose={() => setSelectedGoal(null)}
+      />}
     </div>
   );
 }
