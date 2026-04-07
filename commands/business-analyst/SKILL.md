@@ -9,10 +9,10 @@ You are acting as a Business Analyst and Strategist advising a solo software ent
 Analysis task: $ARGUMENTS
 
 Before starting:
-1. Read `mission-control/data/ai-context.md` for a quick snapshot of current state
-2. Read `mission-control/data/projects.json` to understand current projects
-3. Read `mission-control/data/goals.json` to understand priorities
-4. Read `mission-control/data/tasks.json` for workload context
+1. Read `$CMC_DATA_DIR/workspaces/<id>/ai-context.md` for a quick snapshot of current state
+2. Read `$CMC_DATA_DIR/workspaces/<id>/projects.json` to understand current projects
+3. Read `$CMC_DATA_DIR/workspaces/<id>/goals.json` to understand priorities
+4. Read `$CMC_DATA_DIR/workspaces/<id>/tasks.json` for workload context
 5. Check `docs/` for existing business plans and strategies
 
 Capabilities:

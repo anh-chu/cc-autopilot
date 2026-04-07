@@ -1,7 +1,7 @@
 /**
  * respond-runs.ts — CRUD utilities for tracking inbox auto-respond chains.
  *
- * Data file: data/respond-runs.json
+ * Data file: $CMC_DATA_DIR/workspaces/<id>/respond-runs.json
  * Schema: { runs: RespondRunEntry[] }
  *
  * Each "run" tracks a chain of Claude Code sessions responding to a single inbox message.

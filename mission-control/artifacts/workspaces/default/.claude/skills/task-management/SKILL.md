@@ -8,14 +8,14 @@ description: >
 
 # Task Management in Mission Control
 
-All data lives in `$CMC_DATA_DIR/workspaces/<id>/` as JSON files. Read and write these directly.
+Data is stored in `$CMC_DATA_DIR/workspaces/<id>/` (defaults to `~/.cmc/workspaces/<id>/`). The daemon SOP injects correct file paths at runtime.
 
 ## Quick Reference
-- **AI Context**: `$CMC_DATA_DIR/workspaces/<id>/ai-context.md` (read this FIRST for a snapshot)
-- **Tasks**: `$CMC_DATA_DIR/workspaces/<id>/tasks.json`
-- **Goals**: `$CMC_DATA_DIR/workspaces/<id>/goals.json`
-- **Projects**: `$CMC_DATA_DIR/workspaces/<id>/projects.json`
-- **Brain Dump**: `$CMC_DATA_DIR/workspaces/<id>/brain-dump.json`
+- **AI Context**: `ai-context.md` (read this FIRST for a snapshot)
+- **Tasks**: `tasks.json`
+- **Goals**: `goals.json`
+- **Initiatives**: `initiatives.json`
+- **Brain Dump**: `brain-dump.json`
 
 ## Creating a Task
 Required fields: `id`, `title`, `description`, `importance`, `urgency`, `kanban`, `assignedTo`

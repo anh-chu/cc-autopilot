@@ -6,9 +6,9 @@ disable-model-invocation: true
 
 Plan the following feature: $ARGUMENTS
 
-1. Read `mission-control/data/ai-context.md` for a quick snapshot of current state
+1. Read `$CMC_DATA_DIR/workspaces/<id>/ai-context.md` for a quick snapshot of current state
 2. Read the relevant project's CLAUDE.md and codebase structure
-3. Read `mission-control/data/goals.json` to understand which goal this supports
+3. Read `$CMC_DATA_DIR/workspaces/<id>/goals.json` to understand which goal this supports
 4. Break the feature into implementation tasks (5-15 tasks)
 5. For each task, determine importance and urgency
 6. Create a new milestone in `goals.json` linked to the appropriate goal

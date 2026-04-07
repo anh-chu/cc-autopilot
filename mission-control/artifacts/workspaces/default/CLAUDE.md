@@ -1,31 +1,69 @@
-# Solo Entrepreneur Workspace — Agent Operations Manual
+# Solo Entrepreneur Workspace - Agent Operations Manual
 
 ## Quick Start for AI Agents
-- Read `mission-control/data/ai-context.md` FIRST for current state snapshot
-- For full data, read the JSON files in `mission-control/data/`
+- Read `ai-context.md` in your workspace data directory FIRST for current state snapshot
+- For full data, read the JSON files in the workspace data directory
 - This workspace is designed for multi-agent operation via Claude Code and Claude Cowork
-- **Communication**: All agent communication happens through JSON files — see Agent Communication Protocol below
+- **Communication**: All agent communication happens through JSON files - see Agent Communication Protocol below
+
+## Entity Hierarchy
+```
+Workspace (fully isolated context)
+└── Goals (strategic, long-term only)
+    └── Initiatives (replaces: milestones + projects + missions)
+        ├── Tasks (open-ended work, agent executes with discretion)
+        └── Actions (typed, approval-gated, touches external services)
+```
 
 ## Workspace Map
 ```
-mission-control/              — Task management + Agent orchestration app (Next.js 15)
-mission-control/data/         — JSON data files (THE source of truth for all data)
-mission-control/scripts/      — Utility scripts (context generation, daemon)
-mission-control/scripts/daemon/ — Autonomous agent daemon (background process)
-projects/                     — Individual project codebases (each has its own CLAUDE.md)
-research/                     — Research notes (markdown)
-docs/                         — Business plans, strategies, analysis
-templates/                    — Project templates
-scripts/                      — Team execution scripts (run-team.sh, run-task-team.sh)
-.claude/commands/             — Claude Code slash commands (auto-generated from agent registry)
-.claude-plugin/               — Cowork plugin manifest
-skills/                       — Auto-generated skill files from skills-library.json
-commands/                     — Plugin commands (Cowork + Claude Code)
+~/.cmc/
+├── workspaces.json              — Registry of all workspaces (root-level, not workspace-scoped)
+├── daemon-status.json           — Global daemon state
+├── daemon.pid                   — Daemon process ID
+└── workspaces/
+    └── {workspace-id}/
+        ├── CLAUDE.md            — This file (workspace-scoped agent manual)
+        ├── ai-context.md        — Generated context snapshot
+        ├── tasks.json           — Tasks (open-ended work items)
+        ├── goals.json           — Strategic long-term goals
+        ├── initiatives.json     — Initiatives (projects + milestones + missions combined)
+        ├── actions.json         — Actions (typed, approval-gated external operations)
+        ├── agents.json          — Agent definitions
+        ├── skills-library.json  — Skill definitions
+        ├── brain-dump.json      — Quick capture entries
+        ├── activity-log.json    — Event history
+        ├── inbox.json           — Agent messages
+        ├── decisions.json       — Pending and answered decisions
+        ├── services.json        — Connected external services
+        ├── daemon-config.json   — Daemon configuration
+        ├── commands/            — Claude Code slash commands (auto-generated from agent registry)
+        └── skills/              — Auto-generated skill files from skills-library.json
+
+mission-control/                 — Task management + Agent orchestration app (Next.js 15)
+mission-control/scripts/         — Utility scripts (context generation, daemon)
+mission-control/scripts/daemon/  — Autonomous agent daemon (background process)
+research/                        — Research notes (markdown)
+docs/                            — Business plans, strategies, analysis
+templates/                       — Project templates
+scripts/                         — Team execution scripts (run-team.sh, run-task-team.sh)
 ```
 
 ## Data Schema Reference
 
-### tasks.json — `{ "tasks": Task[] }`
+### workspaces.json - `{ "workspaces": Workspace[] }` (root-level, not workspace-scoped)
+| Field | Type | Description |
+|-------|------|-------------|
+| id | string | URL-safe slug |
+| name | string | Workspace display name |
+| description | string | What this workspace is for |
+| color | string | Hex color for UI |
+| isDefault | boolean | Whether this is the default workspace |
+| settings.autonomyLevel | `"approve-all"` \| `"approve-high-risk"` \| `"auto"` | Default autonomy for this workspace |
+| createdAt | ISO 8601 | When created |
+| updatedAt | ISO 8601 | Last modification |
+
+### tasks.json - `{ "tasks": Task[] }`
 | Field | Type | Description |
 |-------|------|-------------|
 | id | string | `"task_{timestamp}"` |
@@ -34,8 +72,7 @@ commands/                     — Plugin commands (Cowork + Claude Code)
 | importance | `"important"` \| `"not-important"` | Eisenhower Y-axis |
 | urgency | `"urgent"` \| `"not-urgent"` | Eisenhower X-axis |
 | kanban | `"not-started"` \| `"in-progress"` \| `"done"` | Workflow status |
-| projectId | string \| null | Links to project |
-| milestoneId | string \| null | Links to goal/milestone |
+| initiativeId | string \| null | Links to initiative |
 | assignedTo | AgentRole \| null | Lead agent assignment |
 | collaborators | string[] | Additional team members (agent IDs) |
 | dailyActions | `DailyAction[]` | Sub-steps: `{ id, title, done, date }` |
@@ -50,33 +87,81 @@ commands/                     — Plugin commands (Cowork + Claude Code)
 | updatedAt | ISO 8601 | Last modification |
 | completedAt | ISO 8601 \| null | When marked done |
 
-### goals.json — `{ "goals": Goal[] }`
+### goals.json - `{ "goals": Goal[] }`
 | Field | Type | Description |
 |-------|------|-------------|
-| id | string | `"goal_{timestamp}"` or `"mile_{id}"` for milestones |
+| id | string | `"goal_{timestamp}"` |
 | title | string | Goal description |
-| type | `"long-term"` \| `"medium-term"` | Strategic goal vs milestone |
 | timeframe | string | `"Q1 2026"` or `"YYYY-MM-DD"` |
-| parentGoalId | string \| null | Milestones point to parent goal |
-| projectId | string \| null | Linked project |
 | status | `"not-started"` \| `"in-progress"` \| `"completed"` | Progress |
-| milestones | string[] | Child milestone IDs (long-term goals) |
+| initiatives | string[] | Child initiative IDs |
 | tasks | string[] | Linked task IDs |
 | createdAt | ISO 8601 | When created |
 
-### projects.json — `{ "projects": Project[] }`
+Goals are always long-term and strategic. Milestones and medium-term goals have been absorbed into Initiatives.
+
+### initiatives.json - `{ "initiatives": Initiative[] }`
 | Field | Type | Description |
 |-------|------|-------------|
-| id | string | `"proj_{timestamp}"` |
-| name | string | Project name |
-| description | string | What this project is |
+| id | string | `"init_{timestamp}"` |
+| title | string | Initiative name |
+| description | string | What this initiative covers |
 | status | `"active"` \| `"paused"` \| `"completed"` \| `"archived"` | Lifecycle |
+| parentGoalId | string \| null | Links to parent goal |
 | color | string | Hex color for UI |
 | teamMembers | string[] | Assigned agent IDs |
+| autonomyLevel | `"approve-all"` \| `"approve-high-risk"` \| `"auto"` \| null | Override workspace default (null = inherit) |
+| taskIds | string[] | Task IDs in this initiative |
+| actionIds | string[] | Action IDs in this initiative |
 | tags | string[] | Freeform labels |
 | createdAt | ISO 8601 | When created |
+| updatedAt | ISO 8601 | Last modification |
+| completedAt | ISO 8601 \| null | When completed |
 
-### agents.json — `{ "agents": AgentDefinition[] }`
+Initiatives replace the old concepts of projects, milestones, and field-ops missions. They are the primary container where work lives.
+
+### actions.json - `{ "actions": Action[] }`
+| Field | Type | Description |
+|-------|------|-------------|
+| id | string | `"action_{name}"` |
+| initiativeId | string \| null | Parent initiative ID |
+| title | string | Action name |
+| description | string | What this action does |
+| **type** | **ActionType** | **`"social-post"` \| `"email-campaign"` \| `"ad-campaign"` \| `"payment"` \| `"publish"` \| `"design"` \| `"crypto-transfer"` \| `"custom"`** |
+| serviceId | string \| null | Which service executes this |
+| assignedTo | AgentRole \| null | Agent assignment |
+| status | ActionStatus | `"draft"` \| `"pending-approval"` \| `"approved"` \| `"executing"` \| `"awaiting-signature"` \| `"completed"` \| `"failed"` \| `"rejected"` |
+| approvalRequired | boolean | Needs human approval? |
+| autonomyOverride | `"approve-all"` \| `"approve-high-risk"` \| `"auto"` \| null | Override initiative/workspace default (null = inherit) |
+| payload | object | Service-specific data - see payload formats below |
+| result | object | Execution result (populated after execution) |
+| attachments | ActionAttachment[] | File attachments |
+| linkedTaskId | string \| null | Links to a regular task ID |
+| blockedBy | string[] | Action IDs this depends on |
+| rejectionFeedback | string \| null | Why it was rejected |
+| approvedBy | string \| null | Who approved |
+| rejectedBy | string \| null | Who rejected |
+| createdAt | ISO 8601 | When created |
+| updatedAt | ISO 8601 | Last modification |
+| executedAt | ISO 8601 \| null | When executed |
+| completedAt | ISO 8601 \| null | When completed |
+
+**IMPORTANT - Valid ActionType values:** `"social-post"` | `"email-campaign"` | `"ad-campaign"` | `"payment"` | `"publish"` | `"design"` | `"crypto-transfer"` | `"custom"`. Do NOT invent types (e.g. `"email"` is invalid - use `"email-campaign"`).
+
+**Autonomy cascade:** workspace default > initiative override > per-action override. A null value at any level means "inherit from parent."
+
+**Payload formats by type:**
+| Type | Payload Fields |
+|------|---------------|
+| `social-post` | `{ operation: "create-post", text, media? }` or `{ operation: "submit-post", subreddit, title, text }` |
+| `email-campaign` | `{ to, subject, body }` |
+| `crypto-transfer` | `{ operation: "send-usdc"\|"send-eth", to, amount }` |
+| `ad-campaign` | `{ headline, body }` |
+| `publish` | `{ title, content, url? }` |
+| `design` | `{ prompt }` |
+| `custom` | Any JSON object |
+
+### agents.json - `{ "agents": AgentDefinition[] }`
 | Field | Type | Description |
 |-------|------|-------------|
 | id | string | URL-safe slug (e.g. `"researcher"`) |
@@ -90,7 +175,7 @@ commands/                     — Plugin commands (Cowork + Claude Code)
 | createdAt | ISO 8601 | When created |
 | updatedAt | ISO 8601 | Last modification |
 
-### skills-library.json — `{ "skills": SkillDefinition[] }`
+### skills-library.json - `{ "skills": SkillDefinition[] }`
 | Field | Type | Description |
 |-------|------|-------------|
 | id | string | `"skill_{name}"` |
@@ -102,7 +187,7 @@ commands/                     — Plugin commands (Cowork + Claude Code)
 | createdAt | ISO 8601 | When created |
 | updatedAt | ISO 8601 | Last modification |
 
-### brain-dump.json — `{ "entries": BrainDumpEntry[] }`
+### brain-dump.json - `{ "entries": BrainDumpEntry[] }`
 | Field | Type | Description |
 |-------|------|-------------|
 | id | string | `"bd_{timestamp}"` |
@@ -112,7 +197,7 @@ commands/                     — Plugin commands (Cowork + Claude Code)
 | convertedTo | string \| null | Task ID if converted |
 | tags | string[] | Freeform labels |
 
-### activity-log.json — `{ "events": ActivityEvent[] }`
+### activity-log.json - `{ "events": ActivityEvent[] }`
 | Field | Type | Description |
 |-------|------|-------------|
 | id | string | `"evt_{timestamp}"` |
@@ -123,9 +208,9 @@ commands/                     — Plugin commands (Cowork + Claude Code)
 | details | string | Extended context |
 | timestamp | ISO 8601 | When it happened |
 
-**EventType**: `task_created` | `task_updated` | `task_completed` | `task_delegated` | `message_sent` | `decision_requested` | `decision_answered` | `brain_dump_triaged` | `milestone_completed` | `agent_checkin`
+**EventType**: `task_created` | `task_updated` | `task_completed` | `task_delegated` | `message_sent` | `decision_requested` | `decision_answered` | `brain_dump_triaged` | `initiative_completed` | `agent_checkin`
 
-### inbox.json — `{ "messages": InboxMessage[] }`
+### inbox.json - `{ "messages": InboxMessage[] }`
 | Field | Type | Description |
 |-------|------|-------------|
 | id | string | `"msg_{timestamp}"` |
@@ -141,7 +226,7 @@ commands/                     — Plugin commands (Cowork + Claude Code)
 
 **MessageType**: `delegation` | `report` | `question` | `update` | `approval`
 
-### decisions.json — `{ "decisions": DecisionItem[] }`
+### decisions.json - `{ "decisions": DecisionItem[] }`
 | Field | Type | Description |
 |-------|------|-------------|
 | id | string | `"dec_{timestamp}"` |
@@ -155,59 +240,7 @@ commands/                     — Plugin commands (Cowork + Claude Code)
 | answeredAt | ISO 8601 \| null | When answered |
 | createdAt | ISO 8601 | When requested |
 
-### field-ops/missions.json — `{ "missions": FieldMission[] }`
-| Field | Type | Description |
-|-------|------|-------------|
-| id | string | `"fmission_{name}"` |
-| title | string | Mission name |
-| description | string | What this mission does |
-| status | `"active"` \| `"paused"` \| `"completed"` | Mission lifecycle |
-| autonomyLevel | AutonomyLevel | `"approve-all"` \| `"approve-high-risk"` \| `"auto"` |
-| linkedProjectId | string \| null | Links to project |
-| tasks | string[] | Field task IDs in this mission |
-| createdAt | ISO 8601 | When created |
-| updatedAt | ISO 8601 | Last modification |
-| completedAt | ISO 8601 \| null | When completed |
-
-### field-ops/tasks.json — `{ "tasks": FieldTask[] }`
-| Field | Type | Description |
-|-------|------|-------------|
-| id | string | `"ftask_{name}"` |
-| missionId | string \| null | Parent mission ID |
-| title | string | Task name |
-| description | string | What this task does |
-| **type** | **FieldTaskType** | **`"social-post"` \| `"email-campaign"` \| `"ad-campaign"` \| `"payment"` \| `"publish"` \| `"design"` \| `"crypto-transfer"` \| `"custom"`** |
-| serviceId | string \| null | Which service executes this |
-| assignedTo | AgentRole \| null | Agent assignment |
-| status | FieldTaskStatus | `"draft"` \| `"pending-approval"` \| `"approved"` \| `"executing"` \| `"awaiting-signature"` \| `"completed"` \| `"failed"` \| `"rejected"` |
-| approvalRequired | boolean | Needs human approval? |
-| payload | object | Service-specific data — see payload formats below |
-| result | object | Execution result (populated after execution) |
-| attachments | FieldTaskAttachment[] | File attachments |
-| linkedTaskId | string \| null | Links to a regular task ID |
-| blockedBy | string[] | Field task IDs this depends on |
-| rejectionFeedback | string \| null | Why it was rejected |
-| approvedBy | string \| null | Who approved |
-| rejectedBy | string \| null | Who rejected |
-| createdAt | ISO 8601 | When created |
-| updatedAt | ISO 8601 | Last modification |
-| executedAt | ISO 8601 \| null | When executed |
-| completedAt | ISO 8601 \| null | When completed |
-
-**IMPORTANT — Valid FieldTaskType values:** `"social-post"` | `"email-campaign"` | `"ad-campaign"` | `"payment"` | `"publish"` | `"design"` | `"crypto-transfer"` | `"custom"`. Do NOT invent types (e.g. `"email"` is invalid — use `"email-campaign"`).
-
-**Payload formats by type:**
-| Type | Payload Fields |
-|------|---------------|
-| `social-post` | `{ operation: "create-post", text, media? }` or `{ operation: "submit-post", subreddit, title, text }` |
-| `email-campaign` | `{ to, subject, body }` |
-| `crypto-transfer` | `{ operation: "send-usdc"\|"send-eth", to, amount }` |
-| `ad-campaign` | `{ headline, body }` |
-| `publish` | `{ title, content, url? }` |
-| `design` | `{ prompt }` |
-| `custom` | Any JSON object |
-
-### field-ops/services.json — `{ "services": FieldOpsService[] }`
+### services.json - `{ "services": Service[] }`
 | Field | Type | Description |
 |-------|------|-------------|
 | id | string | URL-safe slug (e.g. `"twitter"`, `"gmail"`) |
@@ -224,15 +257,29 @@ commands/                     — Plugin commands (Cowork + Claude Code)
 | installedAt | ISO 8601 | When added |
 | lastUsed | ISO 8601 \| null | Last execution time |
 
+## Sidebar Navigation
+```
+[Workspace Switcher]
+Workbench (task board, quick capture)
+Goals (strategic layer)
+Initiatives (where work lives - tasks + actions together)
+Approvals (cross-initiative queue for pending Actions)
+Services (connected services)
+Vault (credentials)
+Safety (limits config)
+Messages (inbox, activity, decisions)
+Crew (agents, skills)
+```
+
 ## Eisenhower Matrix
-- **DO** (important + urgent) — Work on immediately
-- **SCHEDULE** (important + not-urgent) — Block time, protect from neglect
-- **DELEGATE** (not-important + urgent) — Assign to an AI agent
-- **ELIMINATE** (not-important + not-urgent) — Drop or defer
+- **DO** (important + urgent) - Work on immediately
+- **SCHEDULE** (important + not-urgent) - Block time, protect from neglect
+- **DELEGATE** (not-important + urgent) - Assign to an AI agent
+- **ELIMINATE** (not-important + not-urgent) - Drop or defer
 
 ## Agent Registry (Dynamic)
 
-Agents are managed through `mission-control/data/agents.json` and the `/crew` UI. The 5 built-in agents are:
+Agents are managed through `agents.json` and the `/crew` UI. The 5 built-in agents are:
 
 | Role | Handles | Assign when... |
 |------|---------|----------------|
@@ -242,7 +289,7 @@ Agents are managed through `mission-control/data/agents.json` and the `/crew` UI
 | **marketer** | Copy, growth strategy, content, SEO | Marketing/content work |
 | **business-analyst** | Strategy, planning, prioritization, financials | Analysis/strategy work |
 
-Custom agents can be created via `/crew/new`. Agent command files (`.claude/commands/<id>/user.md`) are auto-generated from the registry when agents are saved via the API.
+Custom agents can be created via `/crew/new`. Agent command files are auto-generated from the registry when agents are saved via the API.
 
 ### Multi-Agent Tasks
 Tasks support a `collaborators` field alongside `assignedTo` (lead). When collaborators are assigned:
@@ -251,7 +298,7 @@ Tasks support a `collaborators` field alongside `assignedTo` (lead). When collab
 - The orchestrator can spawn sub-agents for each team member
 
 ### Skills Library
-Skills are managed through `mission-control/data/skills-library.json` and the `/skills` UI. Skills contain markdown content that gets injected into agent system prompts when linked. Skill files (`skills/<id>/SKILL.md`) are auto-generated from the library.
+Skills are managed through `skills-library.json` and the `/skills` UI. Skills contain markdown content that gets injected into agent system prompts when linked. Skill files (`skills/<id>/SKILL.md`) are auto-generated from the library.
 
 ## Agent Write Strategy
 
@@ -260,9 +307,11 @@ Skills are managed through `mission-control/data/skills-library.json` and the `/
 - Mutex locking (prevents concurrent write corruption)
 - Side effects (auto-delegation, activity logging)
 
+Available API routes: `/api/tasks`, `/api/goals`, `/api/initiatives`, `/api/actions`, `/api/workspaces`, `/api/agents`, `/api/inbox`, `/api/decisions`, `/api/activity-log`, `/api/brain-dump`, `/api/services`.
+
 **Direct file reads are fine for speed.** Reading JSON files directly (e.g., `readFile("tasks.json")`) is safe and faster than API calls. Use this for situational awareness.
 
-**Concurrent write safety:** The API uses per-file mutexes (`async-mutex`). Two simultaneous API writes to the same file will queue, not corrupt. However, direct file writes bypass the mutex — always use the API for writes when possible.
+**Concurrent write safety:** The API uses per-file mutexes (`async-mutex`). Two simultaneous API writes to the same file will queue, not corrupt. However, direct file writes bypass the mutex - always use the API for writes when possible.
 
 **Error recovery:** If a task fails mid-execution:
 1. Mark the task as `in-progress` with a note explaining the failure
@@ -276,7 +325,7 @@ Agents communicate through JSON files. The Mission Control UI reads these same f
 
 ### How to Read Your Inbox
 ```
-1. Read mission-control/data/inbox.json
+1. Read inbox.json from your workspace data directory
 2. Filter messages where `to` matches your role
 3. Filter by `status: "unread"` for new messages
 4. Process delegations (type: "delegation") as new work assignments
@@ -285,7 +334,7 @@ Agents communicate through JSON files. The Mission Control UI reads these same f
 
 ### How to Post a Completion Report
 ```
-1. Read mission-control/data/inbox.json
+1. Read inbox.json
 2. Add a new message:
    {
      "id": "msg_{Date.now()}",
@@ -304,7 +353,7 @@ Agents communicate through JSON files. The Mission Control UI reads these same f
 
 ### How to Log Activity
 ```
-1. Read mission-control/data/activity-log.json
+1. Read activity-log.json
 2. Add a new event:
    {
      "id": "evt_{Date.now()}",
@@ -320,7 +369,7 @@ Agents communicate through JSON files. The Mission Control UI reads these same f
 
 ### How to Request a Decision
 ```
-1. Read mission-control/data/decisions.json
+1. Read decisions.json
 2. Add a new decision:
    {
      "id": "dec_{Date.now()}",
@@ -340,7 +389,7 @@ Agents communicate through JSON files. The Mission Control UI reads these same f
 
 ### How to Update Task Progress
 ```
-1. Read mission-control/data/tasks.json
+1. Read tasks.json
 2. Find the task by ID
 3. Update fields (kanban, subtasks, actualMinutes, etc.)
 4. Always update "updatedAt" to current ISO timestamp
@@ -362,13 +411,12 @@ Agents communicate through JSON files. The Mission Control UI reads these same f
 ### Creating Tasks
 1. Set importance AND urgency (required for Eisenhower matrix)
 2. Set assignedTo based on work nature (see Agent Roles table)
-3. Link projectId when task belongs to a project
-4. Link milestoneId when task is part of a milestone
-5. Add subtasks for multi-step work
-6. Add acceptanceCriteria to define "done"
-7. Set estimatedMinutes when possible
-8. Generate IDs as: `task_{Date.now()}`, `goal_{Date.now()}`, `proj_{Date.now()}`, `bd_{Date.now()}`
-9. Use valid JSON with 2-space indentation
+3. Link initiativeId when task belongs to an initiative
+4. Add subtasks for multi-step work
+5. Add acceptanceCriteria to define "done"
+6. Set estimatedMinutes when possible
+7. Generate IDs as: `task_{Date.now()}`, `goal_{Date.now()}`, `init_{Date.now()}`, `action_{Date.now()}`, `bd_{Date.now()}`
+8. Use valid JSON with 2-space indentation
 
 ### Updating Tasks
 1. Always update `updatedAt` timestamp
@@ -397,7 +445,7 @@ Run `pnpm gen:context` in `mission-control/` to regenerate `ai-context.md`
 ## Tech Stack
 - Node.js LTS + **pnpm** (NOT npm or yarn)
 - Next.js 15 App Router + TypeScript strict + Tailwind CSS v4 + shadcn/ui
-- Local JSON file storage — no external databases
+- Local JSON file storage - no external databases
 - Path alias: `@/` maps to `src/` (inside mission-control/)
 
 ## Code Conventions
@@ -423,7 +471,7 @@ Run `pnpm gen:context` in `mission-control/` to regenerate `ai-context.md`
 
 The daemon is an autonomous background process that polls tasks.json, spawns Claude Code sessions via `claude -p`, and monitors their health. It uses `node-cron` for scheduled commands and enforces concurrency limits.
 
-### Configuration — `data/daemon-config.json`
+### Configuration - `daemon-config.json`
 
 | Section | Fields | Description |
 |---------|--------|-------------|
@@ -432,18 +480,18 @@ The daemon is an autonomous background process that polls tasks.json, spawns Cla
 | `schedule` | `Record<name, {enabled, cron, command}>` | Cron-based scheduled commands |
 | `execution` | `maxTurns`, `timeoutMinutes`, `retries`, `retryDelayMinutes`, `skipPermissions` | Per-session limits |
 
-### Dashboard — `/daemon`
+### Dashboard - `/daemon`
 - Live status (running/stopped), active sessions, recent history
 - Start/stop controls, config summary, schedule display
 - Auto-refreshes every 5 seconds via `useDaemon()` hook
 
 ### Security Model
-- **No network listener** — pure local process, zero network attack surface
-- **Credential scrubbing** — all stdout/stderr sanitized before logging
-- **Prompt fencing** — task data wrapped in `<task-context>` delimiters
-- **Binary whitelist** — only `claude`/`claude.cmd`/`claude.exe` can be spawned
-- **Safe env** — child processes only receive PATH, HOME, TEMP (no API keys leak)
-- **`skipPermissions`** defaults to `false` — logged with `[SECURITY]` warning when enabled
+- **No network listener** - pure local process, zero network attack surface
+- **Credential scrubbing** - all stdout/stderr sanitized before logging
+- **Prompt fencing** - task data wrapped in `<task-context>` delimiters
+- **Binary whitelist** - only `claude`/`claude.cmd`/`claude.exe` can be spawned
+- **Safe env** - child processes only receive PATH, HOME, TEMP (no API keys leak)
+- **`skipPermissions`** defaults to `false` - logged with `[SECURITY]` warning when enabled
 
 ## AI Skills (slash commands)
 | Command | Purpose |
@@ -453,11 +501,11 @@ The daemon is an autonomous background process that polls tasks.json, spawns Cla
 | `/weekly-review` | Accomplishments + goal progress + stale items |
 | `/brainstorm` | Generate creative ideas on a topic |
 | `/research` | Web research -> structured markdown |
-| `/plan-feature` | Break feature into tasks + create milestone |
+| `/plan-feature` | Break feature into tasks + create initiative |
 | `/ship-feature` | Test/lint/commit + update task status + post report |
 | `/pick-up-work` | Check inbox for new assignments, pick highest priority |
 | `/report` | Post a status update or completion report |
-| `/orchestrate` | Coordinate all agents — spawn sub-agents for pending tasks |
+| `/orchestrate` | Coordinate all agents - spawn sub-agents for pending tasks |
 | `/researcher` | Activate researcher agent persona |
 | `/marketer` | Activate marketer agent persona |
 | `/business-analyst` | Activate business analyst persona |

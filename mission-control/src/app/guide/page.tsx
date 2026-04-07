@@ -278,7 +278,7 @@ export default function GuidePage() {
             <h3 className="font-semibold mb-1.5">Audit & Storage</h3>
             <ul className="list-disc pl-5 space-y-1 text-muted-foreground">
               <li><strong className="text-foreground">Audit trail</strong> -- all vault access is logged</li>
-              <li><strong className="text-foreground">File location</strong> -- <code className="rounded bg-muted px-1.5 py-0.5 text-xs font-mono">data/field-ops/.credentials.json</code></li>
+              <li><strong className="text-foreground">File location</strong> -- <code className="rounded bg-muted px-1.5 py-0.5 text-xs font-mono">~/.cmc/.../field-ops/.credentials.json</code> <span className="text-[10px] text-muted-foreground">(or $CMC_DATA_DIR)</span></li>
               <li className="text-amber-500 font-medium">WARNING: No recovery if master password is forgotten</li>
             </ul>
           </div>

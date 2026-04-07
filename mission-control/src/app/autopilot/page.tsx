@@ -674,7 +674,7 @@ export default function AutopilotPage() {
                     </span>
                   </TooltipTrigger>
                   <TooltipContent side="top" className="max-w-[280px]">
-                    <p className="text-xs">These tools are pre-approved for agents via <code className="text-[10px]">--allowedTools</code>. Edit <code className="text-[10px]">data/daemon-config.json</code> to change.</p>
+                    <p className="text-xs">These tools are pre-approved for agents via <code className="text-[10px]">--allowedTools</code>. Edit <code className="text-[10px]">~/.cmc/daemon-config.json</code> to change.</p>
                   </TooltipContent>
                 </Tooltip>
               </div>

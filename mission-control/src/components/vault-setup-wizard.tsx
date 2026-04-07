@@ -122,7 +122,7 @@ export function VaultSecurityDetails({
             <span>
               Credentials are stored in{" "}
               <code className="bg-muted px-1 py-0.5 rounded text-[10px]">
-                data/field-ops/.credentials.json
+                ~/.cmc/.../field-ops/.credentials.json
               </code>
             </span>
           </div>
