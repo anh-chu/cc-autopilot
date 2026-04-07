@@ -124,7 +124,7 @@ export function TaskDetailPanel({ task, projects, goals, allTasks, onUpdate, onD
   );
 
   const handleDeploy = useCallback(
-    (role: AgentRole) => {
+    async (role: AgentRole) => {
       const deployData: TaskFormData = {
         title: task.title,
         description: task.description,
@@ -146,7 +146,22 @@ export function TaskDetailPanel({ task, projects, goals, allTasks, onUpdate, onD
       };
       const agent = agents.find((a) => a.id === role);
       const agentLabel = agent?.name ?? role;
-      toast.success(`Deployed to ${agentLabel}`, { icon: "🚀" });
+
+      // Assign the task first, then immediately trigger execution
+      await fetch("/api/tasks", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id: task.id, ...deployData }),
+      });
+
+      const runRes = await fetch(`/api/tasks/${task.id}/run`, { method: "POST" });
+      if (runRes.ok) {
+        toast.success(`Agent started: ${agentLabel}`, { icon: "🚀" });
+      } else {
+        const err = await runRes.json() as { error?: string };
+        toast.error(`Deploy failed: ${err.error ?? "unknown error"}`);
+      }
+
       onUpdate(deployData);
       onClose();
     },

@@ -12,6 +12,8 @@ import {
   Activity,
   Pause,
   Play,
+  Rocket,
+  Loader2,
   Trash2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -123,6 +125,7 @@ export default function InitiativeDetailPage() {
   const [addActionOpen, setAddActionOpen] = useState(false);
   const [vaultUnlockOpen, setVaultUnlockOpen] = useState(false);
   const [togglingStatus, setTogglingStatus] = useState(false);
+  const [deployingAll, setDeployingAll] = useState(false);
 
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [editingTitle, setEditingTitle] = useState(false);
@@ -174,6 +177,34 @@ export default function InitiativeDetailPage() {
   async function handleAutonomyChange(level: AutonomyLevel | null) {
     if (!initiative) return;
     await update(initiative.id, { autonomyLevel: level });
+  }
+
+  async function handleDeployAll() {
+    if (!initiative) return;
+
+    setDeployingAll(true);
+    try {
+      const res = await apiFetch(`/api/initiatives/${initiative.id}/deploy`, {
+        method: "POST",
+      });
+      const data = (await res.json().catch(() => ({}))) as {
+        error?: string;
+        started?: number;
+      };
+
+      if (!res.ok) {
+        showError(data.error ?? "Failed to deploy initiative");
+        return;
+      }
+
+      const started = data.started ?? 0;
+      showSuccess(started === 1 ? "Started 1 task" : `Started ${started} tasks`);
+      refetchTasks();
+    } catch {
+      showError("Failed to deploy initiative");
+    } finally {
+      setDeployingAll(false);
+    }
   }
 
   async function handleCreateAction(data: {
@@ -350,6 +381,20 @@ export default function InitiativeDetailPage() {
               )}
             </Button>
           )}
+          <Button
+            variant="outline"
+            size="sm"
+            className="h-6 text-xs gap-1 px-2"
+            onClick={handleDeployAll}
+            disabled={deployingAll}
+          >
+            {deployingAll ? (
+              <Loader2 className="h-3 w-3 animate-spin" />
+            ) : (
+              <Rocket className="h-3 w-3" />
+            )}
+            Deploy All
+          </Button>
           <Button
             variant="ghost"
             size="sm"
