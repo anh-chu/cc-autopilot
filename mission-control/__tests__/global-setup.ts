@@ -1,4 +1,4 @@
-import { mkdir, writeFile } from "fs/promises";
+import { mkdir, writeFile, rm } from "fs/promises";
 import path from "path";
 
 const TEST_DATA_DIR = path.join(__dirname, "..", ".test-data");
@@ -44,4 +44,8 @@ export async function setup(): Promise<void> {
 
   await writeSeeds(WORKSPACE_DIR, WORKSPACE_SEED);
   await writeSeeds(TEST_DATA_DIR, ROOT_SEED);
+}
+
+export async function teardown(): Promise<void> {
+  await rm(TEST_DATA_DIR, { recursive: true, force: true });
 }

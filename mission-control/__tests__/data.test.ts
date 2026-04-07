@@ -21,7 +21,7 @@ import {
 } from "@/lib/data";
 import type { TasksFile, GoalsFile, ProjectsFile } from "@/lib/types";
 
-const DATA_DIR = path.join(process.cwd(), "data");
+const DATA_DIR = getWorkspaceDataDir("default");
 
 let backups: Record<string, string>;
 
