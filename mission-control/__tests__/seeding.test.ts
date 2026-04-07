@@ -111,6 +111,21 @@ describe("ensureWorkspaceDir", () => {
     expect(content.length).toBeGreaterThan(100);
   });
 
+  it("seeds .claude/commands from artifacts", async () => {
+    const claudeDir = path.join(WS_DIR, ".claude");
+    expect(existsSync(claudeDir)).toBe(true);
+    expect(existsSync(path.join(claudeDir, "commands"))).toBe(true);
+    // Should have built-in workflow commands
+    expect(existsSync(path.join(claudeDir, "commands", "standup", "user.md"))).toBe(true);
+    expect(existsSync(path.join(claudeDir, "commands", "daily-plan", "user.md"))).toBe(true);
+  });
+
+  it("seeds .claude/skills from artifacts", async () => {
+    const skillsDir = path.join(WS_DIR, ".claude", "skills");
+    expect(existsSync(skillsDir)).toBe(true);
+    expect(existsSync(path.join(skillsDir, "task-management", "SKILL.md"))).toBe(true);
+  });
+
   it("does not overwrite existing files on re-run", async () => {
     // Write a known value to tasks.json
     const marker = JSON.stringify({ tasks: [{ id: "marker_task" }] });

@@ -137,14 +137,12 @@ export async function ensureWorkspaceDir(workspaceId: string): Promise<void> {
     }
   }
 
-  // Generate .claude/commands/ and skills/ from the seeded agents + skills data.
-  // Dynamic import avoids circular dependency (sync-commands imports from data.ts).
-  try {
-    const { syncAllAgentCommands, syncAllSkillFiles } = await import("./sync-commands");
-    await syncAllAgentCommands();
-    await syncAllSkillFiles();
-  } catch {
-    // Non-fatal: command/skill file sync can fail on first run
+  // Copy .claude/ (commands + skills) from artifacts if available.
+  // These are workspace-scoped and included in spawned agent prompts.
+  const claudeDirSrc = path.join(ARTIFACTS_DIR, ".claude");
+  const claudeDirDest = path.join(wsDir, ".claude");
+  if (existsSync(claudeDirSrc) && !existsSync(claudeDirDest)) {
+    await cp(claudeDirSrc, claudeDirDest, { recursive: true });
   }
 }
 
