@@ -94,8 +94,9 @@ export function TaskCard({ task, project, agents = [], className, isDragging, on
 
   return (
     <ContextMenu onOpenChange={(open) => {
-      if (!open) {
+      if (open) {
         suppressNextClick.current = true;
+      } else {
         setTimeout(() => { suppressNextClick.current = false; }, 150);
       }
     }}>
