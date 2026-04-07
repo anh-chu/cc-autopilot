@@ -34,6 +34,8 @@ export interface AgentDefinition {
   status: AgentStatus;
   backend?: AgentBackend;
   allowedTools?: string[];
+  skipPermissions?: "inherit" | "on" | "off";
+  yolo?: "inherit" | "on" | "off";
   createdAt: string;
   updatedAt: string;
 }

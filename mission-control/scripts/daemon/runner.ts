@@ -324,16 +324,16 @@ export class AgentRunner {
     let args: string[];
 
     if (backend === "codex") {
-      // Codex CLI: codex -q --full-auto "<prompt>"
-      args = [
-        ...resolved.prefixArgs,
-        "-q",
-        "--full-auto",
-        opts.prompt,
-      ];
-      logger.info("runner", "Using Codex CLI backend");
+      args = [...resolved.prefixArgs, "-q"];
+      if (opts.yolo !== false) {
+        args.push("--full-auto");
+      }
+      if (opts.yolo === true) {
+        args.push("--yolo");
+      }
+      args.push(opts.prompt);
+      logger.info("runner", `Using Codex CLI backend (yolo=${opts.yolo ?? "default"})`);
     } else {
-      // Claude Code: claude -p "<prompt>" --verbose --output-format stream-json --max-turns N
       // --verbose is required when combining -p with --output-format stream-json
       args = [
         ...resolved.prefixArgs,

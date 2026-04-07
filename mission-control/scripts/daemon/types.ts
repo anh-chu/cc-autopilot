@@ -110,6 +110,7 @@ export interface SpawnOptions {
   maxTurns: number;
   timeoutMinutes: number;
   skipPermissions: boolean;
+  yolo?: boolean;
   allowedTools?: string[];
   agentTeams?: boolean;
   backend?: AgentBackend;

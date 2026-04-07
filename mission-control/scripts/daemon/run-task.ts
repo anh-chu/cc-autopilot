@@ -865,13 +865,27 @@ async function main() {
   const config = loadConfig();
   const { maxTurns, timeoutMinutes, skipPermissions, allowedTools: configAllowedTools } = config.execution;
 
-  // Merge per-agent allowedTools with global config allowedTools
+  // Merge per-agent allowedTools with global config allowedTools; resolve permission tri-states
   let agentAllowedToolsArr: string[] = [];
+  let resolvedSkipPermissions = skipPermissions;
+  let resolvedYolo: boolean | undefined;
   try {
     const agentsRaw = readFileSync(AGENTS_FILE, "utf-8");
-    const agentsData = JSON.parse(agentsRaw) as { agents: Array<{ id: string; allowedTools?: string[] }> };
+    const agentsData = JSON.parse(agentsRaw) as {
+      agents: Array<{
+        id: string;
+        allowedTools?: string[];
+        skipPermissions?: "inherit" | "on" | "off";
+        yolo?: "inherit" | "on" | "off";
+      }>;
+    };
     const agentDef = agentsData.agents.find((a) => a.id === task.assignedTo);
     agentAllowedToolsArr = agentDef?.allowedTools ?? [];
+    if (agentDef?.skipPermissions === "on") resolvedSkipPermissions = true;
+    else if (agentDef?.skipPermissions === "off") resolvedSkipPermissions = false;
+    if (agentDef?.yolo === "on") resolvedYolo = true;
+    else if (agentDef?.yolo === "off") resolvedYolo = false;
+    else resolvedYolo = undefined; // runner default: full-auto on
   } catch { /* non-fatal */ }
   const allowedTools = [...new Set([...(configAllowedTools ?? []), ...agentAllowedToolsArr])];
 
@@ -979,7 +993,8 @@ This is session ${continuationIndex + 1}. Previous session(s) ran out of turns o
       prompt,
       maxTurns,
       timeoutMinutes,
-      skipPermissions,
+      skipPermissions: resolvedSkipPermissions,
+      yolo: resolvedYolo,
       allowedTools,
       agentTeams: useAgentTeams,
       backend,

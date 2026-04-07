@@ -64,6 +64,8 @@ export default function EditAgentPage() {
     instructions: "",
     status: "active" as "active" | "inactive",
     backend: "claude" as "claude" | "codex",
+    skipPermissions: "inherit" as "inherit" | "on" | "off",
+    yolo: "inherit" as "inherit" | "on" | "off",
   });
   const [capabilities, setCapabilities] = useState<string[]>([]);
   const [capInput, setCapInput] = useState("");
@@ -83,6 +85,8 @@ export default function EditAgentPage() {
         instructions: agent.instructions,
         status: agent.status,
         backend: agent.backend ?? "claude",
+        skipPermissions: agent.skipPermissions ?? "inherit",
+        yolo: agent.yolo ?? "inherit",
       });
       setCapabilities(agent.capabilities ?? []);
       setAllowedTools(agent.allowedTools ?? []);
@@ -135,6 +139,8 @@ export default function EditAgentPage() {
         status: form.status,
         backend: form.backend,
         allowedTools,
+        skipPermissions: form.skipPermissions,
+        yolo: form.yolo,
         updatedAt: new Date().toISOString(),
       });
       router.push("/crew");
@@ -189,7 +195,6 @@ export default function EditAgentPage() {
       )}
 
       <div className="space-y-5">
-        {/* Name */}
         <div className="space-y-2">
           <Label htmlFor="name">Name *</Label>
           <Input
@@ -200,7 +205,6 @@ export default function EditAgentPage() {
           />
         </div>
 
-        {/* ID (read-only on edit) */}
         <div className="space-y-2">
           <Label htmlFor="agent-id">ID (URL-safe slug)</Label>
           <Input
@@ -215,7 +219,6 @@ export default function EditAgentPage() {
           </p>
         </div>
 
-        {/* Icon Picker */}
         <div className="space-y-2">
           <Label>Icon</Label>
           <div className="flex flex-wrap gap-1.5">
@@ -237,7 +240,6 @@ export default function EditAgentPage() {
           </div>
         </div>
 
-        {/* Description */}
         <div className="space-y-2">
           <Label htmlFor="description">Description</Label>
           <Input
@@ -276,7 +278,58 @@ export default function EditAgentPage() {
           </p>
         </div>
 
-        {/* Instructions (system prompt) */}
+        {form.backend === "claude" ? (
+          <div className="space-y-2">
+            <Label>Skip Permissions</Label>
+            <div className="flex gap-1">
+              {(["inherit", "on", "off"] as const).map((v) => (
+                <Button
+                  key={v}
+                  type="button"
+                  variant={form.skipPermissions === v ? "default" : "outline"}
+                  size="sm"
+                  className="capitalize"
+                  onClick={() => setForm((prev) => ({ ...prev, skipPermissions: v }))}
+                >
+                  {v}
+                </Button>
+              ))}
+            </div>
+            <p className="text-xs text-muted-foreground">
+              {form.skipPermissions === "on"
+                ? "Agent runs with --dangerously-skip-permissions (bypasses all prompts)"
+                : form.skipPermissions === "off"
+                ? "Agent always requires permission prompts regardless of global setting"
+                : "Inherits global skipPermissions setting from Autopilot config"}
+            </p>
+          </div>
+        ) : (
+          <div className="space-y-2">
+            <Label>Full-Auto Mode (--yolo)</Label>
+            <div className="flex gap-1">
+              {(["inherit", "on", "off"] as const).map((v) => (
+                <Button
+                  key={v}
+                  type="button"
+                  variant={form.yolo === v ? "default" : "outline"}
+                  size="sm"
+                  className="capitalize"
+                  onClick={() => setForm((prev) => ({ ...prev, yolo: v }))}
+                >
+                  {v}
+                </Button>
+              ))}
+            </div>
+            <p className="text-xs text-muted-foreground">
+              {form.yolo === "on"
+                ? "Agent runs with --full-auto --yolo (maximum autonomy)"
+                : form.yolo === "off"
+                ? "Agent runs without --full-auto (manual approval required)"
+                : "Default: runs with --full-auto"}
+            </p>
+          </div>
+        )}
+
         <div className="space-y-2">
           <Label htmlFor="instructions">Instructions (System Prompt)</Label>
           <Textarea
@@ -292,7 +345,6 @@ export default function EditAgentPage() {
           </p>
         </div>
 
-        {/* Capabilities (tag input) */}
         <div className="space-y-2">
           <Label>Capabilities</Label>
           <div className="flex gap-2">
@@ -329,7 +381,6 @@ export default function EditAgentPage() {
           )}
         </div>
 
-        {/* Allowed Tools (tag input) */}
         <div className="space-y-2">
           <Label>Allowed Tools</Label>
           <div className="flex gap-2">
@@ -369,7 +420,6 @@ export default function EditAgentPage() {
           </p>
         </div>
 
-        {/* Status */}
         <div className="flex items-center justify-between rounded-lg border p-4">
           <div>
             <Label>Status</Label>
@@ -390,7 +440,6 @@ export default function EditAgentPage() {
           </div>
         </div>
 
-        {/* Preview */}
         <div className="rounded-lg border bg-muted/50 p-4">
           <p className="text-xs font-semibold text-muted-foreground mb-2">Preview</p>
           <div className="flex items-center gap-3">
@@ -406,7 +455,6 @@ export default function EditAgentPage() {
           </div>
         </div>
 
-        {/* Actions */}
         <div className="flex gap-3 pt-2">
           <Button onClick={handleSubmit} disabled={saving} className="gap-1.5">
             <Save className="h-3.5 w-3.5" />

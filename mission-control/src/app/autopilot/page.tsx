@@ -656,23 +656,7 @@ export default function AutopilotPage() {
               </div>
             </div>
           )}
-          {config.execution.skipPermissions && (
-              <div className="mt-4 flex items-center gap-2 rounded-lg border border-yellow-500/50 bg-yellow-500/10 p-3 text-sm">
-                <AlertTriangle className="h-4 w-4 text-yellow-500 shrink-0" />
-                <span><strong>skipPermissions</strong> is enabled &mdash; Claude Code bypasses all permission prompts</span>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <span className="text-xs text-muted-foreground underline decoration-dotted cursor-help ml-auto shrink-0">
-                      Why can&apos;t I edit this?
-                    </span>
-                  </TooltipTrigger>
-                  <TooltipContent side="top" className="max-w-[260px]">
-                    <p className="text-xs">For safety, skipPermissions can only be changed by editing <code className="text-[10px]">data/daemon-config.json</code> directly.</p>
-                  </TooltipContent>
-                </Tooltip>
-              </div>
-            )}
-            {config.execution.allowedTools.length > 0 && !config.execution.skipPermissions && (
+            {config.execution.allowedTools.length > 0 && (
               <div className="mt-4 flex items-center gap-2 rounded-lg border border-blue-500/30 bg-blue-500/10 p-3 text-sm">
                 <Zap className="h-4 w-4 text-blue-500 shrink-0" />
                 <span>
@@ -746,7 +730,7 @@ export default function AutopilotPage() {
         </Card>
       )}
 
-      {/* ═══ Daemon Start Password Dialog ═══ */}
+      {/* Start Password Dialog */}
       <Dialog open={showStartDialog} onOpenChange={(open) => {
         if (!open) {
           setShowStartDialog(false);

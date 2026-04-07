@@ -7,12 +7,16 @@ import {
   Plus,
   Users,
   CircleDot,
+  Shield,
+  ShieldAlert,
+  ShieldOff,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { EmptyState } from "@/components/empty-state";
 import { BreadcrumbNav } from "@/components/breadcrumb-nav";
 import { useAgents, useTasks, useProjects, useGoals } from "@/hooks/use-data";
+import { useDaemon } from "@/hooks/use-daemon";
 import { AgentCardSkeleton } from "@/components/skeletons";
 import { ErrorState } from "@/components/error-state";
 import { Tip } from "@/components/ui/tip";
@@ -95,11 +99,38 @@ function AgentCard({
               <span className="text-xs text-muted-foreground">
                 {taskCount} active task{taskCount !== 1 ? "s" : ""}
               </span>
-              {agent.skillIds.length > 0 && (
-                <span className="text-xs text-muted-foreground">
-                  {agent.skillIds.length} skill{agent.skillIds.length !== 1 ? "s" : ""}
-                </span>
-              )}
+              <div className="flex items-center gap-2">
+                {(() => {
+                  const permField = agent.backend === "codex" ? agent.yolo : agent.skipPermissions;
+                  if (permField === "on") {
+                    return (
+                      <span className="flex items-center gap-1 text-[10px] text-amber-500 font-medium">
+                        <ShieldAlert className="h-3 w-3" />
+                        Unrestricted
+                      </span>
+                    );
+                  }
+                  if (permField === "off") {
+                    return (
+                      <span className="flex items-center gap-1 text-[10px] text-muted-foreground">
+                        <ShieldOff className="h-3 w-3" />
+                        Restricted
+                      </span>
+                    );
+                  }
+                  return (
+                    <span className="flex items-center gap-1 text-[10px] text-muted-foreground/60">
+                      <Shield className="h-3 w-3" />
+                      Default
+                    </span>
+                  );
+                })()}
+                {agent.skillIds.length > 0 && (
+                  <span className="text-xs text-muted-foreground">
+                    {agent.skillIds.length} skill{agent.skillIds.length !== 1 ? "s" : ""}
+                  </span>
+                )}
+              </div>
             </div>
           </div>
         </Link>
@@ -120,9 +151,18 @@ export default function CrewPage() {
   const { tasks, create: createTask } = useTasks();
   const { projects } = useProjects();
   const { goals } = useGoals();
+  const { config, updateConfig } = useDaemon();
   const router = useRouter();
   const [filter, setFilter] = useState<"all" | "active" | "inactive">("all");
   const [newTaskForAgentId, setNewTaskForAgentId] = useState<string | null>(null);
+
+  async function toggleGlobalPermissions(on: boolean) {
+    await updateConfig({
+      concurrency: config.concurrency,
+      execution: { ...config.execution, skipPermissions: on },
+      polling: config.polling,
+    });
+  }
 
   function handleEditAgent(agentId: string) {
     router.push(`/crew/${agentId}`);
@@ -189,6 +229,33 @@ export default function CrewPage() {
             <Plus className="h-3.5 w-3.5" /> New Agent
           </Button>
         </Tip>
+      </div>
+
+      {/* Global permission default */}
+      <div className="flex items-center justify-between rounded-lg border px-4 py-3 gap-4">
+        <div className="min-w-0">
+          <p className="text-sm font-medium">Global permission default</p>
+          <p className="text-xs text-muted-foreground mt-0.5">
+            Skip all permission prompts for all agents (can be restricted per agent)
+          </p>
+        </div>
+        <div className="flex gap-1 shrink-0">
+          <Button
+            size="sm"
+            variant={!config.execution.skipPermissions ? "default" : "outline"}
+            onClick={() => toggleGlobalPermissions(false)}
+          >
+            Off
+          </Button>
+          <Button
+            size="sm"
+            variant={config.execution.skipPermissions ? "default" : "outline"}
+            className={config.execution.skipPermissions ? "bg-amber-500 hover:bg-amber-600 text-white border-amber-500" : ""}
+            onClick={() => toggleGlobalPermissions(true)}
+          >
+            On
+          </Button>
+        </div>
       </div>
 
       {/* Filter tabs */}
