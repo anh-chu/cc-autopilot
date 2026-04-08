@@ -94,6 +94,36 @@ function writeActiveRuns(data: ActiveRunsData): void {
   writeFileSync(ACTIVE_RUNS_FILE, JSON.stringify(data, null, 2), "utf-8");
 }
 
+// ─── Decision Session Persistence ────────────────────────────────────────────
+
+const DECISION_SESSIONS_FILE = path.join(WORKSPACE_DIR, "decision-sessions.json");
+
+function saveDecisionSession(taskId: string, sessionId: string): void {
+  try {
+    let data: Record<string, string> = {};
+    if (existsSync(DECISION_SESSIONS_FILE)) {
+      data = JSON.parse(readFileSync(DECISION_SESSIONS_FILE, "utf-8")) as Record<string, string>;
+    }
+    data[taskId] = sessionId;
+    writeFileSync(DECISION_SESSIONS_FILE, JSON.stringify(data, null, 2), "utf-8");
+  } catch { /* non-fatal */ }
+}
+
+function consumeDecisionSession(taskId: string): string | null {
+  try {
+    if (!existsSync(DECISION_SESSIONS_FILE)) return null;
+    const data = JSON.parse(readFileSync(DECISION_SESSIONS_FILE, "utf-8")) as Record<string, string>;
+    const sessionId = data[taskId] ?? null;
+    if (sessionId) {
+      delete data[taskId];
+      writeFileSync(DECISION_SESSIONS_FILE, JSON.stringify(data, null, 2), "utf-8");
+    }
+    return sessionId;
+  } catch {
+    return null;
+  }
+}
+
 /**
  * Prune completed/failed/timeout/stopped runs older than 1 hour.
  */
@@ -988,6 +1018,12 @@ async function main() {
     }
   }
 
+  // Check for a saved decision session to resume
+  const decisionResumeSessionId = !isContinuation ? consumeDecisionSession(taskId) : null;
+  if (decisionResumeSessionId) {
+    logger.info("run-task", `Resuming decision session ${decisionResumeSessionId} for task ${taskId}`);
+  }
+
   // 9. Build prompt (pass missionId for restart context)
   let prompt = buildTaskPrompt(task.assignedTo, task, missionId ?? undefined);
 
@@ -1017,6 +1053,7 @@ This is session ${continuationIndex + 1}. Previous session(s) ran out of turns o
     const runStartedAt = new Date().toISOString();
     let pendingDecisionFound = false;
     let spawnedPid = 0;
+    let capturedSessionId: string | null = null;
     let decisionWatcher: ReturnType<typeof setInterval> | null = null;
 
     const spawnPromise = runner.spawnAgent({
@@ -1030,6 +1067,10 @@ This is session ${continuationIndex + 1}. Previous session(s) ran out of turns o
       backend,
       cwd: WORKSPACE_DIR,
       streamFile,
+      resumeSessionId: decisionResumeSessionId ?? undefined,
+      onSessionId: (sid) => {
+        capturedSessionId = sid;
+      },
       onSpawned: (pid) => {
         spawnedPid = pid;
         taskLogger.info("run-task", "Agent spawned", { taskId, pid });
@@ -1101,6 +1142,10 @@ This is session ${continuationIndex + 1}. Previous session(s) ran out of turns o
           taskToUpdate.kanban = "awaiting-decision";
           taskToUpdate.updatedAt = new Date().toISOString();
           writeFileSync(TASKS_FILE, JSON.stringify(tasksData, null, 2), "utf-8");
+          if (capturedSessionId) {
+            saveDecisionSession(taskId, capturedSessionId);
+            logger.info("run-task", `Saved session ${capturedSessionId} for decision resume on task ${taskId}`);
+          }
         }
       } catch (err) {
         logger.error("run-task", `Failed to set task ${taskId} to awaiting-decision: ${err instanceof Error ? err.message : String(err)}`);
@@ -1221,6 +1266,10 @@ This is session ${continuationIndex + 1}. Previous session(s) ran out of turns o
             taskToUpdate.kanban = "awaiting-decision";
             taskToUpdate.updatedAt = new Date().toISOString();
             writeFileSync(TASKS_FILE, JSON.stringify(tasksData, null, 2), "utf-8");
+            if (capturedSessionId) {
+              saveDecisionSession(taskId, capturedSessionId);
+              logger.info("run-task", `Saved session ${capturedSessionId} for decision resume on task ${taskId}`);
+            }
           }
         } catch (err) {
           logger.error("run-task", `Failed to set task ${taskId} to awaiting-decision: ${err instanceof Error ? err.message : String(err)}`);
