@@ -1,0 +1,503 @@
+{
+  "version": "1.0.0",
+  "lastScanned": 1775485157226,
+  "projectRoot": "/home/sil/ccmc/mission-control",
+  "techStack": {
+    "languages": [
+      {
+        "name": "JavaScript/TypeScript",
+        "version": null,
+        "confidence": "high",
+        "markers": [
+          "package.json"
+        ]
+      },
+      {
+        "name": "TypeScript",
+        "version": null,
+        "confidence": "high",
+        "markers": [
+          "tsconfig.json"
+        ]
+      }
+    ],
+    "frameworks": [
+      {
+        "name": "next",
+        "version": "15.3.3",
+        "category": "fullstack"
+      },
+      {
+        "name": "react",
+        "version": "19.1.0",
+        "category": "frontend"
+      },
+      {
+        "name": "react-dom",
+        "version": "19.1.0",
+        "category": "frontend"
+      },
+      {
+        "name": "vitest",
+        "version": "4.0.18",
+        "category": "testing"
+      }
+    ],
+    "packageManager": "pnpm",
+    "runtime": null
+  },
+  "build": {
+    "buildCommand": "pnpm build",
+    "testCommand": "pnpm test",
+    "lintCommand": "pnpm lint",
+    "devCommand": "pnpm dev",
+    "scripts": {
+      "dev": "next dev",
+      "build": "next build",
+      "start": "next start",
+      "lint": "next lint",
+      "test": "vitest run",
+      "test:watch": "vitest",
+      "check": "pnpm tsc --noEmit && pnpm lint",
+      "verify": "pnpm check && pnpm build && pnpm test",
+      "gen:context": "npx tsx scripts/generate-context.ts",
+      "migrate:data": "npx tsx scripts/migrate-to-home-dir.ts",
+      "seed:demo": "npx tsx scripts/seed-demo.ts",
+      "daemon:start": "npx tsx scripts/daemon/index.ts start",
+      "daemon:stop": "npx tsx scripts/daemon/index.ts stop",
+      "daemon:status": "npx tsx scripts/daemon/index.ts status"
+    }
+  },
+  "conventions": {
+    "namingStyle": "camelCase",
+    "importStyle": "ES modules",
+    "testPattern": "*.test.ts",
+    "fileOrganization": "type-based"
+  },
+  "structure": {
+    "isMonorepo": false,
+    "workspaces": [],
+    "mainDirectories": [
+      "__tests__",
+      "docs",
+      "public",
+      "scripts",
+      "src"
+    ],
+    "gitBranches": {
+      "defaultBranch": "main",
+      "branchingStrategy": null
+    }
+  },
+  "customNotes": [],
+  "directoryMap": {
+    "__tests__": {
+      "path": "__tests__",
+      "purpose": "Test files",
+      "fileCount": 5,
+      "lastAccessed": 1775485157162,
+      "keyFiles": [
+        "daemon.test.ts",
+        "data.test.ts",
+        "helpers.ts",
+        "security.test.ts",
+        "validations.test.ts"
+      ]
+    },
+    "data": {
+      "path": "data",
+      "purpose": "Data files",
+      "fileCount": 18,
+      "lastAccessed": 1775485157169,
+      "keyFiles": [
+        "active-runs.json",
+        "activity-log.json",
+        "agents.json",
+        "ai-context.md",
+        "brain-dump.json"
+      ]
+    },
+    "docs": {
+      "path": "docs",
+      "purpose": "Documentation",
+      "fileCount": 2,
+      "lastAccessed": 1775485157186,
+      "keyFiles": [
+        "demo.gif",
+        "rocket.svg"
+      ]
+    },
+    "local_cache": {
+      "path": "local_cache",
+      "purpose": null,
+      "fileCount": 0,
+      "lastAccessed": 1775485157205,
+      "keyFiles": []
+    },
+    "public": {
+      "path": "public",
+      "purpose": "Public files",
+      "fileCount": 0,
+      "lastAccessed": 1775485157206,
+      "keyFiles": []
+    },
+    "scripts": {
+      "path": "scripts",
+      "purpose": "Build/utility scripts",
+      "fileCount": 14,
+      "lastAccessed": 1775485157207,
+      "keyFiles": [
+        "create-launch-project.js",
+        "find-auth-env.js",
+        "fix-stuck-tasks.js",
+        "generate-context.ts",
+        "migrate-to-home-dir.ts"
+      ]
+    },
+    "src": {
+      "path": "src",
+      "purpose": "Source code",
+      "fileCount": 1,
+      "lastAccessed": 1775485157207,
+      "keyFiles": [
+        "middleware.ts"
+      ]
+    },
+    "src/app": {
+      "path": "src/app",
+      "purpose": "Application code",
+      "fileCount": 8,
+      "lastAccessed": 1775485157215,
+      "keyFiles": [
+        "error.tsx",
+        "global-error.tsx",
+        "globals.css"
+      ]
+    },
+    "src/components": {
+      "path": "src/components",
+      "purpose": "UI components",
+      "fileCount": 38,
+      "lastAccessed": 1775485157215,
+      "keyFiles": [
+        "action-detail-panel.tsx",
+        "agent-console.tsx",
+        "app-sidebar.tsx"
+      ]
+    },
+    "src/lib": {
+      "path": "src/lib",
+      "purpose": "Library code",
+      "fileCount": 21,
+      "lastAccessed": 1775485157216,
+      "keyFiles": [
+        "action-adapter.ts",
+        "agent-icons.ts",
+        "api-client.ts"
+      ]
+    }
+  },
+  "hotPaths": [
+    {
+      "path": "src/app/initiatives/[id]/page.tsx",
+      "accessCount": 82,
+      "lastAccessed": 1775457565503,
+      "type": "file"
+    },
+    {
+      "path": "src/app/settings/page.tsx",
+      "accessCount": 46,
+      "lastAccessed": 1775497171178,
+      "type": "file"
+    },
+    {
+      "path": "src/components/app-sidebar.tsx",
+      "accessCount": 39,
+      "lastAccessed": 1775415662952,
+      "type": "file"
+    },
+    {
+      "path": "src/app/approvals/page.tsx",
+      "accessCount": 38,
+      "lastAccessed": 1775457474983,
+      "type": "file"
+    },
+    {
+      "path": "",
+      "accessCount": 29,
+      "lastAccessed": 1775568966270,
+      "type": "directory"
+    },
+    {
+      "path": "src/app/crew/[id]/page.tsx",
+      "accessCount": 27,
+      "lastAccessed": 1775545640945,
+      "type": "file"
+    },
+    {
+      "path": "src/app/objectives/page.tsx",
+      "accessCount": 22,
+      "lastAccessed": 1775539791535,
+      "type": "file"
+    },
+    {
+      "path": "src/app/initiatives/page.tsx",
+      "accessCount": 20,
+      "lastAccessed": 1775506263617,
+      "type": "file"
+    },
+    {
+      "path": "src/components/command-bar.tsx",
+      "accessCount": 18,
+      "lastAccessed": 1775415697034,
+      "type": "file"
+    },
+    {
+      "path": "src/hooks/use-data.ts",
+      "accessCount": 18,
+      "lastAccessed": 1775505947065,
+      "type": "file"
+    },
+    {
+      "path": "scripts/daemon/runner.ts",
+      "accessCount": 18,
+      "lastAccessed": 1775653167412,
+      "type": "file"
+    },
+    {
+      "path": "scripts/daemon/run-task.ts",
+      "accessCount": 16,
+      "lastAccessed": 1775531336073,
+      "type": "file"
+    },
+    {
+      "path": "src/lib/types.ts",
+      "accessCount": 14,
+      "lastAccessed": 1775531301731,
+      "type": "directory"
+    },
+    {
+      "path": "src/app/autopilot/page.tsx",
+      "accessCount": 14,
+      "lastAccessed": 1775535406525,
+      "type": "file"
+    },
+    {
+      "path": "src/lib/validations.ts",
+      "accessCount": 11,
+      "lastAccessed": 1775535680560,
+      "type": "file"
+    },
+    {
+      "path": "src",
+      "accessCount": 11,
+      "lastAccessed": 1775653504862,
+      "type": "directory"
+    },
+    {
+      "path": "src/components/task-card.tsx",
+      "accessCount": 8,
+      "lastAccessed": 1775506391777,
+      "type": "file"
+    },
+    {
+      "path": "src/app/crew/new/page.tsx",
+      "accessCount": 7,
+      "lastAccessed": 1775535152763,
+      "type": "file"
+    },
+    {
+      "path": "src/app/api/workspaces/route.ts",
+      "accessCount": 7,
+      "lastAccessed": 1775559030817,
+      "type": "file"
+    },
+    {
+      "path": "src/app/field-ops/missions/[id]/page.tsx",
+      "accessCount": 6,
+      "lastAccessed": 1775409485870,
+      "type": "file"
+    },
+    {
+      "path": "src/components/field-ops/field-task-card.tsx",
+      "accessCount": 6,
+      "lastAccessed": 1775506258440,
+      "type": "file"
+    },
+    {
+      "path": "src/hooks/use-daemon.ts",
+      "accessCount": 6,
+      "lastAccessed": 1775535546793,
+      "type": "file"
+    },
+    {
+      "path": "src/hooks/use-sidebar.ts",
+      "accessCount": 5,
+      "lastAccessed": 1775409568891,
+      "type": "file"
+    },
+    {
+      "path": "src/components/layout-shell.tsx",
+      "accessCount": 5,
+      "lastAccessed": 1775415151581,
+      "type": "file"
+    },
+    {
+      "path": "src/hooks",
+      "accessCount": 4,
+      "lastAccessed": 1775410310638,
+      "type": "directory"
+    },
+    {
+      "path": "src/app/api/decisions/route.ts",
+      "accessCount": 4,
+      "lastAccessed": 1775453196229,
+      "type": "file"
+    },
+    {
+      "path": "src/app/api/actions/route.ts",
+      "accessCount": 3,
+      "lastAccessed": 1775410331977,
+      "type": "file"
+    },
+    {
+      "path": "scripts/daemon",
+      "accessCount": 3,
+      "lastAccessed": 1775485478680,
+      "type": "directory"
+    },
+    {
+      "path": "src/app/initiatives",
+      "accessCount": 3,
+      "lastAccessed": 1775506173799,
+      "type": "directory"
+    },
+    {
+      "path": "src/app/api/tasks/route.ts",
+      "accessCount": 2,
+      "lastAccessed": 1775406596327,
+      "type": "file"
+    },
+    {
+      "path": "src/app/checkpoints/page.tsx",
+      "accessCount": 2,
+      "lastAccessed": 1775409476464,
+      "type": "file"
+    },
+    {
+      "path": "src/app/field-ops/activity/page.tsx",
+      "accessCount": 2,
+      "lastAccessed": 1775410308313,
+      "type": "file"
+    },
+    {
+      "path": "src/components/field-ops/financial-overview-card.tsx",
+      "accessCount": 2,
+      "lastAccessed": 1775410312097,
+      "type": "file"
+    },
+    {
+      "path": "src/components/task-form.tsx",
+      "accessCount": 2,
+      "lastAccessed": 1775415347064,
+      "type": "file"
+    },
+    {
+      "path": "src/app/api/initiatives/route.ts",
+      "accessCount": 1,
+      "lastAccessed": 1775406509805,
+      "type": "file"
+    },
+    {
+      "path": "src/hooks/use-workspace.ts",
+      "accessCount": 1,
+      "lastAccessed": 1775406606358,
+      "type": "file"
+    },
+    {
+      "path": "src/components/field-ops/field-task-form-dialog.tsx",
+      "accessCount": 1,
+      "lastAccessed": 1775408658074,
+      "type": "file"
+    },
+    {
+      "path": "src/hooks/use-field-ops.ts",
+      "accessCount": 1,
+      "lastAccessed": 1775408694340,
+      "type": "file"
+    },
+    {
+      "path": "src/app/daemon/page.tsx",
+      "accessCount": 1,
+      "lastAccessed": 1775408703435,
+      "type": "file"
+    },
+    {
+      "path": "src/components/field-ops/mission-form-dialog.tsx",
+      "accessCount": 1,
+      "lastAccessed": 1775409461554,
+      "type": "file"
+    },
+    {
+      "path": "src/components/autonomy-selector.tsx",
+      "accessCount": 1,
+      "lastAccessed": 1775409482410,
+      "type": "file"
+    },
+    {
+      "path": "src/app/field-ops/page.tsx",
+      "accessCount": 1,
+      "lastAccessed": 1775409485056,
+      "type": "file"
+    },
+    {
+      "path": "src/app/field-ops/approvals/page.tsx",
+      "accessCount": 1,
+      "lastAccessed": 1775409486024,
+      "type": "file"
+    },
+    {
+      "path": "src/app/ventures/page.tsx",
+      "accessCount": 1,
+      "lastAccessed": 1775409489530,
+      "type": "file"
+    },
+    {
+      "path": "src/components/field-ops/vault-unlock-dialog.tsx",
+      "accessCount": 1,
+      "lastAccessed": 1775410301574,
+      "type": "file"
+    },
+    {
+      "path": "src/app/api/field-ops/activity/route.ts",
+      "accessCount": 1,
+      "lastAccessed": 1775410312616,
+      "type": "file"
+    },
+    {
+      "path": "src/lib/action-adapter.ts",
+      "accessCount": 1,
+      "lastAccessed": 1775410325235,
+      "type": "file"
+    },
+    {
+      "path": "src/app/actions/activity/page.tsx",
+      "accessCount": 1,
+      "lastAccessed": 1775410394050,
+      "type": "file"
+    },
+    {
+      "path": "src/components/field-ops/getting-started-card.tsx",
+      "accessCount": 1,
+      "lastAccessed": 1775415257504,
+      "type": "file"
+    },
+    {
+      "path": "src/lib",
+      "accessCount": 1,
+      "lastAccessed": 1775415304814,
+      "type": "directory"
+    }
+  ],
+  "userDirectives": []
+}

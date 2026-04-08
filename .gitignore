@@ -58,3 +58,12 @@ mission-control/data/missions.json
 
 # Research & marketing files (local only, not pushed to GitHub)
 research/
+**/.omc/artifacts
+**/.omc/plans
+**/.omc/state
+**/.omc/sessions
+**/.omc/prd.json
+**/.omc/progress.txt
+**/state
+**/.omc/artifacts
+**/.omx/
