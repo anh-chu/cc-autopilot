@@ -3,10 +3,12 @@
  * All jobs run in the Node.js process for the lifetime of the server.
  */
 import cron from "node-cron";
-import { readdirSync, statSync, unlinkSync, existsSync, readFileSync } from "fs";
+import { existsSync, readFileSync, readdirSync, statSync, unlinkSync } from "fs";
+import { readdir, stat, unlink } from "fs/promises";
 import path from "path";
 import { DATA_DIR, UPLOADS_DIR } from "./paths";
 const GRACE_MS = 60 * 60 * 1000; // 1 hour
+const LOG_RETENTION_MS = 7 * 24 * 60 * 60 * 1000; // 7 days
 const UPLOAD_RE = /\/uploads\/[^"'\s)\]]+/g;
 
 function collectReferencedFilenames(): Set<string> {
@@ -82,4 +84,53 @@ export function scheduleUploadsCleanup() {
   // Then run every hour
   cron.schedule("0 * * * *", runUploadsCleanup);
   console.log("[cleanup:uploads] scheduler registered (hourly)");
+}
+
+async function cleanupDirectoryOlderThan(dir: string, maxAgeMs: number): Promise<number> {
+  if (!existsSync(dir)) return 0;
+
+  let deleted = 0;
+  const entries = await readdir(dir, { withFileTypes: true });
+  const now = Date.now();
+
+  await Promise.all(entries.map(async (entry) => {
+    if (!entry.isFile()) return;
+    const filePath = path.join(dir, entry.name);
+
+    try {
+      const fileStat = await stat(filePath);
+      if (now - fileStat.mtimeMs < maxAgeMs) return;
+      await unlink(filePath);
+      deleted += 1;
+    } catch {
+      // Ignore per-file errors so one bad file does not stop cleanup.
+    }
+  }));
+
+  return deleted;
+}
+
+async function runLogCleanup() {
+  try {
+    const [logFilesDeleted, streamFilesDeleted] = await Promise.all([
+      cleanupDirectoryOlderThan(path.join(DATA_DIR, "logs"), LOG_RETENTION_MS),
+      cleanupDirectoryOlderThan(path.join(DATA_DIR, "agent-streams"), LOG_RETENTION_MS),
+    ]);
+
+    if (logFilesDeleted > 0 || streamFilesDeleted > 0) {
+      console.log(
+        `[cleanup:logs] removed ${logFilesDeleted} log file(s) and ${streamFilesDeleted} stream file(s)`
+      );
+    }
+  } catch {
+    // Non-fatal: cleanup should never break app startup.
+  }
+}
+
+export function scheduleLogCleanup() {
+  void runLogCleanup();
+  cron.schedule("0 3 * * *", () => {
+    void runLogCleanup();
+  });
+  console.log("[cleanup:logs] scheduler registered (daily)");
 }

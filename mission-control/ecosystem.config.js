@@ -1,3 +1,6 @@
+const os = require("os");
+const path = require("path");
+
 module.exports = {
   apps: [
     {
@@ -18,6 +21,8 @@ module.exports = {
       max_memory_restart: "512M",
       // Merge stdout and stderr logs
       merge_logs: true,
+      out_file: path.join(os.homedir(), ".cmc", "logs", "pm2-out.log"),
+      error_file: path.join(os.homedir(), ".cmc", "logs", "pm2-error.log"),
     },
   ],
 };

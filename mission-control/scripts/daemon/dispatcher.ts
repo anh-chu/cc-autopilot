@@ -233,6 +233,14 @@ export class Dispatcher {
     const toRetry = dueRetries.slice(0, Math.max(0, availableSlots));
     const deferred = dueRetries.slice(Math.max(0, availableSlots));
 
+    logger.info("dispatch", "Processing retry queue", {
+      queued: this.retryQueue.length,
+      due: dueRetries.length,
+      dispatching: toRetry.length,
+      deferred: deferred.length,
+      availableSlots,
+    });
+
     // Update queue: remove retries we're about to dispatch
     this.retryQueue = [...remaining, ...deferred];
     this.saveRetryQueue();
@@ -252,8 +260,6 @@ export class Dispatcher {
    */
   private async dispatchTask(taskId: string, agentId: string): Promise<void> {
     try {
-      logger.info("dispatcher", `Dispatching task ${taskId} to agent "${agentId}"`);
-
       // Build task data for prompt (re-read to get fresh state)
       const { getTask } = await import("./prompt-builder");
       const task = getTask(taskId);
@@ -261,6 +267,12 @@ export class Dispatcher {
         logger.error("dispatcher", `Task ${taskId} not found`);
         return;
       }
+
+      logger.info("dispatch", "Dispatching task", {
+        taskId,
+        agentId,
+        priority: `${task.importance}/${task.urgency}`,
+      });
 
       const prompt = buildTaskPrompt(agentId, task);
 
@@ -318,6 +330,14 @@ export class Dispatcher {
             `Agent "${agentId}" finished this task successfully.`,
           );
         } else {
+          if (result.timedOut) {
+            logger.warn("dispatch", "Task timed out", {
+              taskId,
+              agentId,
+              pid: result.pid,
+              timeoutMinutes: this.config.execution.timeoutMinutes,
+            });
+          }
           const reason = result.timedOut ? "timed out" : `exited with code ${result.exitCode}`;
           this.writeInboxMessage(
             agentId,
@@ -346,7 +366,7 @@ export class Dispatcher {
    */
   async resumeOrphanedSession(taskId: string, agentId: string, sessionId: string): Promise<void> {
     try {
-      logger.info("dispatcher", `Attempting session resume for task ${taskId} (session=${sessionId})`);
+      logger.info("recovery", "Attempting session resume", { taskId, agentId, sessionId });
 
       const { getTask } = await import("./prompt-builder");
       const task = getTask(taskId);
@@ -381,16 +401,33 @@ export class Dispatcher {
         this.health.endSession(innerSessionId, result.exitCode, result.stderr || null, result.timedOut, meta.totalCostUsd, meta.numTurns, meta.usage);
 
         if (result.exitCode === 0 && !result.timedOut) {
-          logger.info("dispatcher", `Session resume succeeded for task ${taskId}`);
+          logger.info("recovery", "Session resume succeeded", {
+            taskId,
+            agentId,
+            sessionId,
+            pid: result.pid,
+          });
           clearSessionRecord(taskId);
         } else {
-          logger.warn("dispatcher", `Session resume failed for task ${taskId} — resetting to not-started`);
+          logger.warn("recovery", "Session resume failed", {
+            taskId,
+            agentId,
+            sessionId,
+            pid: result.pid,
+            timedOut: result.timedOut,
+            exitCode: result.exitCode,
+          });
           clearSessionRecord(taskId);
           this.resetTaskToNotStarted(taskId);
         }
       }).catch(err => {
         this.health.endSession(innerSessionId, 1, err instanceof Error ? err.message : String(err), false);
-        logger.error("dispatcher", `Session resume error for task ${taskId}: ${err instanceof Error ? err.message : String(err)}`);
+        logger.error("recovery", "Session resume error", {
+          taskId,
+          agentId,
+          sessionId,
+          error: err instanceof Error ? err.message : String(err),
+        });
         clearSessionRecord(taskId);
         this.resetTaskToNotStarted(taskId);
       });
@@ -692,7 +729,11 @@ export class Dispatcher {
     this.fieldOpsInFlight.add(taskId);
 
     try {
-      logger.info("dispatcher", `Field Ops: executing "${title}" (${taskId})`);
+      logger.info("dispatch", "Posting field ops execution request", {
+        taskId,
+        title,
+        url: FIELD_OPS_EXECUTE_URL,
+      });
 
       const res = await fetch(FIELD_OPS_EXECUTE_URL, {
         method: "POST",

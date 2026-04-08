@@ -24,6 +24,24 @@ function timingSafeEqual(a: string, b: string): boolean {
  * compatible for local-only development with zero configuration).
  */
 export function middleware(request: NextRequest) {
+  const startedAt = Date.now();
+  const pathname = request.nextUrl.pathname;
+
+  const finalize = (response: NextResponse) => {
+    if (!pathname.startsWith("/_next/")) {
+      console.log(JSON.stringify({
+        ts: new Date().toISOString(),
+        level: "INFO",
+        module: "http",
+        process: "app",
+        method: request.method,
+        path: pathname,
+        durationMs: Date.now() - startedAt,
+      }));
+    }
+    return response;
+  };
+
   // ── Workspace header injection ────────────────────────────────────────────
   const workspaceId = request.cookies.get("workspace_id")?.value ?? "default";
   const requestHeaders = new Headers(request.headers);
@@ -40,16 +58,16 @@ export function middleware(request: NextRequest) {
       try {
         const originHost = new URL(origin).host;
         if (originHost !== host) {
-          return NextResponse.json(
+          return finalize(NextResponse.json(
             { error: "Cross-origin request blocked" },
             { status: 403 },
-          );
+          ));
         }
       } catch {
-        return NextResponse.json(
+        return finalize(NextResponse.json(
           { error: "Invalid Origin header" },
           { status: 403 },
-        );
+        ));
       }
     }
   }
@@ -57,32 +75,32 @@ export function middleware(request: NextRequest) {
   const token = process.env.MC_API_TOKEN;
 
   // No token configured = open access (default local dev experience)
-  if (!token) return NextResponse.next({ request: { headers: requestHeaders } });
+  if (!token) return finalize(NextResponse.next({ request: { headers: requestHeaders } }));
 
   const authHeader = request.headers.get("authorization");
   if (!authHeader) {
-    return NextResponse.json(
+    return finalize(NextResponse.json(
       { error: "Missing Authorization header" },
       { status: 401 }
-    );
+    ));
   }
 
   const parts = authHeader.split(" ");
   if (parts.length !== 2 || parts[0] !== "Bearer") {
-    return NextResponse.json(
+    return finalize(NextResponse.json(
       { error: "Invalid Authorization format. Expected: Bearer <token>" },
       { status: 401 }
-    );
+    ));
   }
 
   if (!timingSafeEqual(parts[1], token)) {
-    return NextResponse.json(
+    return finalize(NextResponse.json(
       { error: "Invalid API token" },
       { status: 401 }
-    );
+    ));
   }
 
-  return NextResponse.next({ request: { headers: requestHeaders } });
+  return finalize(NextResponse.next({ request: { headers: requestHeaders } }));
 }
 
 export const config = {

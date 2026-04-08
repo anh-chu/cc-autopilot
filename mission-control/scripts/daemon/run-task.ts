@@ -19,11 +19,14 @@
 import { readFileSync, writeFileSync, existsSync, unlinkSync } from "fs";
 import { execSync, spawn } from "child_process";
 import path from "path";
+import { createLogger } from "../../src/lib/logger";
 import { AgentRunner, parseClaudeOutput } from "./runner";
 import { buildTaskPrompt, getTask, isTaskUnblocked, hasPendingDecision } from "./prompt-builder";
 import { loadConfig } from "./config";
 import { logger } from "./logger";
 import type { ProjectRun, ProjectRunsFile, AgentBackend } from "./types";
+
+const taskLogger = createLogger("task", { sync: true });
 
 // ─── Paths ──────────────────────────────────────────────────────────────────
 
@@ -57,6 +60,7 @@ interface ActiveRunEntry {
   id: string;
   taskId: string;
   agentId: string;
+  source?: "manual" | "project-run" | "mission-chain" | "scheduled" | "webhook" | "inbox-respond" | "comment";
   projectId: string | null;
   missionId: string | null;
   pid: number;
@@ -812,6 +816,7 @@ async function main() {
   const isContinuation = continuationIndex > 0;
 
   logger.info("run-task", `Starting task ${taskId} (source: ${source}, agentTeams: ${agentTeams}, mission: ${missionId ?? "none"}, continuation: ${continuationIndex}${existingRunId ? `, runId: ${existingRunId}` : ""})`);
+  taskLogger.info("run-task", "Starting task", { taskId, source });
 
   // 1. Validate task exists
   const task = getTask(taskId);
@@ -903,6 +908,7 @@ async function main() {
       id: runId,
       taskId,
       agentId: task.assignedTo,
+      source: source as ActiveRunEntry["source"],
       projectId: task.projectId ?? null,
       missionId,
       pid: 0, // Will be updated after spawn via onSpawned
@@ -923,6 +929,7 @@ async function main() {
       id: activeRunId,
       taskId,
       agentId: task.assignedTo,
+      source: source as ActiveRunEntry["source"],
       projectId: task.projectId ?? null,
       missionId,
       pid: 0,
@@ -984,6 +991,7 @@ This is session ${continuationIndex + 1}. Previous session(s) ran out of turns o
   const backend = getAgentBackend(task.assignedTo);
   const runner = new AgentRunner(WORKSPACE_ROOT);
   try {
+    const runStartedAtMs = Date.now();
     const runStartedAt = new Date().toISOString();
     let pendingDecisionFound = false;
     let spawnedPid = 0;
@@ -1002,6 +1010,7 @@ This is session ${continuationIndex + 1}. Previous session(s) ran out of turns o
       streamFile,
       onSpawned: (pid) => {
         spawnedPid = pid;
+        taskLogger.info("run-task", "Agent spawned", { taskId, pid });
         // Update the PID in active-runs immediately after spawn
         try {
           const runs = readActiveRuns();
@@ -1033,10 +1042,16 @@ This is session ${continuationIndex + 1}. Previous session(s) ran out of turns o
     });
 
     const result = await spawnPromise;
+    const durationMs = Date.now() - runStartedAtMs;
     if (decisionWatcher) {
       clearInterval(decisionWatcher);
       decisionWatcher = null;
     }
+    taskLogger.info("run-task", "Agent exited", {
+      taskId,
+      exitCode: result.exitCode,
+      durationMs,
+    });
 
     // Parse cost/usage metadata from Claude Code JSON output
     const meta = parseClaudeOutput(result.stdout);
@@ -1163,6 +1178,10 @@ This is session ${continuationIndex + 1}. Previous session(s) ran out of turns o
       appendTaskProgress(taskId, continuationIndex, summary);
 
       logger.info("run-task", `Spawning continuation ${continuationIndex + 1} for task ${taskId}`);
+      taskLogger.info("run-task", "Spawning continuation", {
+        taskId,
+        continuationIndex: continuationIndex + 1,
+      });
       spawnContinuation(taskId, continuationIndex + 1, runId, source, agentTeams, missionId);
       // Exit — the continuation process takes over
       return;
@@ -1171,11 +1190,13 @@ This is session ${continuationIndex + 1}. Previous session(s) ran out of turns o
     // ── Normal completion path ──
     if (finalStatus === "completed" && result.exitCode === 0) {
       handleTaskCompletion(taskId, task.assignedTo, result.stdout);
+      taskLogger.info("run-task", "Task completed", { taskId });
     }
 
     // ── Failure path: all continuations exhausted ──
     if (finalStatus === "failed" || finalStatus === "timeout") {
       handleTaskFailure(taskId, task.assignedTo, errorMsg, continuationIndex);
+      taskLogger.error("run-task", "Task failed", { taskId, error: errorMsg });
     }
 
     // ── Permission failure detection ──
@@ -1236,6 +1257,10 @@ This is session ${continuationIndex + 1}. Previous session(s) ran out of turns o
     }
 
     logger.error("run-task", `Run ${activeRunId} failed: ${err instanceof Error ? err.message : String(err)}`);
+    taskLogger.error("run-task", "Task failed", {
+      taskId,
+      error: err instanceof Error ? err.message : String(err),
+    });
 
     // Log task_failed event
     handleTaskFailure(taskId, task.assignedTo, err instanceof Error ? err.message : String(err), continuationIndex);

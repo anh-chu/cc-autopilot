@@ -22,6 +22,7 @@ import {
   CheckSquare,
   FolderKanban,
   Radio,
+  Terminal,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -50,6 +51,7 @@ const workbenchLinks = [
 const commsLinks = [
   { href: "/inbox", label: "Inbox", icon: Inbox, badgeKey: "unreadInbox" as const },
   { href: "/activity", label: "Logbook", icon: Activity, badgeKey: null },
+  { href: "/logs", label: "Logs", icon: Terminal, badgeKey: null },
   { href: "/decisions", label: "Decisions", icon: HelpCircle, badgeKey: "pendingDecisions" as const },
   { href: "/approvals", label: "Approvals", icon: CheckSquare, badgeKey: "pendingActionApprovals" as const },
   { href: "/actions/activity", label: "Activity", icon: Radio, badgeKey: null },

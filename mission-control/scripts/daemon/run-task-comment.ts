@@ -15,10 +15,13 @@
 
 import { readFileSync, writeFileSync, existsSync, mkdirSync } from "fs";
 import path from "path";
+import { createLogger } from "../../src/lib/logger";
 import { AgentRunner, parseClaudeOutput } from "./runner";
 import { logger } from "./logger";
 import { fenceTaskData, enforcePromptLimit } from "./security";
 import type { AgentBackend } from "./types";
+
+const taskLogger = createLogger("task", { sync: true });
 
 // ─── Paths ──────────────────────────────────────────────────────────────────
 
@@ -201,6 +204,7 @@ interface ActiveRunEntry {
   id: string;
   taskId: string;
   agentId: string;
+  source?: "manual" | "project-run" | "mission-chain" | "scheduled" | "webhook" | "inbox-respond" | "comment";
   projectId: string | null;
   missionId: string | null;
   pid: number;
@@ -373,6 +377,11 @@ async function main() {
   const { taskId, agentId, comment, commentAuthor } = parseArgs();
 
   logger.info("run-task-comment", `Handling @${agentId} mention on task ${taskId} from ${commentAuthor}`);
+  taskLogger.info("run-task-comment", "Starting comment run", {
+    taskId,
+    agentId,
+    commentAuthor,
+  });
 
   // 1. Read task
   const tasksData = readTasks();
@@ -415,6 +424,7 @@ async function main() {
     id: runId,
     taskId,
     agentId,
+    source: "comment",
     projectId: task.projectId ?? null,
     missionId: null,
     pid: 0,
@@ -435,6 +445,7 @@ async function main() {
   const runner = new AgentRunner(WORKSPACE_ROOT);
 
   try {
+    const runStartedAtMs = Date.now();
     const result = await runner.spawnAgent({
       prompt,
       maxTurns,
@@ -444,6 +455,7 @@ async function main() {
       cwd: WORKSPACE_ROOT,
       streamFile,
       onSpawned: (pid) => {
+        taskLogger.info("run-task-comment", "Agent spawned", { taskId, agentId, pid });
         try {
           const runs = readActiveRuns();
           const run = runs.runs.find((r) => r.id === runId);
@@ -453,6 +465,13 @@ async function main() {
           }
         } catch { /* non-fatal */ }
       },
+    });
+    const durationMs = Date.now() - runStartedAtMs;
+    taskLogger.info("run-task-comment", "Agent exited", {
+      taskId,
+      agentId,
+      exitCode: result.exitCode,
+      durationMs,
     });
 
     // 7. Parse output metadata
@@ -502,12 +521,14 @@ async function main() {
       // Post inbox notification
       postInboxNotification(taskId, agentId, task.title, response);
       logActivity(taskId, agentId, `@${agentId} responded to comment on "${task.title}"`);
+      taskLogger.info("run-task-comment", "Comment run completed", { taskId, agentId });
     } else {
       // Agent failed — post error as comment so user knows what happened
       const errComment = `Failed to respond: ${errorMsg}`;
       appendAgentComment(taskId, agentId, errComment);
       postInboxNotification(taskId, agentId, task.title, errComment);
       logActivity(taskId, agentId, `@${agentId} failed to respond on "${task.title}": ${errorMsg.slice(0, 100)}`);
+      taskLogger.error("run-task-comment", "Comment run failed", { taskId, agentId, error: errorMsg });
     }
 
     const costStr = meta.totalCostUsd != null ? ` · $${meta.totalCostUsd.toFixed(4)}` : "";
@@ -525,6 +546,11 @@ async function main() {
     }
 
     logger.error("run-task-comment", `Failed: ${err instanceof Error ? err.message : String(err)}`);
+    taskLogger.error("run-task-comment", "Comment run failed", {
+      taskId,
+      agentId,
+      error: err instanceof Error ? err.message : String(err),
+    });
     process.exit(1);
   }
 }

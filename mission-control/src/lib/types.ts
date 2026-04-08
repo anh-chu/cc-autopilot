@@ -339,6 +339,7 @@ export interface ActiveRun {
   id: string;
   taskId: string;
   agentId: string;
+  source?: "manual" | "project-run" | "mission-chain" | "scheduled" | "webhook" | "inbox-respond" | "comment";
   projectId: string | null;
   missionId: string | null;
   pid: number;

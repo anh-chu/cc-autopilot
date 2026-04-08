@@ -16,6 +16,7 @@
 import { readFileSync, writeFileSync, existsSync } from "fs";
 import { spawn } from "child_process";
 import path from "path";
+import { createLogger } from "../../src/lib/logger";
 import { AgentRunner, parseClaudeOutput } from "./runner";
 import { loadConfig } from "./config";
 import { logger } from "./logger";
@@ -26,6 +27,8 @@ import {
   isRunStopped,
 } from "./respond-runs";
 import type { RespondRunEntry } from "./types";
+
+const taskLogger = createLogger("task", { sync: true });
 
 // ─── Paths ──────────────────────────────────────────────────────────────────
 
@@ -473,6 +476,10 @@ async function main() {
   const isFirstSession = continuationIndex === 0;
 
   logger.info("inbox-respond", `Starting auto-respond for message ${messageId} (session ${continuationIndex + 1}${existingRunId ? `, run ${existingRunId}` : ""})`);
+  taskLogger.info("run-inbox-respond", "Starting message processing", {
+    messageId,
+    continuationIndex,
+  });
 
   // 1. Read message
   const message = getMessage(messageId);
@@ -573,6 +580,7 @@ async function main() {
   // 8. Spawn Claude Code
   const runner = new AgentRunner(WORKSPACE_ROOT);
   try {
+    const runStartedAtMs = Date.now();
     const result = await runner.spawnAgent({
       prompt,
       maxTurns: Math.min(config.execution.maxTurns, maxTurnsPerSession),
@@ -582,7 +590,14 @@ async function main() {
       cwd: WORKSPACE_ROOT,
       onSpawned: (pid) => {
         updateRespondRun(runId, { pid });
+        taskLogger.info("run-inbox-respond", "Agent spawned", { messageId, pid });
       },
+    });
+    const durationMs = Date.now() - runStartedAtMs;
+    taskLogger.info("run-inbox-respond", "Agent exited", {
+      messageId,
+      exitCode: result.exitCode,
+      durationMs,
     });
 
     // 9. Parse cost/usage from output
@@ -635,15 +650,28 @@ async function main() {
 
     if (result.exitCode === 0) {
       logger.info("inbox-respond", `Auto-respond completed for message ${messageId} (agent: ${agent.id}, sessions: ${continuationIndex + 1})`);
+      taskLogger.info("run-inbox-respond", "Message processing completed", {
+        messageId,
+        agentId: agent.id,
+      });
     } else {
       logger.error(
         "inbox-respond",
         `Auto-respond failed for message ${messageId}: exit code ${result.exitCode}`
       );
+      taskLogger.error("run-inbox-respond", "Message processing failed", {
+        messageId,
+        agentId: agent.id,
+        error: `Exit code ${result.exitCode}`,
+      });
     }
   } catch (err) {
     const errMsg = err instanceof Error ? err.message : String(err);
     logger.error("inbox-respond", `Auto-respond error for message ${messageId}: ${errMsg}`);
+    taskLogger.error("run-inbox-respond", "Message processing failed", {
+      messageId,
+      error: errMsg.slice(0, 500),
+    });
     updateRespondRun(runId, {
       status: "failed",
       completedAt: new Date().toISOString(),

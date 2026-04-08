@@ -109,9 +109,11 @@ export function runCrashRecovery(): RecoveryResult {
     }>(STATUS_FILE);
 
     const knownDeadTaskIds = new Set<string>();
+    const taskPidMap = new Map<string, number>();
     if (status?.activeSessions) {
       for (const session of status.activeSessions) {
         if (!session.taskId) continue;
+        taskPidMap.set(session.taskId, session.pid);
         const alive = session.pid > 0 && isProcessRunning(session.pid);
         if (!alive) knownDeadTaskIds.add(session.taskId);
       }
@@ -150,10 +152,12 @@ export function runCrashRecovery(): RecoveryResult {
       if (record) {
         // Has a persisted Claude session ID → try --resume
         result.sessionsToResume.push(record);
-        logger.info(
-          "recovery",
-          `Task ${taskId} has persisted session ${record.sessionId} — queued for --resume`
-        );
+        logger.info("recovery", "Recovering session", {
+          taskId,
+          sessionId: record.sessionId,
+          pid: taskPidMap.get(taskId) ?? null,
+          previouslyRunning: !knownDeadTaskIds.has(taskId),
+        });
       } else {
         // No session ID → reset so dispatcher picks it up fresh
         task.kanban = "not-started";

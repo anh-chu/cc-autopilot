@@ -27,6 +27,8 @@ interface ResolvedBinary {
   prefixArgs: string[];
   /** Original path for logging */
   originalPath: string;
+  /** Where the resolved path came from */
+  source: string;
 }
 
 // Cache the resolved binary to avoid repeated lookups
@@ -74,6 +76,7 @@ function findClaudeBinary(): ResolvedBinary {
         bin: config.execution.claudeBinaryPath,
         prefixArgs: [],
         originalPath: config.execution.claudeBinaryPath,
+        source: "configured",
       };
       return cachedBinary;
     }
@@ -121,12 +124,13 @@ function findClaudeBinary(): ResolvedBinary {
             bin: process.execPath, // node.exe
             prefixArgs: [jsEntry],
             originalPath: candidate,
+            source: "cmd-shim",
           };
           return cachedBinary;
         }
       }
 
-      cachedBinary = { bin: candidate, prefixArgs: [], originalPath: candidate };
+      cachedBinary = { bin: candidate, prefixArgs: [], originalPath: candidate, source: "install-location" };
       return cachedBinary;
     }
   }
@@ -149,19 +153,20 @@ function findClaudeBinary(): ResolvedBinary {
             bin: process.execPath,
             prefixArgs: [jsEntry],
             originalPath: result,
+            source: "path-cmd-shim",
           };
           return cachedBinary;
         }
       }
 
-      cachedBinary = { bin: result, prefixArgs: [], originalPath: result };
+      cachedBinary = { bin: result, prefixArgs: [], originalPath: result, source: "path" };
       return cachedBinary;
     }
   } catch { /* not found in PATH */ }
 
   // 4. Fallback — return "claude" and let spawn fail with a descriptive error
   logger.warn("runner", "Could not auto-detect claude binary. Set 'claudeBinaryPath' in daemon-config.json or install Claude Code globally (npm i -g @anthropic-ai/claude-code)");
-  return { bin: "claude", prefixArgs: [], originalPath: "claude" };
+  return { bin: "claude", prefixArgs: [], originalPath: "claude", source: "fallback" };
 }
 
 // ─── Codex Binary Detection ─────────────────────────────────────────────────
@@ -177,7 +182,7 @@ function findCodexBinary(): ResolvedBinary {
     const codexPath = (config.execution as Record<string, unknown>).codexBinaryPath;
     if (typeof codexPath === "string" && codexPath) {
       logger.info("runner", `Using configured codex binary path: ${codexPath}`);
-      cachedCodexBinary = { bin: codexPath, prefixArgs: [], originalPath: codexPath };
+      cachedCodexBinary = { bin: codexPath, prefixArgs: [], originalPath: codexPath, source: "configured" };
       return cachedCodexBinary;
     }
   } catch { /* config load failed, continue with auto-detect */ }
@@ -207,7 +212,7 @@ function findCodexBinary(): ResolvedBinary {
   for (const candidate of candidates) {
     if (candidate && existsSync(candidate)) {
       logger.info("runner", `Found codex at: ${candidate}`);
-      cachedCodexBinary = { bin: candidate, prefixArgs: [], originalPath: candidate };
+      cachedCodexBinary = { bin: candidate, prefixArgs: [], originalPath: candidate, source: "install-location" };
       return cachedCodexBinary;
     }
   }
@@ -218,14 +223,14 @@ function findCodexBinary(): ResolvedBinary {
     const result = execSync(cmd, { encoding: "utf-8", timeout: 5000 }).trim().split("\n")[0].trim();
     if (result) {
       logger.info("runner", `Found codex via PATH: ${result}`);
-      cachedCodexBinary = { bin: result, prefixArgs: [], originalPath: result };
+      cachedCodexBinary = { bin: result, prefixArgs: [], originalPath: result, source: "path" };
       return cachedCodexBinary;
     }
   } catch { /* not found in PATH */ }
 
   // 4. Fallback
   logger.warn("runner", "Could not auto-detect codex binary. Install Codex CLI (npm i -g @openai/codex) or set 'codexBinaryPath' in daemon-config.json");
-  return { bin: "codex", prefixArgs: [], originalPath: "codex" };
+  return { bin: "codex", prefixArgs: [], originalPath: "codex", source: "fallback" };
 }
 
 // ─── CLI Output Parsers ─────────────────────────────────────────────────────
@@ -316,6 +321,14 @@ export class AgentRunner {
   async spawnAgent(opts: SpawnOptions): Promise<SpawnResult & { pid: number }> {
     const backend: AgentBackend = opts.backend ?? "claude";
     const resolved = backend === "codex" ? findCodexBinary() : findClaudeBinary();
+    const cwd = opts.cwd || this.cwd;
+
+    logger.info("runner", "Resolved binary", {
+      path: resolved.bin,
+      source: resolved.source,
+      originalPath: resolved.originalPath,
+      backend,
+    });
 
     if (!validateBinary(resolved.originalPath)) {
       throw new Error(`Security: binary "${resolved.originalPath}" is not in the allowed list`);
@@ -360,17 +373,25 @@ export class AgentRunner {
     const safeEnv = buildSafeEnv({ agentTeams: opts.agentTeams });
 
     logger.debug("runner", `Spawning [${backend}]: ${resolved.bin} ${resolved.prefixArgs.length ? resolved.prefixArgs[0] + " " : ""}-p "<prompt>" --max-turns ${opts.maxTurns}`);
-    logger.debug("runner", `CWD: ${opts.cwd || this.cwd}`);
+    logger.debug("runner", `CWD: ${cwd}`);
 
     return new Promise<SpawnResult & { pid: number }>((resolve) => {
+      const startedAt = Date.now();
       const child: ChildProcess = spawn(resolved.bin, args, {
-        cwd: opts.cwd || this.cwd,
+        cwd,
         env: safeEnv as NodeJS.ProcessEnv,
         stdio: ["ignore", "pipe", "pipe"] as const,
         windowsHide: true,
       });
 
       const pid = child.pid ?? 0;
+
+      logger.info("runner", "Spawned agent", {
+        pid,
+        binary: resolved.bin,
+        cwd,
+        backend,
+      });
 
       // Notify caller of PID immediately after spawn (for tracking in respond-runs, etc.)
       opts.onSpawned?.(pid);
@@ -444,19 +465,25 @@ export class AgentRunner {
       const timer = setTimeout(() => {
         if (settled) return;
         timedOut = true;
-        logger.warn("runner", `Process ${pid} timed out after ${opts.timeoutMinutes} minutes — killing`);
+        logger.warn("runner", "Timeout kill requested", {
+          pid,
+          binary: resolved.bin,
+          timeoutMinutes: opts.timeoutMinutes,
+        });
 
         // Kill the entire process tree (important on Windows)
         treeKill(pid, "SIGTERM", (err?: Error) => {
           if (err) {
             logger.error("runner", `Failed to kill process tree ${pid}: ${err.message}`);
             try { child.kill("SIGKILL"); } catch { /* best effort */ }
+          } else {
+            logger.warn("runner", "Timeout kill completed", { pid });
           }
         });
       }, timeoutMs);
 
       // Process exit
-      child.on("close", (exitCode: number | null) => {
+      child.on("close", (exitCode: number | null, signal: NodeJS.Signals | null) => {
         if (settled) return;
         settled = true;
         clearTimeout(timer);
@@ -469,10 +496,23 @@ export class AgentRunner {
           streamWriter.end();
         }
 
+        const durationMs = Date.now() - startedAt;
+        logger.info("runner", "Agent exited", {
+          pid,
+          exitCode,
+          signal,
+          durationMs,
+          binary: resolved.bin,
+        });
+
         // Diagnostic logging on failure — helps debug silent exit code 1 issues
         if (exitCode !== null && exitCode !== 0 && !timedOut) {
           if (stderr.trim()) {
-            logger.error("runner", `Process ${pid} stderr: ${scrubCredentials(stderr.slice(0, 500))}`);
+            logger.error("runner", "Agent stderr excerpt", {
+              pid,
+              exitCode,
+              stderr: scrubCredentials(stderr.slice(0, 500)),
+            });
           }
           if (stdout.trim()) {
             logger.debug("runner", `Process ${pid} stdout (first 500 chars): ${scrubCredentials(stdout.slice(0, 500))}`);
@@ -499,12 +539,15 @@ export class AgentRunner {
 
         const binPath = resolved.originalPath;
         if (err.message.includes("ENOENT")) {
-          logger.error("runner", `Claude binary not found (${binPath}). Set "claudeBinaryPath" in daemon-config.json or install Claude Code globally: npm i -g @anthropic-ai/claude-code`);
           // Clear cached path so next attempt retries detection
           cachedBinary = null;
-        } else {
-          logger.error("runner", `Spawn error: ${err.message}`);
         }
+        logger.error("runner", "Agent spawn error", {
+          pid,
+          binary: resolved.bin,
+          error: err.message,
+          hint: err.message.includes("ENOENT") ? "Set claudeBinaryPath in daemon-config.json or install globally" : undefined,
+        });
         resolve({
           pid,
           exitCode: 1,

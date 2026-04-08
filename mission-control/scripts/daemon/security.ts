@@ -1,49 +1,5 @@
 import path from "path";
-
-// ─── Credential Scrubbing ────────────────────────────────────────────────────
-
-const CREDENTIAL_PATTERNS = [
-  // API keys: sk-..., key-..., ak-...
-  /\b(sk|key|ak|api[_-]?key)[_-][\w-]{20,}\b/gi,
-  // Bearer tokens
-  /Bearer\s+[\w\-.~+/]+=*/gi,
-  // Base64 blobs (40+ chars, likely secrets)
-  /\b[A-Za-z0-9+/]{40,}={0,2}\b/g,
-  // AWS-style keys
-  /\bAKIA[A-Z0-9]{16}\b/g,
-  // Generic password patterns
-  /password\s*[:=]\s*\S+/gi,
-  // Email:password combos
-  /[\w.+-]+@[\w-]+\.[\w.]+:[\S]+/g,
-  // GitHub tokens
-  /\bgh[ps]_[A-Za-z0-9_]{36,}\b/g,
-  // npm tokens
-  /\bnpm_[A-Za-z0-9]{36,}\b/g,
-  // Slack tokens (bot, user, app, session)
-  /\bxox[bpas]-[\w-]{10,}\b/g,
-  // Stripe keys (secret + restricted, live + test)
-  /\b[sr]k_(live|test)_[A-Za-z0-9]{20,}\b/g,
-  // Anthropic API keys
-  /\bsk-ant-[\w-]{20,}\b/g,
-  // SSH private key markers
-  /-----BEGIN\s+(RSA |EC |DSA |OPENSSH )?PRIVATE KEY-----/g,
-  // Database connection strings (postgres, mysql, mongodb, redis)
-  /\b(postgres|mysql|mongodb(\+srv)?|redis):\/\/[^\s]+/gi,
-  // Generic token= patterns
-  /\btoken\s*[:=]\s*[\w\-.~+/]{20,}/gi,
-];
-
-/**
- * Scrub credentials from text before logging or storing.
- * Replaces matches with [REDACTED].
- */
-export function scrubCredentials(text: string): string {
-  let result = text;
-  for (const pattern of CREDENTIAL_PATTERNS) {
-    result = result.replace(pattern, "[REDACTED]");
-  }
-  return result;
-}
+export { scrubCredentials } from "../../src/lib/scrub";
 
 // ─── Path Validation ─────────────────────────────────────────────────────────
 
