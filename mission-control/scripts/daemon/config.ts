@@ -2,8 +2,7 @@ import { readFileSync, writeFileSync, existsSync } from "fs";
 import path from "path";
 import { logger } from "./logger";
 import type { DaemonConfig } from "./types";
-import { DATA_DIR } from "../../src/lib/paths";
-const CONFIG_FILE = path.join(DATA_DIR, "daemon-config.json");
+import { getWorkspaceDir } from "../../src/lib/paths";
 
 // ─── Default Configuration ───────────────────────────────────────────────────
 
@@ -135,15 +134,16 @@ function validateConfig(config: unknown): DaemonConfig {
 
 // ─── Load / Save ─────────────────────────────────────────────────────────────
 
-export function loadConfig(): DaemonConfig {
+export function loadConfig(workspaceId: string = "default"): DaemonConfig {
+  const configFile = path.join(getWorkspaceDir(workspaceId), "daemon-config.json");
   try {
-    if (!existsSync(CONFIG_FILE)) {
+    if (!existsSync(configFile)) {
       logger.info("config", "No config file found, creating with defaults");
-      saveConfig(DEFAULT_CONFIG);
+      saveConfig(DEFAULT_CONFIG, workspaceId);
       return { ...DEFAULT_CONFIG };
     }
 
-    const raw = readFileSync(CONFIG_FILE, "utf-8");
+    const raw = readFileSync(configFile, "utf-8");
     const parsed = JSON.parse(raw);
     const config = validateConfig(parsed);
 
@@ -162,10 +162,11 @@ export function loadConfig(): DaemonConfig {
   }
 }
 
-export function saveConfig(config: DaemonConfig): void {
-  writeFileSync(CONFIG_FILE, JSON.stringify(config, null, 2), "utf-8");
+export function saveConfig(config: DaemonConfig, workspaceId: string = "default"): void {
+  const configFile = path.join(getWorkspaceDir(workspaceId), "daemon-config.json");
+  writeFileSync(configFile, JSON.stringify(config, null, 2), "utf-8");
 }
 
-export function getConfigPath(): string {
-  return CONFIG_FILE;
+export function getConfigPath(workspaceId: string = "default"): string {
+  return path.join(getWorkspaceDir(workspaceId), "daemon-config.json");
 }

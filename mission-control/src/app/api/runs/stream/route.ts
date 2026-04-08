@@ -1,9 +1,9 @@
 import { NextRequest } from "next/server";
 import { readFileSync, existsSync, statSync, watch, openSync, readSync, closeSync } from "fs";
 import path from "path";
-import { DATA_DIR } from "@/lib/paths";
+import { getWorkspaceDataDir } from "@/lib/data";
 
-const ACTIVE_RUNS_FILE = path.join(DATA_DIR, "active-runs.json");
+const ACTIVE_RUNS_FILE = path.join(getWorkspaceDataDir("default"), "active-runs.json");
 
 interface ActiveRunEntry {
   id: string;
@@ -46,7 +46,7 @@ export async function GET(request: NextRequest) {
 
   // Security: ensure stream file is within data/agent-streams/
   const resolvedPath = path.resolve(streamFile);
-  const streamsDir = path.resolve(DATA_DIR, "agent-streams");
+  const streamsDir = path.resolve(getWorkspaceDataDir("default"), "agent-streams");
   if (!resolvedPath.startsWith(streamsDir + path.sep) && resolvedPath !== streamsDir) {
     return new Response("Invalid stream file path", { status: 403 });
   }

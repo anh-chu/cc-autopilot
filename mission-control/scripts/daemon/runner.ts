@@ -4,12 +4,11 @@ import path from "path";
 import { logger } from "./logger";
 import { loadConfig } from "./config";
 import { validateBinary, buildSafeEnv, scrubCredentials } from "./security";
+import { getWorkspaceDir } from "../../src/lib/paths";
 import type { SpawnOptions, SpawnResult, ClaudeOutputMeta, ClaudeUsage, AgentBackend } from "./types";
 
 // tree-kill for killing process trees on Windows
 import treeKill from "tree-kill";
-
-const WORKSPACE_ROOT = path.resolve(__dirname, "../../..");
 const MAX_STDOUT_SIZE = 10_000_000; // 10MB max captured output
 
 // ─── Claude Binary Detection ─────────────────────────────────────────────────
@@ -310,7 +309,7 @@ export class AgentRunner {
   private cwd: string;
 
   constructor(cwd?: string) {
-    this.cwd = cwd ?? WORKSPACE_ROOT;
+    this.cwd = cwd ?? getWorkspaceDir(process.env.CMC_WORKSPACE_ID ?? "default");
   }
 
   /**

@@ -30,16 +30,16 @@ const taskLogger = createLogger("task", { sync: true });
 
 // ─── Paths ──────────────────────────────────────────────────────────────────
 
-import { DATA_DIR } from "../../src/lib/paths";
-const ACTIVE_RUNS_FILE = path.join(DATA_DIR, "active-runs.json");
-const STREAMS_DIR = path.join(DATA_DIR, "agent-streams");
-const TASKS_FILE = path.join(DATA_DIR, "tasks.json");
-const AGENTS_FILE = path.join(DATA_DIR, "agents.json");
-const INBOX_FILE = path.join(DATA_DIR, "inbox.json");
-const ACTIVITY_LOG_FILE = path.join(DATA_DIR, "activity-log.json");
-const MISSIONS_FILE = path.join(DATA_DIR, "missions.json");
-const DECISIONS_FILE = path.join(DATA_DIR, "decisions.json");
-const WORKSPACE_ROOT = path.resolve(__dirname, "../../..");
+import { getWorkspaceDir } from "../../src/lib/paths";
+const WORKSPACE_DIR = getWorkspaceDir(process.env.CMC_WORKSPACE_ID ?? "default");
+const ACTIVE_RUNS_FILE = path.join(WORKSPACE_DIR, "active-runs.json");
+const STREAMS_DIR = path.join(WORKSPACE_DIR, "agent-streams");
+const TASKS_FILE = path.join(WORKSPACE_DIR, "tasks.json");
+const AGENTS_FILE = path.join(WORKSPACE_DIR, "agents.json");
+const INBOX_FILE = path.join(WORKSPACE_DIR, "inbox.json");
+const ACTIVITY_LOG_FILE = path.join(WORKSPACE_DIR, "activity-log.json");
+const MISSIONS_FILE = path.join(WORKSPACE_DIR, "missions.json");
+const DECISIONS_FILE = path.join(WORKSPACE_DIR, "decisions.json");
 
 // ─── Agent Backend Resolution ─────────────────────────────────────────────
 
@@ -389,10 +389,11 @@ function spawnContinuation(
 
   try {
     const child = spawn(process.execPath, args, {
-      cwd: WORKSPACE_ROOT,
+      cwd: WORKSPACE_DIR,
       detached: true,
       stdio: "ignore",
       shell: false,
+      env: { ...process.env, CMC_WORKSPACE_ID: process.env.CMC_WORKSPACE_ID ?? "default" },
     });
     child.unref();
     logger.info("run-task", `Spawned continuation ${nextIndex} for task ${taskId} (pid: ${child.pid})`);
@@ -711,10 +712,11 @@ function handleProjectRunContinuation(
       }
       try {
         const child = spawn(process.execPath, args, {
-          cwd: WORKSPACE_ROOT,
+          cwd: WORKSPACE_DIR,
           detached: true,
           stdio: "ignore",
           shell: false,
+          env: { ...process.env, CMC_WORKSPACE_ID: process.env.CMC_WORKSPACE_ID ?? "default" },
         });
         child.unref();
         logger.info("run-task", `Mission ${missionId}: chained task ${task.id} (pid: ${child.pid})`);
@@ -989,7 +991,7 @@ This is session ${continuationIndex + 1}. Previous session(s) ran out of turns o
 
   // 10. Spawn agent (Claude Code or Codex CLI based on agent config)
   const backend = getAgentBackend(task.assignedTo);
-  const runner = new AgentRunner(WORKSPACE_ROOT);
+  const runner = new AgentRunner(WORKSPACE_DIR);
   try {
     const runStartedAtMs = Date.now();
     const runStartedAt = new Date().toISOString();
@@ -1006,7 +1008,7 @@ This is session ${continuationIndex + 1}. Previous session(s) ran out of turns o
       allowedTools,
       agentTeams: useAgentTeams,
       backend,
-      cwd: WORKSPACE_ROOT,
+      cwd: WORKSPACE_DIR,
       streamFile,
       onSpawned: (pid) => {
         spawnedPid = pid;

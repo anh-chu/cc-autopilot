@@ -19,8 +19,8 @@ import { logger } from "./logger";
 
 // ─── Paths ──────────────────────────────────────────────────────────────────
 
-import { DATA_DIR } from "../../src/lib/paths";
-const WORKSPACE_ROOT = path.resolve(__dirname, "../../..");
+import { getWorkspaceDir } from "../../src/lib/paths";
+const WORKSPACE_DIR = getWorkspaceDir(process.env.CMC_WORKSPACE_ID ?? "default");
 
 // ─── Data Types ─────────────────────────────────────────────────────────────
 
@@ -59,7 +59,7 @@ interface AgentDef {
 
 function readJSON<T>(filename: string): T | null {
   try {
-    const filePath = path.join(DATA_DIR, filename);
+    const filePath = path.join(WORKSPACE_DIR, filename);
     if (!existsSync(filePath)) return null;
     return JSON.parse(readFileSync(filePath, "utf-8")) as T;
   } catch {
@@ -212,7 +212,7 @@ async function main() {
   const prompt = buildTriagePrompt(entries);
 
   // 4. Spawn Claude Code
-  const runner = new AgentRunner(WORKSPACE_ROOT);
+  const runner = new AgentRunner(WORKSPACE_DIR);
   try {
     const result = await runner.spawnAgent({
       prompt,
@@ -220,7 +220,7 @@ async function main() {
       timeoutMinutes: Math.min(timeoutMinutes, 10), // Cap at 10 minutes
       skipPermissions,
       allowedTools,
-      cwd: WORKSPACE_ROOT,
+      cwd: WORKSPACE_DIR,
     });
 
     if (result.exitCode === 0) {

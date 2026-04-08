@@ -25,15 +25,15 @@ const taskLogger = createLogger("task", { sync: true });
 
 // ─── Paths ──────────────────────────────────────────────────────────────────
 
-import { DATA_DIR } from "../../src/lib/paths";
-const ACTIONS_FILE = path.join(DATA_DIR, "workspaces", "default", "actions.json");
-const AGENTS_FILE = path.join(DATA_DIR, "agents.json");
-const SKILLS_FILE = path.join(DATA_DIR, "skills-library.json");
-const INBOX_FILE = path.join(DATA_DIR, "inbox.json");
-const ACTIVITY_LOG_FILE = path.join(DATA_DIR, "activity-log.json");
-const ACTIVE_RUNS_FILE = path.join(DATA_DIR, "active-runs.json");
-const STREAMS_DIR = path.join(DATA_DIR, "agent-streams");
-const WORKSPACE_ROOT = path.resolve(__dirname, "../../..");
+import { getWorkspaceDir } from "../../src/lib/paths";
+const WORKSPACE_DIR = getWorkspaceDir(process.env.CMC_WORKSPACE_ID ?? "default");
+const ACTIONS_FILE = path.join(WORKSPACE_DIR, "actions.json");
+const AGENTS_FILE = path.join(WORKSPACE_DIR, "agents.json");
+const SKILLS_FILE = path.join(WORKSPACE_DIR, "skills-library.json");
+const INBOX_FILE = path.join(WORKSPACE_DIR, "inbox.json");
+const ACTIVITY_LOG_FILE = path.join(WORKSPACE_DIR, "activity-log.json");
+const ACTIVE_RUNS_FILE = path.join(WORKSPACE_DIR, "active-runs.json");
+const STREAMS_DIR = path.join(WORKSPACE_DIR, "agent-streams");
 
 // ─── Data Readers ───────────────────────────────────────────────────────────
 
@@ -369,7 +369,7 @@ async function main() {
   let timeoutMinutes = 15;
   let skipPermissions = false;
   try {
-    const configRaw = readFileSync(path.join(DATA_DIR, "daemon-config.json"), "utf-8");
+    const configRaw = readFileSync(path.join(getWorkspaceDir("default"), "daemon-config.json"), "utf-8");
     const config = JSON.parse(configRaw);
     maxTurns = Math.min(config.execution?.maxTurns ?? 10, 15);
     timeoutMinutes = Math.min(config.execution?.timeoutMinutes ?? 15, 30);
@@ -407,7 +407,7 @@ async function main() {
 
   // 6. Spawn agent
   const backend: AgentBackend = agent.backend ?? "claude";
-  const runner = new AgentRunner(WORKSPACE_ROOT);
+  const runner = new AgentRunner(WORKSPACE_DIR);
 
   try {
     const runStartedAtMs = Date.now();
@@ -417,7 +417,7 @@ async function main() {
       timeoutMinutes,
       skipPermissions,
       backend,
-      cwd: WORKSPACE_ROOT,
+      cwd: WORKSPACE_DIR,
       streamFile,
       onSpawned: (pid) => {
         taskLogger.info("run-action-comment", "Agent spawned", { actionId, agentId, pid });

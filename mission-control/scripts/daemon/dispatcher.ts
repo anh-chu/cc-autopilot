@@ -7,14 +7,7 @@ import { HealthMonitor } from "./health";
 import { buildTaskPrompt, buildScheduledPrompt, getPendingTasks, isTaskUnblocked, hasPendingDecision } from "./prompt-builder";
 import { persistSessionRecord, clearSessionRecord } from "./recovery";
 import type { DaemonConfig, ProjectRunsFile } from "./types";
-import { DATA_DIR } from "../../src/lib/paths";
-const FIELD_OPS_DIR = path.join(DATA_DIR, "field-ops");
-const MISSIONS_FILE = path.join(DATA_DIR, "missions.json");
-const TASKS_FILE = path.join(DATA_DIR, "tasks.json");
-const ACTIVE_RUNS_FILE = path.join(DATA_DIR, "active-runs.json");
-const DECISIONS_FILE = path.join(DATA_DIR, "decisions.json");
-const WORKSPACE_ROOT = path.resolve(__dirname, "../../..");
-const RETRY_QUEUE_FILE = path.join(DATA_DIR, "daemon-retry-queue.json");
+import { DATA_DIR, getWorkspaceDir } from "../../src/lib/paths";
 const MAX_RETRY_DELAY_MINUTES = 60;
 const FIELD_OPS_EXECUTE_URL = "http://localhost:3000/api/field-ops/execute";
 
@@ -32,13 +25,22 @@ interface RetryEntry {
 // ─── Task Dispatcher ─────────────────────────────────────────────────────────
 
 export class Dispatcher {
+  private workspaceId: string;
   private config: DaemonConfig;
   private runner: AgentRunner;
   private health: HealthMonitor;
   private retryQueue: RetryEntry[] = [];
   private fieldOpsInFlight: Set<string> = new Set();
 
-  constructor(config: DaemonConfig, runner: AgentRunner, health: HealthMonitor) {
+  private get FIELD_OPS_DIR(): string { return path.join(getWorkspaceDir(this.workspaceId), "field-ops"); }
+  private get MISSIONS_FILE(): string { return path.join(getWorkspaceDir(this.workspaceId), "missions.json"); }
+  private get TASKS_FILE(): string { return path.join(getWorkspaceDir(this.workspaceId), "tasks.json"); }
+  private get ACTIVE_RUNS_FILE(): string { return path.join(getWorkspaceDir(this.workspaceId), "active-runs.json"); }
+  private get DECISIONS_FILE(): string { return path.join(getWorkspaceDir(this.workspaceId), "decisions.json"); }
+  private get RETRY_QUEUE_FILE(): string { return path.join(getWorkspaceDir(this.workspaceId), "daemon-retry-queue.json"); }
+
+  constructor(workspaceId: string, config: DaemonConfig, runner: AgentRunner, health: HealthMonitor) {
+    this.workspaceId = workspaceId;
     this.config = config;
     this.runner = runner;
     this.health = health;
@@ -58,7 +60,7 @@ export class Dispatcher {
     subject: string,
     body: string,
   ): void {
-    const INBOX_FILE = path.join(DATA_DIR, "inbox.json");
+    const INBOX_FILE = path.join(getWorkspaceDir(this.workspaceId), "inbox.json");
     try {
       const raw = existsSync(INBOX_FILE) ? readFileSync(INBOX_FILE, "utf-8") : '{"messages":[]}';
       const data = JSON.parse(raw) as { messages: unknown[] };
@@ -86,8 +88,8 @@ export class Dispatcher {
 
   private loadRetryQueue(): void {
     try {
-      if (!existsSync(RETRY_QUEUE_FILE)) return;
-      const raw = readFileSync(RETRY_QUEUE_FILE, "utf-8");
+      if (!existsSync(this.RETRY_QUEUE_FILE)) return;
+      const raw = readFileSync(this.RETRY_QUEUE_FILE, "utf-8");
       const data = JSON.parse(raw);
       if (Array.isArray(data)) {
         this.retryQueue = data;
@@ -101,9 +103,9 @@ export class Dispatcher {
 
   private saveRetryQueue(): void {
     try {
-      const tmp = RETRY_QUEUE_FILE + ".tmp";
+      const tmp = this.RETRY_QUEUE_FILE + ".tmp";
       writeFileSync(tmp, JSON.stringify(this.retryQueue, null, 2), "utf-8");
-      renameSync(tmp, RETRY_QUEUE_FILE);
+      renameSync(tmp, this.RETRY_QUEUE_FILE);
     } catch (err) {
       logger.error("dispatcher", `Failed to persist retry queue: ${err instanceof Error ? err.message : String(err)}`);
     }
@@ -295,7 +297,7 @@ export class Dispatcher {
         timeoutMinutes: this.config.execution.timeoutMinutes,
         skipPermissions: this.config.execution.skipPermissions,
         allowedTools: this.config.execution.allowedTools,
-        cwd: "", // Uses runner default (workspace root)
+        cwd: getWorkspaceDir(this.workspaceId),
         onSessionId: (sessionId) => persistSessionRecord(taskId, agentId, sessionId),
       });
 
@@ -389,7 +391,7 @@ export class Dispatcher {
         timeoutMinutes: this.config.execution.timeoutMinutes,
         skipPermissions: this.config.execution.skipPermissions,
         allowedTools: this.config.execution.allowedTools,
-        cwd: "",
+        cwd: getWorkspaceDir(this.workspaceId),
         resumeSessionId: sessionId,
         // Persist the new session ID in case the resume itself gets interrupted
         onSessionId: (newId) => persistSessionRecord(taskId, agentId, newId),
@@ -441,7 +443,7 @@ export class Dispatcher {
 
   private resetTaskToNotStarted(taskId: string): void {
     try {
-      const TASKS_FILE_PATH = path.join(DATA_DIR, "tasks.json");
+      const TASKS_FILE_PATH = path.join(getWorkspaceDir(this.workspaceId), "tasks.json");
       if (!existsSync(TASKS_FILE_PATH)) return;
       const data = JSON.parse(readFileSync(TASKS_FILE_PATH, "utf-8")) as { tasks: Array<Record<string, unknown>> };
       const task = data.tasks.find(t => t.id === taskId);
@@ -512,8 +514,8 @@ export class Dispatcher {
    */
   private pollProjectRuns(): void {
     try {
-      if (!existsSync(MISSIONS_FILE)) return;
-      const runsFileData: ProjectRunsFile = JSON.parse(readFileSync(MISSIONS_FILE, "utf-8"));
+      if (!existsSync(this.MISSIONS_FILE)) return;
+      const runsFileData: ProjectRunsFile = JSON.parse(readFileSync(this.MISSIONS_FILE, "utf-8"));
 
       const activeRuns = runsFileData.missions.filter(
         (m) => m.status === "running" || m.status === "stalled"
@@ -521,11 +523,11 @@ export class Dispatcher {
       if (activeRuns.length === 0) return;
 
       // Read state
-      const tasksRaw = existsSync(TASKS_FILE) ? readFileSync(TASKS_FILE, "utf-8") : '{"tasks":[]}';
+      const tasksRaw = existsSync(this.TASKS_FILE) ? readFileSync(this.TASKS_FILE, "utf-8") : '{"tasks":[]}';
       const tasksData = JSON.parse(tasksRaw) as { tasks: Array<Record<string, unknown>> };
-      const runsRaw = existsSync(ACTIVE_RUNS_FILE) ? readFileSync(ACTIVE_RUNS_FILE, "utf-8") : '{"runs":[]}';
+      const runsRaw = existsSync(this.ACTIVE_RUNS_FILE) ? readFileSync(this.ACTIVE_RUNS_FILE, "utf-8") : '{"runs":[]}';
       const runsData = JSON.parse(runsRaw) as { runs: Array<{ taskId: string; missionId: string | null; pid: number; status: string }> };
-      const decisionsRaw = existsSync(DECISIONS_FILE) ? readFileSync(DECISIONS_FILE, "utf-8") : '{"decisions":[]}';
+      const decisionsRaw = existsSync(this.DECISIONS_FILE) ? readFileSync(this.DECISIONS_FILE, "utf-8") : '{"decisions":[]}';
       const decisionsData = JSON.parse(decisionsRaw) as { decisions: Array<{ taskId: string | null; status: string }> };
 
       const pendingDecisionTaskIds = new Set(
@@ -619,10 +621,11 @@ export class Dispatcher {
               }
               try {
                 const child = spawn(process.execPath, args, {
-                  cwd: WORKSPACE_ROOT,
+                  cwd: getWorkspaceDir(this.workspaceId),
                   detached: true,
                   stdio: "ignore",
                   shell: false,
+                  env: { ...process.env, CMC_WORKSPACE_ID: this.workspaceId },
                 });
                 child.unref();
                 logger.info("dispatcher", `ProjectRun ${projectRun.id}: re-dispatched task ${task.id} (pid: ${child.pid})`);
@@ -635,7 +638,7 @@ export class Dispatcher {
       }
 
       if (changed) {
-        writeFileSync(MISSIONS_FILE, JSON.stringify(runsFileData, null, 2), "utf-8");
+        writeFileSync(this.MISSIONS_FILE, JSON.stringify(runsFileData, null, 2), "utf-8");
       }
     } catch (err) {
       logger.error("dispatcher", `Project run poll error: ${err instanceof Error ? err.message : String(err)}`);
@@ -659,7 +662,7 @@ export class Dispatcher {
 
     try {
       // Read field tasks
-      const tasksFile = path.join(FIELD_OPS_DIR, "tasks.json");
+      const tasksFile = path.join(this.FIELD_OPS_DIR, "tasks.json");
       if (!existsSync(tasksFile)) return;
 
       interface FieldTaskEntry {
@@ -787,7 +790,7 @@ export class Dispatcher {
         timeoutMinutes: this.config.execution.timeoutMinutes,
         skipPermissions: this.config.execution.skipPermissions,
         allowedTools: this.config.execution.allowedTools,
-        cwd: "",
+        cwd: getWorkspaceDir(this.workspaceId),
       });
 
       // Parse cost/usage from Claude Code output

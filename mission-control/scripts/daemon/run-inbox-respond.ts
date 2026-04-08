@@ -32,8 +32,9 @@ const taskLogger = createLogger("task", { sync: true });
 
 // ─── Paths ──────────────────────────────────────────────────────────────────
 
-import { DATA_DIR } from "../../src/lib/paths";
-const WORKSPACE_ROOT = path.resolve(__dirname, "../../..");
+import { getWorkspaceDir } from "../../src/lib/paths";
+const workspaceId = process.env.CMC_WORKSPACE_ID ?? "default";
+const WORKSPACE_DIR = getWorkspaceDir(workspaceId);
 
 // ─── Data Types ─────────────────────────────────────────────────────────────
 
@@ -78,7 +79,7 @@ interface TaskDef {
 
 function readJSON<T>(filename: string): T | null {
   try {
-    const filePath = path.join(DATA_DIR, filename);
+    const filePath = path.join(WORKSPACE_DIR, filename);
     if (!existsSync(filePath)) return null;
     return JSON.parse(readFileSync(filePath, "utf-8")) as T;
   } catch {
@@ -270,8 +271,8 @@ function buildRespondPrompt(agent: AgentDef, message: InboxMessage, continuation
 
 // ─── Inbox Helpers ──────────────────────────────────────────────────────────
 
-const INBOX_FILE = path.join(DATA_DIR, "inbox.json");
-const ACTIVITY_LOG_FILE = path.join(DATA_DIR, "activity-log.json");
+const INBOX_FILE = path.join(WORKSPACE_DIR, "inbox.json");
+const ACTIVITY_LOG_FILE = path.join(WORKSPACE_DIR, "activity-log.json");
 
 /** Post a message to inbox.json */
 function postToInbox(msg: InboxMessage): void {
@@ -460,9 +461,10 @@ function spawnContinuation(messageId: string, runId: string, nextIndex: number):
       "--continuation", String(nextIndex),
     ],
     {
-      cwd: WORKSPACE_ROOT,
+      cwd: WORKSPACE_DIR,
       stdio: "ignore",
       detached: true,
+      env: { ...process.env, CMC_WORKSPACE_ID: workspaceId },
     },
   );
   child.unref();
@@ -578,7 +580,7 @@ async function main() {
   const prompt = buildRespondPrompt(agent, message, continuationIndex);
 
   // 8. Spawn Claude Code
-  const runner = new AgentRunner(WORKSPACE_ROOT);
+  const runner = new AgentRunner(WORKSPACE_DIR);
   try {
     const runStartedAtMs = Date.now();
     const result = await runner.spawnAgent({
@@ -587,7 +589,7 @@ async function main() {
       timeoutMinutes: Math.min(config.execution.timeoutMinutes, timeoutPerSessionMinutes),
       skipPermissions,
       allowedTools,
-      cwd: WORKSPACE_ROOT,
+      cwd: WORKSPACE_DIR,
       onSpawned: (pid) => {
         updateRespondRun(runId, { pid });
         taskLogger.info("run-inbox-respond", "Agent spawned", { messageId, pid });

@@ -1,11 +1,7 @@
 import { readFileSync, writeFileSync, existsSync, renameSync } from "fs";
 import path from "path";
 import { logger } from "./logger";
-import { DATA_DIR } from "../../src/lib/paths";
-
-const STATUS_FILE = path.join(DATA_DIR, "daemon-status.json");
-const TASKS_FILE = path.join(DATA_DIR, "tasks.json");
-const SESSION_RECOVERY_FILE = path.join(DATA_DIR, "daemon-session-recovery.json");
+import { getWorkspaceDir } from "../../src/lib/paths";
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -57,10 +53,11 @@ function atomicWrite(file: string, data: unknown): void {
  */
 export function persistSessionRecord(taskId: string, agentId: string, sessionId: string): void {
   try {
-    const existing = readJSON<{ sessions: SessionRecord[] }>(SESSION_RECOVERY_FILE) ?? { sessions: [] };
+    const sessionRecoveryFile = path.join(getWorkspaceDir("default"), "daemon-session-recovery.json");
+    const existing = readJSON<{ sessions: SessionRecord[] }>(sessionRecoveryFile) ?? { sessions: [] };
     existing.sessions = existing.sessions.filter(s => s.taskId !== taskId);
     existing.sessions.push({ taskId, agentId, sessionId, startedAt: new Date().toISOString() });
-    atomicWrite(SESSION_RECOVERY_FILE, existing);
+    atomicWrite(sessionRecoveryFile, existing);
     logger.debug("recovery", `Persisted session ID for task ${taskId}: ${sessionId}`);
   } catch (err) {
     logger.warn("recovery", `Failed to persist session record for ${taskId}: ${err instanceof Error ? err.message : String(err)}`);
@@ -73,10 +70,11 @@ export function persistSessionRecord(taskId: string, agentId: string, sessionId:
  */
 export function clearSessionRecord(taskId: string): void {
   try {
-    const existing = readJSON<{ sessions: SessionRecord[] }>(SESSION_RECOVERY_FILE);
+    const sessionRecoveryFile = path.join(getWorkspaceDir("default"), "daemon-session-recovery.json");
+    const existing = readJSON<{ sessions: SessionRecord[] }>(sessionRecoveryFile);
     if (!existing) return;
     existing.sessions = existing.sessions.filter(s => s.taskId !== taskId);
-    atomicWrite(SESSION_RECOVERY_FILE, existing);
+    atomicWrite(sessionRecoveryFile, existing);
   } catch {
     // Best effort
   }
@@ -95,18 +93,23 @@ export function clearSessionRecord(taskId: string): void {
  *   - If a persisted session ID exists → add to sessionsToResume (caller attempts --resume)
  *   - Otherwise → reset kanban to "not-started" so the dispatcher picks it up fresh
  */
-export function runCrashRecovery(): RecoveryResult {
+export function runCrashRecovery(workspaceId: string = "default"): RecoveryResult {
   const result: RecoveryResult = { tasksReset: [], sessionsToResume: [] };
 
   try {
+    const workspaceDir = getWorkspaceDir(workspaceId);
+    const statusFile = path.join(workspaceDir, "daemon-status.json");
+    const tasksFile = path.join(workspaceDir, "tasks.json");
+    const sessionRecoveryFile = path.join(workspaceDir, "daemon-session-recovery.json");
+
     // Load persisted session IDs (for resume attempts)
     const sessionRecords =
-      readJSON<{ sessions: SessionRecord[] }>(SESSION_RECOVERY_FILE)?.sessions ?? [];
+      readJSON<{ sessions: SessionRecord[] }>(sessionRecoveryFile)?.sessions ?? [];
 
     // ── Sweep 1: identify dead PIDs from last status ──────────────────────
     const status = readJSON<{
       activeSessions: Array<{ taskId: string | null; pid: number }>;
-    }>(STATUS_FILE);
+    }>(statusFile);
 
     const knownDeadTaskIds = new Set<string>();
     const taskPidMap = new Map<string, number>();
@@ -120,7 +123,7 @@ export function runCrashRecovery(): RecoveryResult {
     }
 
     // ── Sweep 2: all in-progress tasks ───────────────────────────────────
-    const tasksData = readJSON<{ tasks: Array<Record<string, unknown>> }>(TASKS_FILE);
+    const tasksData = readJSON<{ tasks: Array<Record<string, unknown>> }>(tasksFile);
     if (!tasksData?.tasks) return result;
 
     const inProgress = tasksData.tasks.filter(
@@ -135,7 +138,7 @@ export function runCrashRecovery(): RecoveryResult {
     if (inProgress.length === 0) {
       // Clean up any stale session records if no in-progress tasks exist
       if (sessionRecords.length > 0) {
-        atomicWrite(SESSION_RECOVERY_FILE, { sessions: [] });
+        atomicWrite(sessionRecoveryFile, { sessions: [] });
       }
       return result;
     }
@@ -169,7 +172,7 @@ export function runCrashRecovery(): RecoveryResult {
     }
 
     if (anyChanged) {
-      atomicWrite(TASKS_FILE, tasksData);
+      atomicWrite(tasksFile, tasksData);
     }
 
     if (result.tasksReset.length > 0) {

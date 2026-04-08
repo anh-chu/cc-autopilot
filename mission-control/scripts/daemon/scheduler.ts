@@ -5,7 +5,7 @@ import { logger } from "./logger";
 import { Dispatcher } from "./dispatcher";
 import type { DaemonConfig } from "./types";
 import { HealthMonitor } from "./health";
-import { DATA_DIR } from "../../src/lib/paths";
+import { getWorkspaceDir } from "../../src/lib/paths";
 
 type ScheduledTask = ReturnType<typeof cron.schedule>;
 
@@ -20,6 +20,7 @@ const WATCH_DEBOUNCE_MS = 5_000;
 // ─── Scheduler ───────────────────────────────────────────────────────────────
 
 export class Scheduler {
+  private workspaceId: string;
   private jobs: Map<string, ScheduledTask> = new Map();
   private watchers: FSWatcher[] = [];
   private debounceTimer: NodeJS.Timeout | null = null;
@@ -27,7 +28,8 @@ export class Scheduler {
   private dispatcher: Dispatcher;
   private health: HealthMonitor;
 
-  constructor(config: DaemonConfig, dispatcher: Dispatcher, health: HealthMonitor) {
+  constructor(workspaceId: string, config: DaemonConfig, dispatcher: Dispatcher, health: HealthMonitor) {
+    this.workspaceId = workspaceId;
     this.config = config;
     this.dispatcher = dispatcher;
     this.health = health;
@@ -66,8 +68,8 @@ export class Scheduler {
         }
       };
 
-      watchDir(DATA_DIR, DATA_DIR_WATCHED, "data");
-      watchDir(path.join(DATA_DIR, "field-ops"), FIELD_OPS_DIR_WATCHED, "data/field-ops");
+      watchDir(getWorkspaceDir(this.workspaceId), DATA_DIR_WATCHED, "data");
+      watchDir(path.join(getWorkspaceDir(this.workspaceId), "field-ops"), FIELD_OPS_DIR_WATCHED, "data/field-ops");
     }
 
     // Start scheduled commands

@@ -694,6 +694,7 @@ export type { FinancialMetric, FinancialSnapshot } from "@/lib/adapters/types";
 
 export interface WorkspaceSettings {
   autonomyLevel: AutonomyLevel;
+  daemonEnabled?: boolean; // defaults to true if absent
 }
 
 export interface Workspace {

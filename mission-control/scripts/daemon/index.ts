@@ -12,7 +12,26 @@ import { DATA_DIR } from "../../src/lib/paths";
 
 // ─── Constants ───────────────────────────────────────────────────────────────
 const PID_FILE = path.join(DATA_DIR, "daemon.pid");
-const STATUS_FILE = path.join(DATA_DIR, "daemon-status.json");
+
+// ─── Workspace Registry ──────────────────────────────────────────────────────
+
+interface WorkspaceEntry {
+  id: string;
+  name: string;
+  settings?: { daemonEnabled?: boolean };
+}
+
+function readWorkspaces(): WorkspaceEntry[] {
+  const file = path.join(DATA_DIR, "workspaces.json");
+  try {
+    const raw = readFileSync(file, "utf-8");
+    const data = JSON.parse(raw) as { workspaces: WorkspaceEntry[] };
+    return data.workspaces ?? [];
+  } catch {
+    // Fall back to default workspace if registry missing
+    return [{ id: "default", name: "Default" }];
+  }
+}
 
 // ─── PID File Management ─────────────────────────────────────────────────────
 
@@ -52,20 +71,10 @@ function isProcessRunning(pid: number): boolean {
 function handleStatus(): void {
   const pid = readPidFile();
   if (pid && isProcessRunning(pid)) {
-    try {
-      const status = JSON.parse(readFileSync(STATUS_FILE, "utf-8"));
-      console.log("\n=== Mission Control Agent Daemon ===");
-      console.log(`Status:  \x1b[32mRunning\x1b[0m`);
-      console.log(`PID:     ${pid}`);
-      console.log(`Started: ${status.startedAt || "unknown"}`);
-      console.log(`Uptime:  ${status.stats?.uptimeMinutes || 0} minutes`);
-      console.log(`Active:  ${status.activeSessions?.length || 0} session(s)`);
-      console.log(`Stats:   ${status.stats?.tasksCompleted || 0} completed, ${status.stats?.tasksFailed || 0} failed`);
-      console.log(`Last:    ${status.lastPollAt || "never polled"}`);
-      console.log("");
-    } catch {
-      console.log(`\nDaemon is running (PID: ${pid}) but status file is unreadable.\n`);
-    }
+    console.log("\n=== Mission Control Agent Daemon ===");
+    console.log(`Status:  \x1b[32mRunning\x1b[0m`);
+    console.log(`PID:     ${pid}`);
+    console.log("");
   } else {
     if (pid) removePidFile(); // Clean stale PID file
     console.log("\n=== Mission Control Agent Daemon ===");
@@ -103,62 +112,62 @@ async function handleStart(): Promise<void> {
     console.error(`Daemon is already running (PID: ${existingPid}). Use "stop" first.`);
     process.exit(1);
   }
-
-  // Clean stale PID file
   if (existingPid) removePidFile();
 
   console.log("\n=== Mission Control Agent Daemon ===\n");
 
-  // Load configuration
-  const config = loadConfig();
+  // Discover active workspaces
+  const allWorkspaces = readWorkspaces();
+  const activeWorkspaces = allWorkspaces.filter(w => w.settings?.daemonEnabled !== false);
 
-  // Security warnings
-  if (config.execution.skipPermissions) {
-    logger.security("daemon", "============================================================");
-    logger.security("daemon", "⚠  skipPermissions is ENABLED");
-    logger.security("daemon", "   Claude Code will bypass ALL permission prompts.");
-    logger.security("daemon", "   Only use this in trusted, isolated environments.");
-    logger.security("daemon", "============================================================");
-  } else if (config.execution.allowedTools.length > 0) {
-    logger.info("daemon", `Allowed tools: ${config.execution.allowedTools.join(", ")}`);
+  if (activeWorkspaces.length === 0) {
+    logger.warn("daemon", "No active workspaces found (all have daemonEnabled: false). Exiting.");
+    process.exit(0);
   }
 
-  // Initialize components
-  const health = new HealthMonitor();
+  logger.info("daemon", `Active workspaces: ${activeWorkspaces.map(w => w.id).join(", ")}`);
+
+  // Spin up one Dispatcher + Scheduler per workspace
   const runner = new AgentRunner();
-  const dispatcher = new Dispatcher(config, runner, health);
-  const scheduler = new Scheduler(config, dispatcher, health);
+  const workspaceInstances: Array<{ workspaceId: string; dispatcher: Dispatcher; scheduler: Scheduler; health: HealthMonitor }> = [];
 
-  // Write PID file
-  writePidFile();
-  logger.info("daemon", `Daemon started (PID: ${process.pid})`);
+  for (const ws of activeWorkspaces) {
+    const config = loadConfig(ws.id);
 
-  // Start scheduler
-  scheduler.start();
-
-  // Crash recovery: reset orphaned in-progress tasks, attempt session resumes
-  const recovery = runCrashRecovery();
-  if (recovery.sessionsToResume.length > 0) {
-    logger.info("daemon", `Resuming ${recovery.sessionsToResume.length} interrupted session(s)...`);
-    for (const session of recovery.sessionsToResume) {
-      void dispatcher.resumeOrphanedSession(session.taskId, session.agentId, session.sessionId);
+    if (config.execution.skipPermissions) {
+      logger.security("daemon", `[${ws.id}] ⚠  skipPermissions ENABLED`);
     }
+
+    const health = new HealthMonitor();
+    const dispatcher = new Dispatcher(ws.id, config, runner, health);
+    const scheduler = new Scheduler(ws.id, config, dispatcher, health);
+
+    workspaceInstances.push({ workspaceId: ws.id, dispatcher, scheduler, health });
+
+    scheduler.start();
+
+    // Crash recovery per workspace
+    const recovery = runCrashRecovery(ws.id);
+    if (recovery.sessionsToResume.length > 0) {
+      logger.info("daemon", `[${ws.id}] Resuming ${recovery.sessionsToResume.length} interrupted session(s)...`);
+      for (const session of recovery.sessionsToResume) {
+        void dispatcher.resumeOrphanedSession(session.taskId, session.agentId, session.sessionId);
+      }
+    }
+
+    if (config.polling.enabled) {
+      logger.info("daemon", `[${ws.id}] Running initial task poll...`);
+      await dispatcher.pollAndDispatch();
+    }
+
+    health.flush();
+    logger.info("daemon", `[${ws.id}] Ready. watching=${config.polling.enabled}, concurrency=${config.concurrency.maxParallelAgents}`);
   }
 
-  // Run initial poll immediately
-  if (config.polling.enabled) {
-    logger.info("daemon", "Running initial task poll...");
-    await dispatcher.pollAndDispatch();
-  }
-
-  // Flush status
-  health.flush();
-
-  logger.info("daemon", "Daemon is running. Press Ctrl+C to stop.");
-  logger.info("daemon", `Config: watching=${config.polling.enabled}, concurrency=${config.concurrency.maxParallelAgents}, maxTurns=${config.execution.maxTurns}, timeout=${config.execution.timeoutMinutes}min, allowedTools=[${config.execution.allowedTools.join(",")}]`);
+  writePidFile();
+  logger.info("daemon", `Daemon started (PID: ${process.pid}) — ${workspaceInstances.length} workspace(s) active`);
 
   // ─── Graceful Shutdown ──────────────────────────────────────────────────
-
   let shuttingDown = false;
 
   async function shutdown(signal: string): Promise<void> {
@@ -167,27 +176,22 @@ async function handleStart(): Promise<void> {
 
     logger.info("daemon", `Received ${signal} — shutting down gracefully...`);
 
-    // Stop scheduler (no new dispatches)
-    scheduler.stop();
+    for (const { workspaceId, dispatcher: _d, scheduler, health } of workspaceInstances) {
+      scheduler.stop();
 
-    // Kill active sessions
-    const activeSessions = health.getActiveSessions();
-    if (activeSessions.length > 0) {
-      logger.info("daemon", `Killing ${activeSessions.length} active session(s)...`);
-      for (const session of activeSessions) {
-        if (session.pid > 0) {
-          await runner.killSession(session.pid);
+      const activeSessions = health.getActiveSessions();
+      if (activeSessions.length > 0) {
+        logger.info("daemon", `[${workspaceId}] Killing ${activeSessions.length} active session(s)...`);
+        for (const session of activeSessions) {
+          if (session.pid > 0) await runner.killSession(session.pid);
+          health.endSession(session.id, null, "Daemon shutdown", false);
         }
-        health.endSession(session.id, null, "Daemon shutdown", false);
       }
+
+      health.writeStoppedStatus();
     }
 
-    // Write stopped status
-    health.writeStoppedStatus();
-
-    // Remove PID file
     removePidFile();
-
     logger.info("daemon", "Daemon stopped.");
     process.exit(0);
   }
@@ -195,14 +199,13 @@ async function handleStart(): Promise<void> {
   process.on("SIGINT", () => shutdown("SIGINT"));
   process.on("SIGTERM", () => shutdown("SIGTERM"));
 
-  // Keep process alive + periodic maintenance
-  // The scheduler's cron jobs keep the event loop active,
-  // but we add a safety interval for uptime tracking + stale session cleanup
   setInterval(() => {
-    health.cleanStaleSessions(); // Proactively detect dead PIDs
-    health.updateUptime();
-    health.flush();
-  }, 60_000); // Every minute
+    for (const { health } of workspaceInstances) {
+      health.cleanStaleSessions();
+      health.updateUptime();
+      health.flush();
+    }
+  }, 60_000);
 }
 
 // ─── CLI Entry Point ─────────────────────────────────────────────────────────

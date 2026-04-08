@@ -3,8 +3,8 @@ import path from "path";
 import { logger } from "./logger";
 import { scrubCredentials } from "./security";
 import type { AgentSession, SessionHistoryEntry, DaemonStatus, DaemonStats, ClaudeUsage } from "./types";
-import { DATA_DIR } from "../../src/lib/paths";
-const STATUS_FILE = path.join(DATA_DIR, "daemon-status.json");
+import { getWorkspaceDir } from "../../src/lib/paths";
+const STATUS_FILE = path.join(getWorkspaceDir("default"), "daemon-status.json");
 const MAX_HISTORY = 50;
 
 /**

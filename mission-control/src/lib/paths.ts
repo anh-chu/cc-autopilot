@@ -9,5 +9,10 @@ export const DATA_DIR: string = process.env.CMC_DATA_DIR
   ? path.resolve(process.env.CMC_DATA_DIR)
   : path.join(os.homedir(), ".cmc");
 
+/** Returns the data directory for a specific workspace. */
+export function getWorkspaceDir(workspaceId: string): string {
+  return path.join(DATA_DIR, "workspaces", workspaceId);
+}
+
 /** Directory where uploaded attachments are stored (outside the repo). */
 export const UPLOADS_DIR: string = path.join(DATA_DIR, "uploads");

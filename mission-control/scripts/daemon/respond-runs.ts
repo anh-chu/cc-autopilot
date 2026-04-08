@@ -12,8 +12,8 @@ import { readFileSync, writeFileSync, existsSync } from "fs";
 import path from "path";
 import type { RespondRunEntry, RespondRunsFile, ClaudeUsage } from "./types";
 import { logger } from "./logger";
-import { DATA_DIR } from "../../src/lib/paths";
-const RESPOND_RUNS_FILE = path.join(DATA_DIR, "respond-runs.json");
+import { getWorkspaceDir } from "../../src/lib/paths";
+const RESPOND_RUNS_FILE = path.join(getWorkspaceDir("default"), "respond-runs.json");
 
 // ─── Read / Write ────────────────────────────────────────────────────────────
 
