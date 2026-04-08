@@ -1190,8 +1190,25 @@ This is session ${continuationIndex + 1}. Previous session(s) ran out of turns o
 
     // ── Normal completion path ──
     if (finalStatus === "completed" && result.exitCode === 0) {
-      handleTaskCompletion(taskId, task.assignedTo, result.stdout);
-      taskLogger.info("run-task", "Task completed", { taskId });
+      // If the agent self-exited after writing a decision, pause instead of marking done
+      if (checkPendingDecision(taskId)) {
+        try {
+          const tasksRaw = readFileSync(TASKS_FILE, "utf-8");
+          const tasksData = JSON.parse(tasksRaw) as { tasks: Array<Record<string, unknown>> };
+          const taskToUpdate = tasksData.tasks.find((t) => t.id === taskId);
+          if (taskToUpdate && taskToUpdate.kanban !== "done") {
+            taskToUpdate.kanban = "awaiting-decision";
+            taskToUpdate.updatedAt = new Date().toISOString();
+            writeFileSync(TASKS_FILE, JSON.stringify(tasksData, null, 2), "utf-8");
+          }
+        } catch (err) {
+          logger.error("run-task", `Failed to set task ${taskId} to awaiting-decision: ${err instanceof Error ? err.message : String(err)}`);
+        }
+        taskLogger.info("run-task", "Task paused awaiting decision", { taskId });
+      } else {
+        handleTaskCompletion(taskId, task.assignedTo, result.stdout);
+        taskLogger.info("run-task", "Task completed", { taskId });
+      }
     }
 
     // ── Failure path: all continuations exhausted ──
