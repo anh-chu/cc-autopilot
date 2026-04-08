@@ -3,11 +3,8 @@
  * Registers background jobs that run for the server's lifetime.
  */
 export async function register() {
-  // Only run in the Node.js runtime (not edge), and not during build
-  if (
-    process.env.NEXT_RUNTIME !== "nodejs" ||
-    process.env.NODE_ENV === "test"
-  ) {
+  // Skip during tests (test suite has its own setup)
+  if (process.env.NODE_ENV === "test") {
     return;
   }
 

@@ -47,6 +47,7 @@ export function getWorkspaceDataDir(workspaceId: string): string {
   return path.join(DATA_DIR, "workspaces", workspaceId);
 }
 
+
 function filePath(name: string): string {
   return path.join(getWorkspaceDataDir(_currentWorkspaceId), name);
 }
@@ -404,12 +405,32 @@ export async function getActiveRuns(): Promise<ActiveRunsFile> {
   }
 }
 
+const DEFAULT_DAEMON_CONFIG = {
+  polling: { enabled: true, intervalMinutes: 5 },
+  concurrency: { maxParallelAgents: 6 },
+  schedule: {},
+  execution: {
+    maxTurns: 57,
+    timeoutMinutes: 30,
+    retries: 1,
+    retryDelayMinutes: 5,
+    skipPermissions: false,
+    allowedTools: ["Edit", "Write", "Read", "Glob", "Grep", "Bash", "WebSearch", "WebFetch"],
+    agentTeams: false,
+    claudeBinaryPath: null,
+    maxTaskContinuations: 2,
+  },
+  inbox: { maxContinuations: 2, maxTurnsPerSession: 25, timeoutPerSessionMinutes: 15 },
+  fieldOps: { autoExecute: false, pollIntervalMinutes: 5, maxConcurrentExecutions: 2, requireVaultSession: true },
+};
+
 export async function getDaemonConfig(): Promise<Record<string, unknown>> {
   try {
     const raw = await readFile(filePath("daemon-config.json"), "utf-8");
-    return JSON.parse(raw) as Record<string, unknown>;
+    const config = JSON.parse(raw) as Record<string, unknown>;
+    return { ...DEFAULT_DAEMON_CONFIG, ...config };
   } catch {
-    return {};
+    return { ...DEFAULT_DAEMON_CONFIG };
   }
 }
 
