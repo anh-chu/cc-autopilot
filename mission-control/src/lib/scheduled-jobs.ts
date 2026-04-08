@@ -5,6 +5,7 @@
 import cron from "node-cron";
 import { existsSync, readFileSync, readdirSync, statSync, unlinkSync } from "fs";
 import { readdir, stat, unlink } from "fs/promises";
+import { spawn } from "child_process";
 import path from "path";
 import { DATA_DIR, UPLOADS_DIR } from "./paths";
 const GRACE_MS = 60 * 60 * 1000; // 1 hour
@@ -133,4 +134,55 @@ export function scheduleLogCleanup() {
     void runLogCleanup();
   });
   console.log("[cleanup:logs] scheduler registered (daily)");
+}
+
+// ─── Daemon Watchdog ─────────────────────────────────────────────────────────
+
+function spawnDaemon(): number | null {
+  const scriptPath = path.resolve(process.cwd(), "scripts", "daemon", "index.ts");
+  if (!existsSync(scriptPath)) {
+    console.error(`[watchdog:daemon] daemon script not found at ${scriptPath}, skipping restart`);
+    return null;
+  }
+  const child = spawn(process.execPath, ["--import", "tsx", scriptPath, "start"], {
+    cwd: process.cwd(), detached: true, stdio: "ignore", shell: false,
+  });
+  child.unref();
+  return child.pid ?? null;
+}
+
+function isDaemonRunning(): boolean {
+  const pidFile = path.join(DATA_DIR, "daemon.pid");
+  if (!existsSync(pidFile)) return false;
+  try {
+    const pid = parseInt(readFileSync(pidFile, "utf-8").trim());
+    if (isNaN(pid)) return false;
+    process.kill(pid, 0);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+function checkAndRestartDaemon() {
+  try {
+    const configFile = path.join(DATA_DIR, "daemon-config.json");
+    if (!existsSync(configFile)) return;
+    const config = JSON.parse(readFileSync(configFile, "utf-8")) as Record<string, unknown>;
+    if (config.autoStart !== true) return;
+    if (isDaemonRunning()) return;
+    const pid = spawnDaemon();
+    console.log(`[watchdog:daemon] daemon was down, restarted (pid: ${pid})`);
+  } catch {
+    // Non-fatal
+  }
+}
+
+export function scheduleDaemonWatchdog() {
+  // Delay the initial check slightly so a concurrently-starting daemon
+  // has time to write its PID file before we probe liveness.
+  setTimeout(checkAndRestartDaemon, 10_000);
+  // Then watch every 60 seconds
+  cron.schedule("* * * * *", checkAndRestartDaemon);
+  console.log("[watchdog:daemon] scheduler registered (every 60s)");
 }

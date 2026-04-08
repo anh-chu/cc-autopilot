@@ -2,12 +2,11 @@
  * Node.js-only instrumentation logic.
  * Imported dynamically from instrumentation.ts to avoid Edge bundling.
  */
-import { existsSync, mkdirSync, copyFileSync, cpSync, writeFileSync, readFileSync } from "fs";
-import { spawn } from "child_process";
+import { existsSync, mkdirSync, copyFileSync, cpSync, writeFileSync } from "fs";
 import path from "path";
 import os from "os";
 import { createLogger } from "@/lib/logger";
-import { scheduleLogCleanup, scheduleUploadsCleanup } from "@/lib/scheduled-jobs";
+import { scheduleLogCleanup, scheduleUploadsCleanup, scheduleDaemonWatchdog } from "@/lib/scheduled-jobs";
 
 const DATA_DIR = process.env.CMC_DATA_DIR
   ? path.resolve(process.env.CMC_DATA_DIR)
@@ -87,36 +86,8 @@ if (!existsSync(wsDir)) {
   }
 }
 
-// ─── Schedule uploads cleanup ───────────────────────────────────────────────
+// ─── Schedule uploads cleanup + daemon watchdog ─────────────────────────────
 
 scheduleUploadsCleanup();
 scheduleLogCleanup();
-
-// ─── Auto-start daemon if configured ────────────────────────────────────────
-
-try {
-  const configFile = path.join(DATA_DIR, "daemon-config.json");
-  if (existsSync(configFile)) {
-    const config = JSON.parse(readFileSync(configFile, "utf-8")) as Record<string, unknown>;
-    if (config.autoStart === true) {
-      const pidFile = path.join(DATA_DIR, "daemon.pid");
-      let alreadyRunning = false;
-      if (existsSync(pidFile)) {
-        const pid = parseInt(readFileSync(pidFile, "utf-8").trim());
-        if (!isNaN(pid)) {
-          try { process.kill(pid, 0); alreadyRunning = true; } catch { /* gone */ }
-        }
-      }
-      if (!alreadyRunning) {
-        const scriptPath = path.resolve(process.cwd(), "scripts", "daemon", "index.ts");
-        const child = spawn(process.execPath, ["--import", "tsx", scriptPath, "start"], {
-          cwd: process.cwd(), detached: true, stdio: "ignore", shell: false,
-        });
-        child.unref();
-        appLogger.info("startup", "Daemon auto-started", { pid: child.pid ?? null });
-      }
-    }
-  }
-} catch {
-  // Non-fatal
-}
+scheduleDaemonWatchdog();
