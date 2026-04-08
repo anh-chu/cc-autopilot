@@ -186,7 +186,28 @@ function handleTaskCompletion(taskId: string, agentId: string, stdout: string): 
     logger.error("run-task", `Failed to mark task ${taskId} as done: ${err instanceof Error ? err.message : String(err)}`);
   }
 
-  // 2. Post inbox message (report from agent to "me")
+  // 2. Post result as task comment
+  try {
+    const tasksRaw2 = readFileSync(TASKS_FILE, "utf-8");
+    const tasksData2 = JSON.parse(tasksRaw2) as { tasks: Array<Record<string, unknown>> };
+    const task2 = tasksData2.tasks.find((t) => t.id === taskId);
+    if (task2) {
+      if (!Array.isArray(task2.comments)) task2.comments = [];
+      (task2.comments as Array<Record<string, unknown>>).push({
+        id: `comment_${Date.now()}`,
+        author: agentId,
+        content: summary || "_No output captured._",
+        createdAt: now,
+      });
+      task2.updatedAt = now;
+      writeFileSync(TASKS_FILE, JSON.stringify(tasksData2, null, 2), "utf-8");
+      logger.info("run-task", `Posted completion comment for task ${taskId}`);
+    }
+  } catch (err) {
+    logger.error("run-task", `Failed to post completion comment for task ${taskId}: ${err instanceof Error ? err.message : String(err)}`);
+  }
+
+  // 3. Post inbox message (report from agent to "me")
   try {
     const inboxRaw = existsSync(INBOX_FILE)
       ? readFileSync(INBOX_FILE, "utf-8")
