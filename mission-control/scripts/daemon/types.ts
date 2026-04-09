@@ -31,12 +31,6 @@ export interface DaemonConfig {
     maxTurnsPerSession: number;
     timeoutPerSessionMinutes: number;
   };
-  fieldOps?: {
-    autoExecute: boolean;
-    pollIntervalMinutes: number;
-    maxConcurrentExecutions: number;
-    requireVaultSession: boolean;
-  };
 }
 
 // ─── Agent Sessions ──────────────────────────────────────────────────────────

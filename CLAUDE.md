@@ -2,8 +2,20 @@
 
 This is a typescript project using next-app.
 
-The API has 132 routes. See .codesight/routes.md for the full route map with methods, paths, and tags.
-The UI has 113 components. See .codesight/components.md for the full list with props.
+## Architecture
+
+Entity hierarchy: `Workspace > Goals > Initiatives > Tasks`
+
+Field Ops paradigm fully removed (April 2026): no vault, no actions, no field tasks, no autonomy levels, no service catalog. `AutonomyLevel`, `Action`, `AutonomySelector`, `useFieldOps`, and all field-ops API routes are gone.
+
+Current sidebar: Dashboard, Quick Capture, Automation | Projects, Objectives, Initiatives, Tasks, Agents | Inbox, Logs, Decisions | Settings
+
+Backup/restore (checkpoints) lives in Settings page — `/api/checkpoints` routes are kept even though the standalone `/checkpoints` page was removed.
+
+## Code Map
+
+The API has ~125 routes. See .codesight/routes.md for the full route map with methods, paths, and tags.
+The UI has ~105 components. See .codesight/components.md for the full list with props.
 Middleware includes: custom, validation, auth.
 
 High-impact files (most imported, changes here affect many other files):
@@ -13,7 +25,6 @@ High-impact files (most imported, changes here affect many other files):
 - mission-control/scripts/daemon/security.ts (imported by 8 files)
 - mission-control/scripts/daemon/runner.ts (imported by 7 files)
 - mission-control/scripts/daemon/config.ts (imported by 6 files)
-- mission-control/src/lib/adapters/registry.ts (imported by 6 files)
 - mission-control/scripts/daemon/prompt-builder.ts (imported by 5 files)
 
 Required environment variables (no defaults):

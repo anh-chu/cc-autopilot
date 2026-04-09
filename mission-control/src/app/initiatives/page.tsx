@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { Plus, Lightbulb, AlertTriangle } from "lucide-react";
+import { Plus, Lightbulb } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
@@ -16,54 +16,13 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useInitiatives, useGoals } from "@/hooks/use-data";
 import { ContextMenu, ContextMenuTrigger } from "@/components/ui/context-menu";
 import { InitiativeContextMenuContent } from "@/components/context-menus/initiative-context-menu";
-import { apiFetch } from "@/lib/api-client";
+
 import type { Initiative, InitiativeStatus } from "@/lib/types";
 
 interface InitiativeStats {
   activeInitiatives: number;
   totalTasks: number;
   linkedGoals: number;
-}
-
-interface CircuitBreakerWarning {
-  initiativeTitle: string;
-  initiativeId: string;
-}
-
-function useCircuitBreakerWarnings(initiatives: Initiative[]): CircuitBreakerWarning[] {
-  const [warnings, setWarnings] = useState<CircuitBreakerWarning[]>([]);
-
-  useEffect(() => {
-    let cancelled = false;
-    async function checkBreakers() {
-      try {
-        const res = await apiFetch("/api/actions?limit=1000");
-        if (!res.ok) return;
-        const json = await res.json();
-        const actions: { initiativeId?: string | null; status: string }[] = json.actions ?? [];
-
-        const found: CircuitBreakerWarning[] = [];
-        for (const initiative of initiatives) {
-          const initiativeActions = actions.filter(
-            (a) => a.initiativeId === initiative.id
-          );
-          if (initiativeActions.length < 3) continue;
-          const last3 = initiativeActions.slice(-3);
-          if (last3.every((a) => a.status === "failed")) {
-            found.push({ initiativeTitle: initiative.title, initiativeId: initiative.id });
-          }
-        }
-
-        if (!cancelled) setWarnings(found);
-      } catch {
-        // Silent fail
-      }
-    }
-    if (initiatives.length > 0) checkBreakers();
-    return () => { cancelled = true; };
-  }, [initiatives]);
-
-  return warnings;
 }
 
 const STATUS_GROUPS: { status: InitiativeStatus; label: string }[] = [
@@ -287,7 +246,6 @@ export default function InitiativesPage() {
   }
 
   const visible = initiatives.filter((i) => !i.deletedAt);
-  const circuitWarnings = useCircuitBreakerWarnings(visible);
 
   const stats: InitiativeStats = {
     activeInitiatives: visible.filter((i) => i.status === "active").length,
@@ -314,7 +272,7 @@ export default function InitiativesPage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-xl font-bold">Initiatives</h1>
-          <p className="text-sm text-muted-foreground">Group tasks and actions into focused campaigns</p>
+          <p className="text-sm text-muted-foreground">Group tasks into focused campaigns</p>
         </div>
         <Button size="sm" onClick={() => setCreateOpen(true)} className="gap-1.5">
           <Plus className="h-3.5 w-3.5" /> New Initiative
@@ -332,18 +290,6 @@ export default function InitiativesPage() {
         ))}
       </div>
 
-      {circuitWarnings.map((w) => (
-        <div
-          key={w.initiativeId}
-          className="flex items-start gap-2 rounded-lg border border-amber-500/40 bg-amber-500/10 px-4 py-3 text-sm text-amber-400"
-        >
-          <AlertTriangle className="h-4 w-4 shrink-0 mt-0.5" />
-          <span>
-            Circuit breaker: <strong>{w.initiativeTitle}</strong> has multiple consecutive failures. Review before proceeding.
-          </span>
-        </div>
-      ))}
-
       {loading ? (
         <div className="space-y-3">
           {[1, 2, 3].map((i) => <Skeleton key={i} className="h-24 w-full rounded-lg" />)}
@@ -356,7 +302,7 @@ export default function InitiativesPage() {
               <div className="space-y-1.5 max-w-sm">
                 <h3 className="font-medium text-lg">No initiatives yet</h3>
                 <p className="text-sm text-muted-foreground">
-                  Use initiatives to group related tasks and actions into a focused campaign with one ownership point.
+                  Use initiatives to group related tasks into a focused campaign with one ownership point.
                 </p>
               </div>
               <div className="flex gap-2">

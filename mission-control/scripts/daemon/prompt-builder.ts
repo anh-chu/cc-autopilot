@@ -6,7 +6,6 @@ import type { ProjectRunsFile, ProjectRunTaskEntry } from "./types";
 
 // Paths relative to mission-control/
 import { getWorkspaceDir } from "../../src/lib/paths";
-const FIELD_OPS_DIR = path.join(getWorkspaceDir("default"), "field-ops");
 const WORKSPACE_ROOT = path.resolve(__dirname, "../../..");
 const COMMANDS_DIR = path.join(WORKSPACE_ROOT, ".claude", "commands");
 
@@ -347,145 +346,6 @@ function buildRetryContext(taskId: string): string | null {
 
 // ─── Field Ops Context ──────────────────────────────────────────────────────
 
-interface FieldServiceDef {
-  id: string;
-  name: string;
-  status: string;
-}
-
-interface FieldMissionDef {
-  id: string;
-  title: string;
-  status: string;
-  linkedProjectId: string | null;
-}
-
-interface FieldTaskDef {
-  id: string;
-  missionId: string | null;
-  title: string;
-  type: string;
-  status: string;
-  serviceId: string | null;
-  assignedTo: string | null;
-  result: Record<string, unknown>;
-  linkedTaskId: string | null;
-  completedAt: string | null;
-}
-
-function readFieldOpsJSON<T>(filename: string): T | null {
-  try {
-    const filePath = path.join(FIELD_OPS_DIR, filename);
-    if (!existsSync(filePath)) return null;
-    const raw = readFileSync(filePath, "utf-8");
-    return JSON.parse(raw) as T;
-  } catch {
-    return null;
-  }
-}
-
-/**
- * Build Field Ops context for agents that have the skill_field_ops skill.
- * Provides a compact summary of connected services, active missions,
- * pending approvals, and recent results — so agents can create field tasks
- * and reference execution outcomes.
- */
-function buildFieldOpsContext(agentId: string, task: TaskDef): string | null {
-  // Only inject if field-ops directory exists
-  if (!existsSync(FIELD_OPS_DIR)) return null;
-
-  const services = readFieldOpsJSON<{ services: FieldServiceDef[] }>("services.json");
-  const missions = readFieldOpsJSON<{ missions: FieldMissionDef[] }>("missions.json");
-  const fieldTasks = readFieldOpsJSON<{ tasks: FieldTaskDef[] }>("tasks.json");
-
-  // Don't inject if there's no field ops data at all
-  if (!services && !missions && !fieldTasks) return null;
-
-  const lines: string[] = [
-    "## Field Ops Status (Live)",
-    "",
-  ];
-
-  // Connected services
-  if (services?.services && services.services.length > 0) {
-    const serviceList = services.services.map(
-      s => `${s.name} (${s.status})`
-    ).join(", ");
-    lines.push(`**Connected Services:** ${serviceList}`);
-  } else {
-    lines.push("**Connected Services:** None");
-  }
-
-  // Active missions
-  if (missions?.missions) {
-    const active = missions.missions.filter(m => m.status === "active");
-    if (active.length > 0) {
-      lines.push(`**Active Missions:** ${active.length}`);
-      for (const m of active.slice(0, 5)) {
-        lines.push(`- ${m.title} (${m.id})`);
-      }
-    }
-  }
-
-  // Field tasks relevant to this agent or linked to this task
-  if (fieldTasks?.tasks && fieldTasks.tasks.length > 0) {
-    const allFieldTasks = fieldTasks.tasks;
-
-    // Tasks pending approval
-    const pending = allFieldTasks.filter(t => t.status === "pending-approval");
-    if (pending.length > 0) {
-      lines.push("");
-      lines.push(`**Awaiting Approval:** ${pending.length} task(s)`);
-      for (const t of pending.slice(0, 5)) {
-        lines.push(`- "${t.title}" (${t.id}, ${t.type})`);
-      }
-    }
-
-    // Tasks assigned to this agent
-    const myTasks = allFieldTasks.filter(t => t.assignedTo === agentId && t.status !== "completed" && t.status !== "failed");
-    if (myTasks.length > 0) {
-      lines.push("");
-      lines.push(`**Your Field Tasks:** ${myTasks.length}`);
-      for (const t of myTasks.slice(0, 5)) {
-        lines.push(`- "${t.title}" — ${t.status} (${t.id})`);
-      }
-    }
-
-    // Tasks linked to the current regular task
-    const linkedTasks = allFieldTasks.filter(t => t.linkedTaskId === task.id);
-    if (linkedTasks.length > 0) {
-      lines.push("");
-      lines.push(`**Field Tasks Linked to This Task:**`);
-      for (const t of linkedTasks) {
-        const resultSummary = t.status === "completed" && t.result
-          ? ` — result: ${JSON.stringify(t.result).slice(0, 100)}`
-          : "";
-        lines.push(`- "${t.title}" — ${t.status} (${t.id})${resultSummary}`);
-      }
-    }
-
-    // Recent completions (last 5)
-    const recent = allFieldTasks
-      .filter(t => t.status === "completed" || t.status === "failed")
-      .sort((a, b) => (b.completedAt ?? "").localeCompare(a.completedAt ?? ""))
-      .slice(0, 5);
-
-    if (recent.length > 0) {
-      lines.push("");
-      lines.push("**Recent Executions:**");
-      for (const t of recent) {
-        const icon = t.status === "completed" ? "✅" : "❌";
-        const resultSnippet = t.result
-          ? ` — ${JSON.stringify(t.result).slice(0, 80)}`
-          : "";
-        lines.push(`- ${icon} "${t.title}" (${t.type})${resultSnippet}`);
-      }
-    }
-  }
-
-  return lines.join("\n");
-}
-
 // ─── Public API ──────────────────────────────────────────────────────────────
 
 /**
@@ -505,13 +365,6 @@ export function buildTaskPrompt(agentId: string, task: TaskDef, missionId?: stri
   const sop = buildSOP(agentId, task);
 
   const sections: string[] = [persona];
-
-  // Inject Field Ops context for agents with the field_ops skill
-  const hasFieldOpsSkill = skills.some(s => s.id === "skill_field_ops") || agent.skillIds.includes("skill_field_ops");
-  if (hasFieldOpsSkill) {
-    const fieldOpsCtx = buildFieldOpsContext(agentId, task);
-    if (fieldOpsCtx) sections.push(fieldOpsCtx);
-  }
 
   // Inject mission restart context (what has been done previously)
   if (missionId) {

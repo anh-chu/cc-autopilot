@@ -23,7 +23,6 @@ describe("ensureWorkspaceDir", () => {
   it("creates the workspace directory structure", async () => {
     await ensureWorkspaceDir(TEST_WS_ID);
     expect(existsSync(WS_DIR)).toBe(true);
-    expect(existsSync(path.join(WS_DIR, "field-ops"))).toBe(true);
   });
 
   it("seeds all expected JSON files", async () => {
@@ -32,7 +31,6 @@ describe("ensureWorkspaceDir", () => {
       "tasks-archive.json",
       "goals.json",
       "initiatives.json",
-      "actions.json",
       "projects.json",
       "brain-dump.json",
       "activity-log.json",
@@ -48,25 +46,6 @@ describe("ensureWorkspaceDir", () => {
       expect(existsSync(fp), `Missing: ${file}`).toBe(true);
       const raw = await readFile(fp, "utf-8");
       expect(() => JSON.parse(raw), `Invalid JSON: ${file}`).not.toThrow();
-    }
-  });
-
-  it("seeds all expected field-ops files", async () => {
-    const expectedFieldOps = [
-      "missions.json",
-      "tasks.json",
-      "services.json",
-      "activity-log.json",
-      "approval-config.json",
-      "safety-limits.json",
-      "templates.json",
-      "service-catalog.json",
-    ];
-    for (const file of expectedFieldOps) {
-      const fp = path.join(WS_DIR, "field-ops", file);
-      expect(existsSync(fp), `Missing field-ops: ${file}`).toBe(true);
-      const raw = await readFile(fp, "utf-8");
-      expect(() => JSON.parse(raw), `Invalid JSON field-ops: ${file}`).not.toThrow();
     }
   });
 
@@ -93,15 +72,6 @@ describe("ensureWorkspaceDir", () => {
     expect(Object.keys(data).length).toBeGreaterThan(0);
     expect(data).toHaveProperty("polling");
     expect(data).toHaveProperty("execution");
-  });
-
-  it("seeds service-catalog from artifacts (not empty)", async () => {
-    const raw = await readFile(path.join(WS_DIR, "field-ops", "service-catalog.json"), "utf-8");
-    const data = JSON.parse(raw);
-    expect(data.services.length).toBeGreaterThan(0);
-    // Should have well-known services
-    const ids = data.services.map((s: { id: string }) => s.id);
-    expect(ids).toContain("twitter");
   });
 
   it("seeds CLAUDE.md from artifacts", async () => {

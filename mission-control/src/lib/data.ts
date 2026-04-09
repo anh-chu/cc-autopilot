@@ -369,7 +369,6 @@ const DEFAULT_DAEMON_CONFIG = {
     maxTaskContinuations: 2,
   },
   inbox: { maxContinuations: 2, maxTurnsPerSession: 25, timeoutPerSessionMinutes: 15 },
-  fieldOps: { autoExecute: false, pollIntervalMinutes: 5, maxConcurrentExecutions: 2, requireVaultSession: true },
 };
 
 export async function getDaemonConfig(): Promise<Record<string, unknown>> {

@@ -228,7 +228,7 @@ export default function GuidePage() {
           <div>
             <h3 className="font-semibold mb-1.5">Initiatives</h3>
             <ul className="list-disc pl-5 space-y-1 text-muted-foreground">
-              <li>Group related tasks and actions into focused campaigns</li>
+              <li>Group related tasks into focused campaigns</li>
               <li>Track initiative progress, status, and linked work in one place</li>
             </ul>
           </div>

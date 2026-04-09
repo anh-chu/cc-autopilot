@@ -194,20 +194,20 @@
     },
     {
       "path": "src/app/settings/page.tsx",
-      "accessCount": 55,
-      "lastAccessed": 1775755716233,
-      "type": "file"
-    },
-    {
-      "path": "src/components/app-sidebar.tsx",
-      "accessCount": 46,
-      "lastAccessed": 1775755200934,
+      "accessCount": 59,
+      "lastAccessed": 1775762936348,
       "type": "file"
     },
     {
       "path": "src/app/initiatives/page.tsx",
-      "accessCount": 46,
-      "lastAccessed": 1775755270430,
+      "accessCount": 56,
+      "lastAccessed": 1775763461437,
+      "type": "file"
+    },
+    {
+      "path": "src/components/app-sidebar.tsx",
+      "accessCount": 48,
+      "lastAccessed": 1775763011417,
       "type": "file"
     },
     {
@@ -229,16 +229,22 @@
       "type": "file"
     },
     {
+      "path": "src/lib/types.ts",
+      "accessCount": 27,
+      "lastAccessed": 1775763518210,
+      "type": "directory"
+    },
+    {
       "path": "scripts/daemon/run-task.ts",
       "accessCount": 26,
       "lastAccessed": 1775697066947,
       "type": "file"
     },
     {
-      "path": "src/lib/types.ts",
-      "accessCount": 25,
-      "lastAccessed": 1775755722824,
-      "type": "directory"
+      "path": "src/app/objectives/page.tsx",
+      "accessCount": 26,
+      "lastAccessed": 1775762705165,
+      "type": "file"
     },
     {
       "path": "src/hooks/use-data.ts",
@@ -247,9 +253,9 @@
       "type": "file"
     },
     {
-      "path": "src/app/objectives/page.tsx",
+      "path": "src/app/autopilot/page.tsx",
       "accessCount": 24,
-      "lastAccessed": 1775755647946,
+      "lastAccessed": 1775763223174,
       "type": "file"
     },
     {
@@ -260,8 +266,8 @@
     },
     {
       "path": "src/lib/validations.ts",
-      "accessCount": 19,
-      "lastAccessed": 1775755792069,
+      "accessCount": 21,
+      "lastAccessed": 1775763519438,
       "type": "file"
     },
     {
@@ -277,12 +283,6 @@
       "type": "file"
     },
     {
-      "path": "src/app/autopilot/page.tsx",
-      "accessCount": 14,
-      "lastAccessed": 1775535406525,
-      "type": "file"
-    },
-    {
       "path": "src/app/api/workspaces/route.ts",
       "accessCount": 9,
       "lastAccessed": 1775755727316,
@@ -292,6 +292,12 @@
       "path": "src/components/task-card.tsx",
       "accessCount": 8,
       "lastAccessed": 1775506391777,
+      "type": "file"
+    },
+    {
+      "path": "src/hooks/use-daemon.ts",
+      "accessCount": 8,
+      "lastAccessed": 1775763229652,
       "type": "file"
     },
     {
@@ -316,12 +322,6 @@
       "path": "src/components/field-ops/field-task-card.tsx",
       "accessCount": 6,
       "lastAccessed": 1775506258440,
-      "type": "file"
-    },
-    {
-      "path": "src/hooks/use-daemon.ts",
-      "accessCount": 6,
-      "lastAccessed": 1775535546793,
       "type": "file"
     },
     {

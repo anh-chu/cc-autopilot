@@ -27,10 +27,6 @@ const eventTypeEnum = z.enum([
   "brain_dump_triaged",
   "milestone_completed",
   "agent_checkin",
-  "field_task_completed",
-  "field_task_failed",
-  "field_task_approved",
-  "field_task_rejected",
 ]);
 
 // ─── Shared limits (exported for frontend validation) ──────────────────────────

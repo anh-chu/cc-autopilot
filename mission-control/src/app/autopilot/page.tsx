@@ -23,7 +23,7 @@ import {
   DialogTitle,
   DialogDescription,
 } from "@/components/ui/dialog";
-import { Rocket, Square, Clock, CheckCircle2, XCircle, Timer, RefreshCw, Zap, AlertTriangle, Pencil, Save, X, Plus, Trash2, Lock, Eye, EyeOff } from "lucide-react";
+import { Rocket, Square, Clock, CheckCircle2, XCircle, Timer, RefreshCw, Zap, AlertTriangle, Pencil, Save, X, Plus, Trash2 } from "lucide-react";
 
 function formatDuration(minutes: number): string {
   if (minutes < 1) return "< 1m";
@@ -85,30 +85,6 @@ export default function AutopilotPage() {
     return map;
   }, [runs]);
 
-  // Daemon start password dialog
-  const [showStartDialog, setShowStartDialog] = useState(false);
-  const [startPassword, setStartPassword] = useState("");
-  const [showStartPw, setShowStartPw] = useState(false);
-  const [startError, setStartError] = useState("");
-  const [starting, setStarting] = useState(false);
-
-  async function handleConfirmStart() {
-    if (!startPassword.trim()) {
-      setStartError("Master password is required.");
-      return;
-    }
-    setStarting(true);
-    setStartError("");
-    try {
-      await start(startPassword.trim());
-      setShowStartDialog(false);
-      setStartPassword("");
-    } catch (err) {
-      setStartError(err instanceof Error ? err.message : "Failed to start daemon");
-    } finally {
-      setStarting(false);
-    }
-  }
 
   // Config editing state
   const [editingConfig, setEditingConfig] = useState(false);
@@ -253,12 +229,7 @@ export default function AutopilotPage() {
             </Tip>
           ) : (
             <Tip content="Start autonomous agent processing">
-              <Button size="sm" onClick={() => {
-                setStartPassword("");
-                setStartError("");
-                setShowStartPw(false);
-                setShowStartDialog(true);
-              }}>
+              <Button size="sm" onClick={() => void start()}>
                 <Rocket className="h-4 w-4 mr-2" />
                 Launch Autopilot
               </Button>
@@ -729,104 +700,6 @@ export default function AutopilotPage() {
         </Card>
       )}
 
-      {/* Start Password Dialog */}
-      <Dialog open={showStartDialog} onOpenChange={(open) => {
-        if (!open) {
-          setShowStartDialog(false);
-          setStartPassword("");
-          setStartError("");
-        }
-      }}>
-        <DialogContent className="max-w-md">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <Lock className="h-5 w-5" />
-              Launch Autopilot
-            </DialogTitle>
-            <DialogDescription>
-              Starting the daemon enables autonomous task execution. Enter your master password to confirm.
-            </DialogDescription>
-          </DialogHeader>
-
-          <div className="space-y-4">
-            <div className="flex items-start gap-3 rounded-lg border border-amber-500/30 bg-amber-500/10 p-3">
-              <AlertTriangle className="h-4 w-4 text-amber-400 shrink-0 mt-0.5" />
-              <p className="text-xs text-amber-400">
-                The daemon will automatically poll for tasks and dispatch them to AI agents.
-                Make sure your autonomy level and safety limits are configured before launching.
-              </p>
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="daemon-start-pw">Master Password</Label>
-              <div className="relative">
-                <Input
-                  id="daemon-start-pw"
-                  type={showStartPw ? "text" : "password"}
-                  placeholder="Enter your master password"
-                  value={startPassword}
-                  onChange={(e) => {
-                    setStartPassword(e.target.value);
-                    setStartError("");
-                  }}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter") {
-                      e.preventDefault();
-                      handleConfirmStart();
-                    }
-                  }}
-                  className="pr-10"
-                />
-                <button
-                  type="button"
-                  className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
-                  onClick={() => setShowStartPw((prev) => !prev)}
-                >
-                  {showStartPw ? (
-                    <EyeOff className="h-4 w-4" />
-                  ) : (
-                    <Eye className="h-4 w-4" />
-                  )}
-                </button>
-              </div>
-              <p className="text-xs text-muted-foreground">
-                Need help recovering access?{" "}
-                <Link href="/guide#security" className="text-red-400 hover:underline">
-                  Read the security guide
-                </Link>
-              </p>
-            </div>
-
-            {startError && (
-              <div className="flex items-center gap-2 text-xs text-red-400">
-                <AlertTriangle className="h-3.5 w-3.5 shrink-0" />
-                <span>{startError}</span>
-              </div>
-            )}
-
-            <div className="flex justify-end gap-2">
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => {
-                  setShowStartDialog(false);
-                  setStartPassword("");
-                  setStartError("");
-                }}
-              >
-                Cancel
-              </Button>
-              <Button
-                size="sm"
-                disabled={starting || !startPassword.trim()}
-                onClick={handleConfirmStart}
-              >
-                {starting ? "Starting..." : "Launch Autopilot"}
-              </Button>
-            </div>
-          </div>
-        </DialogContent>
-      </Dialog>
     </div>
   );
 }

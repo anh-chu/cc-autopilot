@@ -127,10 +127,9 @@ export function useDaemon(): DaemonData {
     return () => clearInterval(interval);
   }, [refetch]);
 
-  const start = useCallback(async (masterPassword?: string) => {
+  const start = useCallback(async () => {
     try {
       const payload: Record<string, unknown> = { action: "start" };
-      if (masterPassword) payload.masterPassword = masterPassword;
       const res = await apiFetch("/api/daemon", {
         method: "POST",
         headers: { "Content-Type": "application/json" },

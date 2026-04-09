@@ -10,7 +10,6 @@ import type { DaemonConfig, ProjectRunsFile } from "./types";
 import { DATA_DIR, getWorkspaceDir } from "../../src/lib/paths";
 const TSX_BIN = path.resolve(__dirname, "../../node_modules/.bin/tsx");
 const MAX_RETRY_DELAY_MINUTES = 60;
-const FIELD_OPS_EXECUTE_URL = "http://localhost:3000/api/field-ops/execute";
 
 // ─── Retry Queue ────────────────────────────────────────────────────────────
 
@@ -31,9 +30,7 @@ export class Dispatcher {
   private runner: AgentRunner;
   private health: HealthMonitor;
   private retryQueue: RetryEntry[] = [];
-  private fieldOpsInFlight: Set<string> = new Set();
 
-  private get FIELD_OPS_DIR(): string { return path.join(getWorkspaceDir(this.workspaceId), "field-ops"); }
   private get MISSIONS_FILE(): string { return path.join(getWorkspaceDir(this.workspaceId), "missions.json"); }
   private get TASKS_FILE(): string { return path.join(getWorkspaceDir(this.workspaceId), "tasks.json"); }
   private get ACTIVE_RUNS_FILE(): string { return path.join(getWorkspaceDir(this.workspaceId), "active-runs.json"); }
@@ -206,9 +203,6 @@ export class Dispatcher {
 
     // Also check for running/stalled project runs that need continuation
     this.pollProjectRuns();
-
-    // Auto-execute approved field ops tasks
-    this.pollFieldOps();
   }
 
   /**
@@ -585,121 +579,6 @@ export class Dispatcher {
       }
     } catch (err) {
       logger.error("dispatcher", `Project run poll error: ${err instanceof Error ? err.message : String(err)}`);
-    }
-  }
-
-  // ─── Field Ops Auto-Execution ─────────────────────────────────────────
-
-  /**
-   * Poll for approved field ops tasks and auto-execute them via the HTTP API.
-   *
-   * Safety constraints:
-   * - Only runs if fieldOps.autoExecute is true (opt-in)
-   * - Respects maxConcurrentExecutions limit
-   * - If requireVaultSession is true, checks vault is unlocked first
-   * - Calls the existing execute API (preserves all security: mutex, state machine, circuit breaker)
-   */
-  private async pollFieldOps(): Promise<void> {
-    const fieldOpsConfig = this.config.fieldOps;
-    if (!fieldOpsConfig?.autoExecute) return;
-
-    try {
-      // Read field tasks
-      const tasksFile = path.join(this.FIELD_OPS_DIR, "tasks.json");
-      if (!existsSync(tasksFile)) return;
-
-      interface FieldTaskEntry {
-        id: string;
-        title: string;
-        status: string;
-        scheduledFor?: string;
-      }
-
-      const raw = readFileSync(tasksFile, "utf-8");
-      const data = JSON.parse(raw) as { tasks: FieldTaskEntry[] };
-
-      // Filter for approved tasks that aren't already in-flight
-      const now = new Date();
-      const approved = data.tasks.filter(t => {
-        if (t.status !== "approved") return false;
-        if (this.fieldOpsInFlight.has(t.id)) return false;
-        // Phase 5d: respect scheduledFor
-        if (t.scheduledFor && new Date(t.scheduledFor) > now) return false;
-        return true;
-      });
-
-      if (approved.length === 0) return;
-
-      // Check vault session if required
-      if (fieldOpsConfig.requireVaultSession) {
-        try {
-          const vaultRes = await fetch("http://localhost:3000/api/field-ops/vault/session");
-          if (!vaultRes.ok) {
-            logger.debug("dispatcher", "Field Ops: vault session check failed, skipping auto-execution");
-            return;
-          }
-          const vaultData = await vaultRes.json() as { active: boolean };
-          if (!vaultData.active) {
-            logger.debug("dispatcher", "Field Ops: vault locked, skipping auto-execution");
-            return;
-          }
-        } catch {
-          logger.debug("dispatcher", "Field Ops: cannot reach server for vault check, skipping");
-          return;
-        }
-      }
-
-      // Respect concurrency limit
-      const availableSlots = fieldOpsConfig.maxConcurrentExecutions - this.fieldOpsInFlight.size;
-      if (availableSlots <= 0) {
-        logger.debug("dispatcher", `Field Ops: no execution slots (${this.fieldOpsInFlight.size}/${fieldOpsConfig.maxConcurrentExecutions} in-flight)`);
-        return;
-      }
-
-      const toExecute = approved.slice(0, availableSlots);
-      logger.info("dispatcher", `Field Ops: auto-executing ${toExecute.length} approved task(s)`);
-
-      for (const task of toExecute) {
-        this.executeFieldTask(task.id, task.title);
-      }
-    } catch (err) {
-      logger.error("dispatcher", `Field Ops poll error: ${err instanceof Error ? err.message : String(err)}`);
-    }
-  }
-
-  /**
-   * Execute a single field task via the HTTP API.
-   * Tracks in-flight state and logs results.
-   */
-  private async executeFieldTask(taskId: string, title: string): Promise<void> {
-    this.fieldOpsInFlight.add(taskId);
-
-    try {
-      logger.info("dispatch", "Posting field ops execution request", {
-        taskId,
-        title,
-        url: FIELD_OPS_EXECUTE_URL,
-      });
-
-      const res = await fetch(FIELD_OPS_EXECUTE_URL, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ taskId, actor: "daemon" }),
-      });
-
-      const result = await res.json() as { status?: string; error?: string };
-
-      if (res.ok && result.status === "completed") {
-        logger.info("dispatcher", `Field Ops: "${title}" completed successfully`);
-      } else if (res.ok && result.status === "executing") {
-        logger.info("dispatcher", `Field Ops: "${title}" moved to manual execution (no adapter)`);
-      } else {
-        logger.warn("dispatcher", `Field Ops: "${title}" failed — ${result.error ?? `HTTP ${res.status}`}`);
-      }
-    } catch (err) {
-      logger.error("dispatcher", `Field Ops: execute error for "${title}": ${err instanceof Error ? err.message : String(err)}`);
-    } finally {
-      this.fieldOpsInFlight.delete(taskId);
     }
   }
 

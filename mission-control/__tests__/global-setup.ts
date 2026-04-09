@@ -39,8 +39,8 @@ async function writeSeeds(dir: string, seeds: Record<string, unknown>): Promise<
 }
 
 export async function setup(): Promise<void> {
-  await mkdir(path.join(WORKSPACE_DIR, "field-ops"), { recursive: true });
-  await mkdir(path.join(TEST_DATA_DIR, "field-ops"), { recursive: true });
+  await mkdir(WORKSPACE_DIR, { recursive: true });
+  await mkdir(TEST_DATA_DIR, { recursive: true });
 
   await writeSeeds(WORKSPACE_DIR, WORKSPACE_SEED);
   await writeSeeds(TEST_DATA_DIR, ROOT_SEED);

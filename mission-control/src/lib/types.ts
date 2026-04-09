@@ -268,11 +268,7 @@ export type EventType =
   | "decision_answered"
   | "brain_dump_triaged"
   | "milestone_completed"
-  | "agent_checkin"
-  | "field_task_completed"
-  | "field_task_failed"
-  | "field_task_approved"
-  | "field_task_rejected";
+  | "agent_checkin";
 
 export interface ActivityEvent {
   id: string;

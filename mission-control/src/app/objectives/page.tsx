@@ -395,7 +395,6 @@ export default function GoalsPage() {
                     description: newInitDesc.trim(),
                     parentGoalId: addingInitiativeForGoalId,
                     status: "active",
-                    autonomyLevel: null,
                   }),
                 });
                 if (!res.ok) {

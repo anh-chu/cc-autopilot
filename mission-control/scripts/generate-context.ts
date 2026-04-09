@@ -79,59 +79,9 @@ interface DecisionItem {
 
 const workspaceId = process.argv[2] ?? process.env.CMC_WORKSPACE_ID ?? "default";
 const WORKSPACE_DIR = getWorkspaceDir(workspaceId);
-const FIELD_OPS_DIR = path.join(WORKSPACE_DIR, "field-ops");
-
-interface FieldMission {
-  id: string;
-  title: string;
-  status: string;
-  autonomyLevel: string;
-  linkedProjectId: string | null;
-  tasks: string[];
-  createdAt: string;
-}
-
-interface FieldTask {
-  id: string;
-  missionId: string;
-  title: string;
-  type: string;
-  status: string;
-  serviceId: string | null;
-  assignedTo: string | null;
-  result: Record<string, unknown>;
-  completedAt: string | null;
-  executedAt: string | null;
-}
-
-interface FieldService {
-  id: string;
-  name: string;
-  status: string;
-  riskLevel: string;
-  lastUsed: string | null;
-}
-
-interface FieldActivityEvent {
-  id: string;
-  type: string;
-  actor: string;
-  summary: string;
-  timestamp: string;
-}
-
 async function readJSON<T>(filename: string): Promise<T> {
   const raw = await readFile(path.join(WORKSPACE_DIR, filename), "utf-8");
   return JSON.parse(raw) as T;
-}
-
-async function readFieldOpsJSON<T>(filename: string, fallback: T): Promise<T> {
-  try {
-    const raw = await readFile(path.join(FIELD_OPS_DIR, filename), "utf-8");
-    return JSON.parse(raw) as T;
-  } catch {
-    return fallback;
-  }
 }
 
 function getQuadrant(task: Task): string {
@@ -329,90 +279,6 @@ async function main(): Promise<void> {
     lines.push("");
   }
 
-  // ─── Field Ops Status ───────────────────────────────────────────────────
-  const foMissions = await readFieldOpsJSON<{ missions: FieldMission[] }>("missions.json", { missions: [] });
-  const foTasks = await readFieldOpsJSON<{ tasks: FieldTask[] }>("tasks.json", { tasks: [] });
-  const foServices = await readFieldOpsJSON<{ services: FieldService[] }>("services.json", { services: [] });
-  const foEvents = await readFieldOpsJSON<{ events: FieldActivityEvent[] }>("activity-log.json", { events: [] });
-
-  const hasFieldOps = foMissions.missions.length > 0 || foServices.services.length > 0 || foTasks.tasks.length > 0;
-
-  if (hasFieldOps) {
-    lines.push("## Field Ops Status");
-
-    // Services overview
-    const connectedServices = foServices.services.filter((s) => s.status === "connected");
-    const savedServices = foServices.services.filter((s) => s.status === "saved");
-    const servicesList = foServices.services
-      .map((s) => `${s.name} (${s.status})`)
-      .join(", ");
-    if (servicesList) {
-      lines.push(`Services: ${servicesList}`);
-    }
-
-    // Missions overview
-    const activeMissions = foMissions.missions.filter((m) => m.status === "active");
-    const completedMissions = foMissions.missions.filter((m) => m.status === "completed");
-    const pausedMissions = foMissions.missions.filter((m) => m.status === "paused");
-    lines.push(`Missions: ${activeMissions.length} active${pausedMissions.length > 0 ? `, ${pausedMissions.length} paused` : ""}${completedMissions.length > 0 ? `, ${completedMissions.length} completed` : ""}`);
-
-    // Task status breakdown
-    const foStatusCounts: Record<string, number> = {};
-    for (const t of foTasks.tasks) {
-      foStatusCounts[t.status] = (foStatusCounts[t.status] ?? 0) + 1;
-    }
-    if (foTasks.tasks.length > 0) {
-      const statusParts: string[] = [];
-      for (const [status, count] of Object.entries(foStatusCounts)) {
-        statusParts.push(`${count} ${status}`);
-      }
-      lines.push(`Tasks: ${foTasks.tasks.length} total — ${statusParts.join(", ")}`);
-    }
-    lines.push("");
-
-    // Approval queue (critical for human visibility)
-    const pendingApproval = foTasks.tasks.filter((t) => t.status === "pending-approval");
-    if (pendingApproval.length > 0) {
-      lines.push(`### Approval Queue (${pendingApproval.length} awaiting review)`);
-      for (const t of pendingApproval) {
-        const mission = foMissions.missions.find((m) => m.id === t.missionId);
-        lines.push(`- "${t.title}" (${t.type}) — mission: ${mission?.title ?? t.missionId}`);
-      }
-      lines.push("");
-    }
-
-    // Recent field ops executions (last 5 completed or failed)
-    const recentExecutions = foTasks.tasks
-      .filter((t) => t.status === "completed" || t.status === "failed")
-      .filter((t) => t.completedAt)
-      .sort((a, b) => new Date(b.completedAt!).getTime() - new Date(a.completedAt!).getTime())
-      .slice(0, 5);
-    if (recentExecutions.length > 0) {
-      lines.push("### Recent Executions");
-      for (const t of recentExecutions) {
-        const icon = t.status === "completed" ? "✅" : "❌";
-        const date = new Date(t.completedAt!).toLocaleString();
-        const resultSummary = t.result && Object.keys(t.result).length > 0
-          ? ` — ${Object.entries(t.result).slice(0, 2).map(([k, v]) => `${k}: ${v}`).join(", ")}`
-          : "";
-        lines.push(`- ${icon} "${t.title}" ${t.status}${resultSummary} (${date})`);
-      }
-      lines.push("");
-    }
-
-    // Recent field ops activity (last 5 events)
-    const recentFoEvents = [...foEvents.events]
-      .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
-      .slice(0, 5);
-    if (recentFoEvents.length > 0) {
-      lines.push("### Recent Field Ops Activity");
-      for (const evt of recentFoEvents) {
-        lines.push(`- [${evt.type}] ${evt.summary} (${new Date(evt.timestamp).toLocaleString()})`);
-      }
-      lines.push("");
-    }
-  }
-
   // Summary stats
   lines.push("## Quick Stats");
   const archivedCount = archivedTasks.length;
@@ -421,11 +287,6 @@ async function main(): Promise<void> {
   lines.push(`Projects: ${activeProjects.length} active`);
   lines.push(`Brain dump: ${unprocessed.length} unprocessed`);
   lines.push(`Inbox: ${unreadMessages.length} unread | Decisions: ${pendingDecisions.length} pending`);
-  if (hasFieldOps) {
-    const foPending = foTasks.tasks.filter((t) => t.status === "pending-approval").length;
-    const foExecuting = foTasks.tasks.filter((t) => t.status === "executing").length;
-    lines.push(`Field Ops: ${foServices.services.length} services, ${foMissions.missions.filter((m) => m.status === "active").length} active missions, ${foPending} pending approval${foExecuting > 0 ? `, ${foExecuting} executing` : ""}`);
-  }
 
   const content = lines.join("\n") + "\n";
   await writeFile(path.join(WORKSPACE_DIR, "ai-context.md"), content, "utf-8");

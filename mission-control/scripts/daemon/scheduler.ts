@@ -13,7 +13,6 @@ type ScheduledTask = ReturnType<typeof cron.schedule>;
 // Directories are watched instead of individual files so watchers survive
 // the atomic tmp→rename writes used throughout this codebase.
 const DATA_DIR_WATCHED = new Set(["tasks.json", "decisions.json"]);
-const FIELD_OPS_DIR_WATCHED = new Set(["tasks.json"]);
 
 const WATCH_DEBOUNCE_MS = 5_000;
 
@@ -69,7 +68,6 @@ export class Scheduler {
       };
 
       watchDir(getWorkspaceDir(this.workspaceId), DATA_DIR_WATCHED, "data");
-      watchDir(path.join(getWorkspaceDir(this.workspaceId), "field-ops"), FIELD_OPS_DIR_WATCHED, "data/field-ops");
     }
 
     // Start scheduled commands

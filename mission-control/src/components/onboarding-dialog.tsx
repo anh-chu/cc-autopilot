@@ -46,7 +46,7 @@ const steps: Step[] = [
     icon: Rocket,
     title: "Welcome to Task Control",
     description:
-      "Your AI-powered task orchestration hub. Organize work, delegate to agents, and execute real actions across services.",
+      "Your AI-powered task orchestration hub. Organize work, delegate to agents, and automate execution with the daemon.",
     bullets: [
       "Prioritize with the Eisenhower Matrix (Do, Schedule, Delegate, Eliminate)",
       "Track progress with Kanban boards and goal milestones",
@@ -125,11 +125,11 @@ export function OnboardingDialog() {
               <span>
                 Use{" "}
                 <Link
-                  href="/checkpoints"
+                  href="/settings"
                   className="text-primary hover:underline"
                   onClick={handleClose}
                 >
-                  Checkpoints
+                  Settings &rarr; Backup &amp; Restore
                 </Link>{" "}
                 to save, restore, or export your workspace at any time
               </span>
