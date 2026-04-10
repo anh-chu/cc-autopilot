@@ -14,5 +14,12 @@ export function getWorkspaceDir(workspaceId: string): string {
   return path.join(DATA_DIR, "workspaces", workspaceId);
 }
 
-/** Directory where uploaded attachments are stored (outside the repo). */
-export const UPLOADS_DIR: string = path.join(DATA_DIR, "uploads");
+/** Directory where uploaded attachments are stored for a workspace. */
+export function getUploadsDir(workspaceId: string): string {
+  return path.join(DATA_DIR, "workspaces", workspaceId, "uploads");
+}
+
+/** Directory where wiki documents are stored for a workspace. */
+export function getWikiDir(workspaceId: string): string {
+  return path.join(DATA_DIR, "workspaces", workspaceId, "wiki");
+}

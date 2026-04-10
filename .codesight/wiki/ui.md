@@ -2,7 +2,7 @@
 
 > **Navigation aid.** Component inventory and prop signatures extracted via AST. Read the source files before adding props or modifying component logic.
 
-**80 components** (react)
+**81 components** (react)
 
 ## Client Components
 
@@ -14,6 +14,7 @@
 - **NewAgentPage** — `mission-control/src/app/crew/new/page.tsx`
 - **CrewPage** — `mission-control/src/app/crew/page.tsx`
 - **DecisionsPage** — `mission-control/src/app/decisions/page.tsx`
+- **DocumentsPage** — `mission-control/src/app/documents/page.tsx`
 - **Error** — props: error, reset — `mission-control/src/app/error.tsx`
 - **GlobalError** — props: error, reset — `mission-control/src/app/global-error.tsx`
 - **GuidePage** — `mission-control/src/app/guide/page.tsx`

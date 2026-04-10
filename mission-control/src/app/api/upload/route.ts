@@ -2,7 +2,8 @@ import { NextResponse } from "next/server";
 import { writeFile, mkdir } from "fs/promises";
 import path from "path";
 import { randomUUID } from "crypto";
-import { UPLOADS_DIR } from "@/lib/paths";
+import { getUploadsDir } from "@/lib/paths";
+import { applyWorkspaceContext } from "@/lib/workspace-context";
 
 const ALLOWED_MIME_TYPES = new Set([
   "image/jpeg",
@@ -35,6 +36,9 @@ function getExtension(filename: string, mimeType: string): string {
 }
 
 export async function POST(request: Request) {
+  const workspaceId = await applyWorkspaceContext();
+  const uploadsDir = getUploadsDir(workspaceId);
+
   let formData: FormData;
   try {
     formData = await request.formData();
@@ -64,10 +68,10 @@ export async function POST(request: Request) {
   const ext = getExtension(file.name, file.type);
   const uuid = randomUUID();
   const savedFilename = `${uuid}.${ext}`;
-  const filePath = path.join(UPLOADS_DIR, savedFilename);
+  const filePath = path.join(uploadsDir, savedFilename);
 
   try {
-    await mkdir(UPLOADS_DIR, { recursive: true });
+    await mkdir(uploadsDir, { recursive: true });
     const buffer = Buffer.from(await file.arrayBuffer());
     await writeFile(filePath, buffer);
   } catch {

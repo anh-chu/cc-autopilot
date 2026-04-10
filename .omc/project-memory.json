@@ -121,6 +121,12 @@
       "type": "file"
     },
     {
+      "path": "mission-control/src/components/app-sidebar.tsx",
+      "accessCount": 4,
+      "lastAccessed": 1775808990347,
+      "type": "file"
+    },
+    {
       "path": "mission-control/scripts/daemon/run-task-comment.ts",
       "accessCount": 3,
       "lastAccessed": 1775760257252,
@@ -134,14 +140,26 @@
     },
     {
       "path": "mission-control/src/lib/types.ts",
-      "accessCount": 2,
-      "lastAccessed": 1775751478457,
+      "accessCount": 3,
+      "lastAccessed": 1775808854046,
+      "type": "file"
+    },
+    {
+      "path": "mission-control/src/lib/paths.ts",
+      "accessCount": 3,
+      "lastAccessed": 1775808933134,
       "type": "file"
     },
     {
       "path": "mission-control/src/components/agent-console.tsx",
       "accessCount": 2,
       "lastAccessed": 1775760222071,
+      "type": "file"
+    },
+    {
+      "path": "mission-control/src/app/api/upload/route.ts",
+      "accessCount": 2,
+      "lastAccessed": 1775808891614,
       "type": "file"
     },
     {
@@ -155,6 +173,60 @@
       "accessCount": 1,
       "lastAccessed": 1775760260862,
       "type": "directory"
+    },
+    {
+      "path": "mission-control/.codesight/routes.md",
+      "accessCount": 1,
+      "lastAccessed": 1775808838304,
+      "type": "file"
+    },
+    {
+      "path": "mission-control/src/components/sidebar-nav.tsx",
+      "accessCount": 1,
+      "lastAccessed": 1775808842675,
+      "type": "file"
+    },
+    {
+      "path": "mission-control/src/app/api/sidebar/route.ts",
+      "accessCount": 1,
+      "lastAccessed": 1775808856920,
+      "type": "file"
+    },
+    {
+      "path": "mission-control/.codesight/CODESIGHT.md",
+      "accessCount": 1,
+      "lastAccessed": 1775808873187,
+      "type": "file"
+    },
+    {
+      "path": "",
+      "accessCount": 1,
+      "lastAccessed": 1775808898098,
+      "type": "directory"
+    },
+    {
+      "path": "mission-control/src/app/brain-dump/page.tsx",
+      "accessCount": 1,
+      "lastAccessed": 1775808898132,
+      "type": "file"
+    },
+    {
+      "path": "mission-control/src/app/api/wiki/route.ts",
+      "accessCount": 1,
+      "lastAccessed": 1775808944493,
+      "type": "file"
+    },
+    {
+      "path": "mission-control/src/app/api/wiki/upload/route.ts",
+      "accessCount": 1,
+      "lastAccessed": 1775808953591,
+      "type": "file"
+    },
+    {
+      "path": "mission-control/src/app/documents/page.tsx",
+      "accessCount": 1,
+      "lastAccessed": 1775808982608,
+      "type": "file"
     }
   ],
   "userDirectives": []

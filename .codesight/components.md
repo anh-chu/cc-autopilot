@@ -11,6 +11,7 @@
 - **CrewPage** [client] — `mission-control/src/app/crew/page.tsx`
 - **DaemonPage** — `mission-control/src/app/daemon/page.tsx`
 - **DecisionsPage** [client] — `mission-control/src/app/decisions/page.tsx`
+- **DocumentsPage** [client] — `mission-control/src/app/documents/page.tsx`
 - **Error** [client] — props: error, reset — `mission-control/src/app/error.tsx`
 - **GlobalError** [client] — props: error, reset — `mission-control/src/app/global-error.tsx`
 - **GoalsPage** — `mission-control/src/app/goals/page.tsx`

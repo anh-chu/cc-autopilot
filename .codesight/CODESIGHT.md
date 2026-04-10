@@ -2,8 +2,8 @@
 
 > **Stack:** next-app | none | react | typescript
 
-> 86 routes | 0 models | 80 components | 36 lib files | 21 env vars | 3 middleware | 0% test coverage
-> **Token savings:** this file is ~7,100 tokens. Without it, AI exploration would cost ~92,300 tokens. **Saves ~85,200 tokens per conversation.**
+> 94 routes | 0 models | 81 components | 36 lib files | 21 env vars | 3 middleware | 0% test coverage
+> **Token savings:** this file is ~7,200 tokens. Without it, AI exploration would cost ~96,800 tokens. **Saves ~89,600 tokens per conversation.**
 
 ---
 
@@ -60,6 +60,14 @@
 - `POST` `/api/upload` → out: { error } [upload]
 - `POST` `/api/ventures/[id]/run` params(id) → out: { error, missionId } [queue]
 - `POST` `/api/ventures/[id]/stop` params(id) → out: { error }
+- `GET` `/api/wiki/content` → out: { error }
+- `PUT` `/api/wiki/content` → out: { error }
+- `GET` `/api/wiki/file` → out: { error } [cache]
+- `POST` `/api/wiki/folder` → out: { error }
+- `POST` `/api/wiki/move` → out: { error }
+- `GET` `/api/wiki` → out: { error }
+- `DELETE` `/api/wiki` → out: { error }
+- `POST` `/api/wiki/upload` → out: { error }
 - `GET` `/uploads/[filename]` params(filename) → out: { error } [cache, upload]
 
 ---
@@ -77,6 +85,7 @@
 - **CrewPage** [client] — `mission-control/src/app/crew/page.tsx`
 - **DaemonPage** — `mission-control/src/app/daemon/page.tsx`
 - **DecisionsPage** [client] — `mission-control/src/app/decisions/page.tsx`
+- **DocumentsPage** [client] — `mission-control/src/app/documents/page.tsx`
 - **Error** [client] — props: error, reset — `mission-control/src/app/error.tsx`
 - **GlobalError** [client] — props: error, reset — `mission-control/src/app/global-error.tsx`
 - **GoalsPage** — `mission-control/src/app/goals/page.tsx`
@@ -231,8 +240,9 @@
   - type LogLevel
 - `mission-control/src/lib/paths.ts`
   - function getWorkspaceDir: (workspaceId) => string
+  - function getUploadsDir: (workspaceId) => string
+  - function getWikiDir: (workspaceId) => string
   - const DATA_DIR: string
-  - const UPLOADS_DIR: string
 - `mission-control/src/lib/scheduled-jobs.ts`
   - function scheduleUploadsCleanup: () => void
   - function scheduleLogCleanup: () => void

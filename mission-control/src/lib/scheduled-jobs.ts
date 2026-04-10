@@ -7,7 +7,7 @@ import { existsSync, readFileSync, readdirSync, statSync, unlinkSync } from "fs"
 import { readdir, stat, unlink } from "fs/promises";
 import { spawn } from "child_process";
 import path from "path";
-import { DATA_DIR, UPLOADS_DIR } from "./paths";
+import { DATA_DIR } from "./paths";
 const GRACE_MS = 60 * 60 * 1000; // 1 hour
 const LOG_RETENTION_MS = 7 * 24 * 60 * 60 * 1000; // 7 days
 const UPLOAD_RE = /\/uploads\/[^"'\s)\]]+/g;
@@ -55,23 +55,31 @@ function collectReferencedFilenames(): Set<string> {
 }
 
 function runUploadsCleanup() {
-  if (!existsSync(UPLOADS_DIR)) return;
   const refs = collectReferencedFilenames();
   const now = Date.now();
   let deleted = 0;
 
+  const workspacesDir = path.join(DATA_DIR, "workspaces");
+  if (!existsSync(workspacesDir)) return;
+
   try {
-    for (const filename of readdirSync(UPLOADS_DIR).filter(f => !f.startsWith("."))) {
-      const filePath = path.join(UPLOADS_DIR, filename);
+    for (const ws of readdirSync(workspacesDir)) {
+      const uploadsDir = path.join(workspacesDir, ws, "uploads");
+      if (!existsSync(uploadsDir)) continue;
       try {
-        const { mtimeMs } = statSync(filePath);
-        if (!refs.has(filename) && now - mtimeMs >= GRACE_MS) {
-          unlinkSync(filePath);
-          deleted++;
+        for (const filename of readdirSync(uploadsDir).filter(f => !f.startsWith("."))) {
+          const filePath = path.join(uploadsDir, filename);
+          try {
+            const { mtimeMs } = statSync(filePath);
+            if (!refs.has(filename) && now - mtimeMs >= GRACE_MS) {
+              unlinkSync(filePath);
+              deleted++;
+            }
+          } catch { /* ignore per-file errors */ }
         }
-      } catch { /* ignore per-file errors */ }
+      } catch { /* ignore dir errors */ }
     }
-  } catch { /* ignore dir errors */ }
+  } catch { /* ignore workspaces dir errors */ }
 
   if (deleted > 0) {
     console.log(`[cleanup:uploads] removed ${deleted} orphaned file(s)`);

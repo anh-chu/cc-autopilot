@@ -6,13 +6,13 @@
 
 ## Scale
 
-86 API routes · 80 UI components · 3 middleware layers · 21 environment variables
+94 API routes · 81 UI components · 3 middleware layers · 21 environment variables
 
 ## Subsystems
 
-- **[Route](./route.md)** — 86 routes — touches: cache, auth, queue, ai, upload
+- **[Route](./route.md)** — 94 routes — touches: cache, auth, queue, ai, upload
 
-**UI:** 80 components (react) — see [ui.md](./ui.md)
+**UI:** 81 components (react) — see [ui.md](./ui.md)
 
 ## High-Impact Files
 
@@ -42,4 +42,4 @@ Changes to these files have the widest blast radius across the codebase:
 - _...9 more_
 
 ---
-_Back to [index.md](./index.md) · Generated 2026-04-09_
+_Back to [index.md](./index.md) · Generated 2026-04-10_

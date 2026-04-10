@@ -10,7 +10,7 @@
  */
 import { readdirSync, statSync, unlinkSync, existsSync, readFileSync } from "fs";
 import path from "path";
-import { DATA_DIR, UPLOADS_DIR } from "../src/lib/paths";
+import { DATA_DIR } from "../src/lib/paths";
 const GRACE_MS = 60 * 60 * 1000; // 1 hour
 const DRY_RUN = process.argv.includes("--dry-run");
 
@@ -68,49 +68,57 @@ function collectReferences(): Set<string> {
 // ─── Main ─────────────────────────────────────────────────────────────────────
 
 function main() {
-  if (!existsSync(UPLOADS_DIR)) {
-    console.log("public/uploads/ does not exist — nothing to clean.");
+  const workspacesDir = path.join(DATA_DIR, "workspaces");
+  if (!existsSync(workspacesDir)) {
+    console.log("No workspaces dir found — nothing to clean.");
     return;
   }
 
   const refs = collectReferences();
   const now = Date.now();
-  const files = readdirSync(UPLOADS_DIR).filter(f => !f.startsWith("."));
-
+  let totalFiles = 0;
   let deleted = 0;
   let skipped = 0;
   let graced = 0;
 
-  for (const filename of files) {
-    const filePath = path.join(UPLOADS_DIR, filename);
-    const { mtimeMs } = statSync(filePath);
-    const ageMsec = now - mtimeMs;
+  for (const ws of readdirSync(workspacesDir)) {
+    const uploadsDir = path.join(workspacesDir, ws, "uploads");
+    if (!existsSync(uploadsDir)) continue;
 
-    if (refs.has(filename)) {
-      skipped++;
-      continue;
-    }
+    const files = readdirSync(uploadsDir).filter(f => !f.startsWith("."));
+    totalFiles += files.length;
 
-    if (ageMsec < GRACE_MS) {
-      graced++;
-      continue;
-    }
+    for (const filename of files) {
+      const filePath = path.join(uploadsDir, filename);
+      const { mtimeMs } = statSync(filePath);
+      const ageMsec = now - mtimeMs;
 
-    if (DRY_RUN) {
-      console.log(`[dry-run] would delete: ${filename} (age: ${Math.round(ageMsec / 60000)}m)`);
-    } else {
-      try {
-        unlinkSync(filePath);
-        console.log(`deleted: ${filename}`);
-        deleted++;
-      } catch (err) {
-        console.error(`failed to delete ${filename}:`, err);
+      if (refs.has(filename)) {
+        skipped++;
+        continue;
+      }
+
+      if (ageMsec < GRACE_MS) {
+        graced++;
+        continue;
+      }
+
+      if (DRY_RUN) {
+        console.log(`[dry-run] would delete: ${ws}/${filename} (age: ${Math.round(ageMsec / 60000)}m)`);
+      } else {
+        try {
+          unlinkSync(filePath);
+          console.log(`deleted: ${ws}/${filename}`);
+          deleted++;
+        } catch (err) {
+          console.error(`failed to delete ${ws}/${filename}:`, err);
+        }
       }
     }
   }
 
   const summary = DRY_RUN
-    ? `Dry run complete — ${files.length} files checked, ${refs.size} referenced, ${graced} within grace period, ${files.length - skipped - graced} would be deleted`
+    ? `Dry run complete — ${totalFiles} files checked, ${refs.size} referenced, ${graced} within grace period, ${totalFiles - skipped - graced} would be deleted`
     : `Done — ${deleted} deleted, ${skipped} referenced (kept), ${graced} within 1h grace period (kept)`;
 
   console.log(summary);

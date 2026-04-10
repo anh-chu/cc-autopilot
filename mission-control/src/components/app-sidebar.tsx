@@ -16,6 +16,7 @@ import {
   Layers,
   FolderKanban,
   Terminal,
+  FileText,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -38,6 +39,7 @@ const workbenchLinks = [
   { href: "/initiatives", label: "Initiatives", icon: Layers },
   { href: "/priority-matrix", label: "Tasks", icon: Grid2x2 },
   { href: "/crew", label: "Agents", icon: Users },
+  { href: "/documents", label: "Documents", icon: FileText },
 ];
 
 const commsLinks = [

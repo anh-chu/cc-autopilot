@@ -1,7 +1,8 @@
 import { NextResponse } from "next/server";
 import { existsSync, readFileSync } from "fs";
 import path from "path";
-import { UPLOADS_DIR } from "@/lib/paths";
+import { getUploadsDir } from "@/lib/paths";
+import { applyWorkspaceContext } from "@/lib/workspace-context";
 
 const MIME_MAP: Record<string, string> = {
   jpg: "image/jpeg",
@@ -19,6 +20,8 @@ export async function GET(
   _request: Request,
   { params }: { params: Promise<{ filename: string }> }
 ) {
+  const workspaceId = await applyWorkspaceContext();
+  const uploadsDir = getUploadsDir(workspaceId);
   const { filename } = await params;
 
   // Prevent path traversal
@@ -27,7 +30,7 @@ export async function GET(
     return NextResponse.json({ error: "Invalid filename" }, { status: 400 });
   }
 
-  const filePath = path.join(UPLOADS_DIR, safe);
+  const filePath = path.join(uploadsDir, safe);
   if (!existsSync(filePath)) {
     return NextResponse.json({ error: "Not found" }, { status: 404 });
   }
