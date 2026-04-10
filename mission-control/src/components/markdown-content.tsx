@@ -73,7 +73,7 @@ function highlightMentions(children: React.ReactNode): React.ReactNode {
     );
   }
   if (Array.isArray(children)) {
-    return children.map((child, i) =>
+    return children.map((child) =>
       typeof child === "string" ? highlightMentions(child) : child
     );
   }

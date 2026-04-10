@@ -56,7 +56,7 @@ interface TaskFormProps {
 }
 
 // projects and goals kept in props for backward compat with callers
-export function TaskForm({ initial, projects: _projects, goals: _goals, allTasks, currentTaskId, onSubmit, onCancel, submitLabel = "Save" }: TaskFormProps) {
+export function TaskForm({ initial, allTasks, currentTaskId, onSubmit, onCancel, submitLabel = "Save" }: TaskFormProps) {
   const { agents } = useAgents();
   const activeAgents = agents.filter((a) => a.status === "active");
   const { initiatives } = useInitiatives();

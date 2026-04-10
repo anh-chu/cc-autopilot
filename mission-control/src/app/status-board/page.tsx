@@ -35,7 +35,7 @@ const columns: ColumnConfig[] = [
 ];
 
 export default function KanbanPage() {
-  const { tasks, update: updateTask, create: createTask, remove: deleteTask, bulkUpdate, bulkRemove, loading, error: tasksError, refetch } = useTasks();
+  const { tasks, update: updateTask, create: createTask, remove: deleteTask, loading, error: tasksError, refetch } = useTasks();
   const { goals } = useGoals();
   const { projects } = useProjects();
   const { decisions } = useDecisions();

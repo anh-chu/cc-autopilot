@@ -27,7 +27,7 @@ interface CreateGoalDialogProps {
   }) => void;
 }
 
-export function CreateGoalDialog({ open, onOpenChange, projects: _projects, goals: _goals, onSubmit }: CreateGoalDialogProps) {
+export function CreateGoalDialog({ open, onOpenChange, onSubmit }: CreateGoalDialogProps) {
   const [title, setTitle] = useState("");
   const [timeframe, setTimeframe] = useState("");
 

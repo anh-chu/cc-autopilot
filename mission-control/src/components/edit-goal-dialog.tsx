@@ -36,7 +36,7 @@ interface EditGoalDialogProps {
   }) => void;
 }
 
-export function EditGoalDialog({ open, onOpenChange, goal, projects: _projects, goals: _goals, onSubmit }: EditGoalDialogProps) {
+export function EditGoalDialog({ open, onOpenChange, goal, onSubmit }: EditGoalDialogProps) {
   const [title, setTitle] = useState(goal.title);
   const [timeframe, setTimeframe] = useState(goal.timeframe);
   const [status, setStatus] = useState<GoalStatus>(goal.status);

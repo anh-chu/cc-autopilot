@@ -1,14 +1,14 @@
 "use client";
 
-import { useState, useRef, useCallback } from "react";
-import { Card, CardContent } from "@/components/ui/card";
+import { useState, useRef, useCallback, useEffect } from "react";
+import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { BreadcrumbNav } from "@/components/breadcrumb-nav";
 import {
   FileText, Upload, Trash2, Loader2, File, AlertCircle,
   Folder, FolderOpen, FolderPlus, ChevronRight, ChevronDown,
-  X, Pencil, Check, Image,
+  X, Pencil, Check, Image as ImageIcon,
 } from "lucide-react";
 import { ConfirmDialog } from "@/components/confirm-dialog";
 import { cn } from "@/lib/utils";
@@ -32,11 +32,6 @@ const IMAGE_EXTS = new Set(["jpg", "jpeg", "png", "gif", "webp", "svg"]);
 function ext(name: string) { return name.split(".").pop()?.toLowerCase() ?? ""; }
 function isText(name: string) { return TEXT_EXTS.has(ext(name)); }
 function isImage(name: string) { return IMAGE_EXTS.has(ext(name)); }
-function formatBytes(b: number) {
-  if (b < 1024) return `${b} B`;
-  if (b < 1024 * 1024) return `${(b / 1024).toFixed(1)} KB`;
-  return `${(b / (1024 * 1024)).toFixed(1)} MB`;
-}
 
 async function fetchDir(dir: string): Promise<TreeNode[]> {
   const res = await fetch(`/api/wiki?dir=${encodeURIComponent(dir)}`);
@@ -96,19 +91,26 @@ export default function DocumentsPage() {
       .map((n) => (n.children ? { ...n, children: removeNode(n.children, targetPath) } : n));
   }
 
-  // Load root once
-  const loadedRef = useRef(false);
-  if (!loadedRef.current) {
-    loadedRef.current = true;
+  useEffect(() => {
+    if (rootLoaded || rootLoading) return;
+
+    let cancelled = false;
+
     (async () => {
-      if (rootLoaded || rootLoading) return;
       setRootLoading(true);
       const nodes = await fetchDir("");
+      if (cancelled) return;
       setRoots(nodes);
       setRootLoaded(true);
       setRootLoading(false);
-    })();
-  }
+    })().catch(() => {
+      if (!cancelled) setRootLoading(false);
+    });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [rootLoaded, rootLoading]);
 
   async function reloadDir(dir: string) {
     const fresh = await fetchDir(dir);
@@ -297,7 +299,7 @@ export default function DocumentsPage() {
               ? <FolderOpen className="h-4 w-4 shrink-0 text-amber-500" />
               : <Folder className="h-4 w-4 shrink-0 text-amber-500" />
             : isImage(node.name)
-            ? <Image className="h-4 w-4 shrink-0 text-green-500" />
+            ? <ImageIcon className="h-4 w-4 shrink-0 text-green-500" />
             : isText(node.name)
             ? <FileText className="h-4 w-4 shrink-0 text-blue-500" />
             : <File className="h-4 w-4 shrink-0 text-muted-foreground" />}
@@ -411,7 +413,7 @@ export default function DocumentsPage() {
           <div className="flex items-center justify-between px-4 py-2 border-b bg-muted/20 shrink-0">
             <div className="flex items-center gap-2 min-w-0">
               {isImage(openFile.name)
-                ? <Image className="h-4 w-4 shrink-0 text-green-500" />
+                ? <ImageIcon className="h-4 w-4 shrink-0 text-green-500" />
                 : isText(openFile.name)
                 ? <FileText className="h-4 w-4 shrink-0 text-blue-500" />
                 : <File className="h-4 w-4 shrink-0 text-muted-foreground" />}

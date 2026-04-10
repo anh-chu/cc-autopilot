@@ -7,7 +7,6 @@ import {
   Plus,
   ArrowLeft,
   Check,
-  Clock,
   CheckCircle2,
   Activity,
   Pause,

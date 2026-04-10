@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useMemo } from "react";
-import Link from "next/link";
 import { useDaemon } from "@/hooks/use-daemon";
 import { useActiveRuns } from "@/hooks/use-active-runs";
 import { AgentConsole } from "@/components/agent-console";
@@ -11,19 +10,11 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { Tip } from "@/components/ui/tip";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-} from "@/components/ui/dialog";
-import { Rocket, Square, Clock, CheckCircle2, XCircle, Timer, RefreshCw, Zap, AlertTriangle, Pencil, Save, X, Plus, Trash2 } from "lucide-react";
+import { Rocket, Square, Clock, CheckCircle2, XCircle, Timer, RefreshCw, Zap, Pencil, Save, X, Plus, Trash2 } from "lucide-react";
 
 function formatDuration(minutes: number): string {
   if (minutes < 1) return "< 1m";

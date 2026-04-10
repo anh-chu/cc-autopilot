@@ -9,7 +9,6 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { ConfirmDialog } from "@/components/confirm-dialog";
 import {
@@ -36,7 +35,6 @@ import {
   Rocket,
   X,
 } from "lucide-react";
-import Link from "next/link";
 
 const COLORS = [
   "#6366f1", "#8b5cf6", "#ec4899", "#ef4444",
@@ -74,8 +72,8 @@ function formatDate(iso: string) {
 
 export default function SettingsPage() {
   const router = useRouter();
-  const { workspaces, currentWorkspace, loading } = useWorkspace();
-  const { status, config, isRunning, isLoading: daemonLoading, start, stop, updateConfig } = useDaemon();
+  const { currentWorkspace, loading } = useWorkspace();
+  const { config, isRunning, isLoading: daemonLoading, start, stop, updateConfig } = useDaemon();
 
   const [name, setName] = useState("");
   const [color, setColor] = useState("#6366f1");
