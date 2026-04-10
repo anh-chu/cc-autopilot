@@ -30,9 +30,20 @@ const taskLogger = createLogger("task", { sync: true });
 
 // ─── Paths ──────────────────────────────────────────────────────────────────
 
-import { getWorkspaceDir } from "../../src/lib/paths";
+import { DATA_DIR, getWorkspaceDir } from "../../src/lib/paths";
 const WORKSPACE_DIR = getWorkspaceDir(process.env.CMC_WORKSPACE_ID ?? "default");
 const TSX_BIN = path.resolve(__dirname, "../../node_modules/.bin/tsx");
+
+function getWorkspaceEnv(workspaceId: string): Record<string, string> {
+  try {
+    const raw = readFileSync(path.join(DATA_DIR, "workspaces.json"), "utf-8");
+    const data = JSON.parse(raw) as { workspaces: Array<{ id: string; settings?: { envVars?: Record<string, string> } }> };
+    const ws = data.workspaces.find(w => w.id === workspaceId);
+    return ws?.settings?.envVars ?? {};
+  } catch {
+    return {};
+  }
+}
 const ACTIVE_RUNS_FILE = path.join(WORKSPACE_DIR, "active-runs.json");
 const STREAMS_DIR = path.join(WORKSPACE_DIR, "agent-streams");
 const TASKS_FILE = path.join(WORKSPACE_DIR, "tasks.json");
@@ -1075,6 +1086,7 @@ This is session ${continuationIndex + 1}. Previous session(s) ran out of turns o
       cwd: WORKSPACE_DIR,
       streamFile,
       resumeSessionId: decisionResumeSessionId ?? undefined,
+      env: getWorkspaceEnv(process.env.CMC_WORKSPACE_ID ?? "default"),
       onSessionId: (sid) => {
         capturedSessionId = sid;
       },
@@ -1133,6 +1145,7 @@ This is session ${continuationIndex + 1}. Previous session(s) ran out of turns o
         backend,
         cwd: WORKSPACE_DIR,
         streamFile,
+        env: getWorkspaceEnv(process.env.CMC_WORKSPACE_ID ?? "default"),
         onSessionId: (sid) => { capturedSessionId = sid; },
         onSpawned: (pid) => {
           spawnedPid = pid;

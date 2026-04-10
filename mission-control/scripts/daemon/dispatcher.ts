@@ -11,6 +11,17 @@ import { DATA_DIR, getWorkspaceDir } from "../../src/lib/paths";
 const TSX_BIN = path.resolve(__dirname, "../../node_modules/.bin/tsx");
 const MAX_RETRY_DELAY_MINUTES = 60;
 
+function getWorkspaceEnv(workspaceId: string): Record<string, string> {
+  try {
+    const raw = readFileSync(path.join(DATA_DIR, "workspaces.json"), "utf-8");
+    const data = JSON.parse(raw) as { workspaces: Array<{ id: string; settings?: { envVars?: Record<string, string> } }> };
+    const ws = data.workspaces.find(w => w.id === workspaceId);
+    return ws?.settings?.envVars ?? {};
+  } catch {
+    return {};
+  }
+}
+
 // ─── Retry Queue ────────────────────────────────────────────────────────────
 
 interface RetryEntry {
@@ -331,6 +342,7 @@ export class Dispatcher {
         allowedTools: this.config.execution.allowedTools,
         cwd: getWorkspaceDir(this.workspaceId),
         resumeSessionId: sessionId,
+        env: getWorkspaceEnv(this.workspaceId),
         // Persist the new session ID in case the resume itself gets interrupted
         onSessionId: (newId) => persistSessionRecord(taskId, agentId, newId),
       });
@@ -613,6 +625,7 @@ export class Dispatcher {
         skipPermissions: this.config.execution.skipPermissions,
         allowedTools: this.config.execution.allowedTools,
         cwd: getWorkspaceDir(this.workspaceId),
+        env: getWorkspaceEnv(this.workspaceId),
       });
 
       // Parse cost/usage from Claude Code output

@@ -113,6 +113,7 @@ export interface SpawnOptions {
   onSpawned?: (pid: number) => void;
   onSessionId?: (sessionId: string) => void;
   resumeSessionId?: string;
+  env?: Record<string, string>;
 }
 
 export interface SpawnResult {

@@ -34,6 +34,7 @@ import {
   FileJson,
   Square,
   Rocket,
+  X,
 } from "lucide-react";
 import Link from "next/link";
 
@@ -87,6 +88,11 @@ export default function SettingsPage() {
   const [daemonSaving, setDaemonSaving] = useState(false);
   const [daemonSaved, setDaemonSaved] = useState(false);
 
+  const [envVars, setEnvVars] = useState<Array<{ key: string; value: string }>>([]);
+  const [envSaving, setEnvSaving] = useState(false);
+  const [envSaved, setEnvSaved] = useState(false);
+  const [revealedEnvIdx, setRevealedEnvIdx] = useState<Set<number>>(new Set());
+
   const [checkpoints, setCheckpoints] = useState<CheckpointMeta[]>([]);
   const [cpLoading, setCpLoading] = useState(true);
   const [cpBusy, setCpBusy] = useState(false);
@@ -101,6 +107,8 @@ export default function SettingsPage() {
     if (currentWorkspace) {
       setName(currentWorkspace.name);
       setColor(currentWorkspace.color);
+      const vars = currentWorkspace.settings?.envVars ?? {};
+      setEnvVars(Object.entries(vars).map(([key, value]) => ({ key, value })));
     }
   }, [currentWorkspace]);
 
@@ -151,6 +159,29 @@ export default function SettingsPage() {
     if (!currentWorkspace) return;
     await fetch(`/api/workspaces?id=${currentWorkspace.id}&confirm=true`, { method: "DELETE" });
     window.location.href = "/";
+  };
+
+  const handleEnvSave = async () => {
+    if (!currentWorkspace) return;
+    setEnvSaving(true);
+    try {
+      const envVarsObj: Record<string, string> = {};
+      for (const { key, value } of envVars) {
+        if (key.trim()) envVarsObj[key.trim()] = value;
+      }
+      await fetch("/api/workspaces", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          id: currentWorkspace.id,
+          settings: { envVars: envVarsObj },
+        }),
+      });
+      setEnvSaved(true);
+      setTimeout(() => setEnvSaved(false), 2000);
+    } finally {
+      setEnvSaving(false);
+    }
   };
 
   const handleDaemonSave = async () => {
@@ -322,6 +353,71 @@ export default function SettingsPage() {
             <Button onClick={handleSave} disabled={saving}>
               {saved ? "Saved" : saving ? "Saving..." : "Save changes"}
             </Button>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Environment Variables</CardTitle>
+            <CardDescription>
+              Key-value pairs injected into every agent subprocess in this workspace.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="space-y-2">
+              {envVars.map((entry, i) => (
+                <div key={i} className="flex items-center gap-2">
+                  <Input
+                    placeholder="KEY"
+                    value={entry.key}
+                    onChange={e => {
+                      const next = [...envVars];
+                      next[i] = { ...next[i], key: e.target.value };
+                      setEnvVars(next);
+                    }}
+                    className="font-mono text-xs w-40 shrink-0"
+                  />
+                  <span className="text-muted-foreground text-xs">=</span>
+                  <Input
+                    placeholder="value"
+                    type={revealedEnvIdx.has(i) ? "text" : "password"}
+                    value={entry.value}
+                    onChange={e => {
+                      const next = [...envVars];
+                      next[i] = { ...next[i], value: e.target.value };
+                      setEnvVars(next);
+                    }}
+                    onMouseEnter={() => setRevealedEnvIdx(prev => new Set(prev).add(i))}
+                    onMouseLeave={() => setRevealedEnvIdx(prev => { const s = new Set(prev); s.delete(i); return s; })}
+                    className="font-mono text-xs flex-1"
+                  />
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    className="h-7 w-7 p-0 text-muted-foreground hover:text-destructive"
+                    onClick={() => setEnvVars(envVars.filter((_, j) => j !== i))}
+                  >
+                    <X className="h-3.5 w-3.5" />
+                  </Button>
+                </div>
+              ))}
+              {envVars.length === 0 && (
+                <p className="text-xs text-muted-foreground">No environment variables set.</p>
+              )}
+            </div>
+            <div className="flex items-center gap-3">
+              <Button
+                size="sm"
+                variant="outline"
+                className="gap-1.5 h-7 text-xs"
+                onClick={() => setEnvVars([...envVars, { key: "", value: "" }])}
+              >
+                <Plus className="h-3 w-3" /> Add variable
+              </Button>
+              <Button size="sm" onClick={() => void handleEnvSave()} disabled={envSaving}>
+                {envSaved ? "Saved" : envSaving ? "Saving..." : "Save"}
+              </Button>
+            </div>
           </CardContent>
         </Card>
 

@@ -369,7 +369,7 @@ export class AgentRunner {
       }
     }
 
-    const spawnEnv: NodeJS.ProcessEnv = { ...process.env };
+    const spawnEnv: NodeJS.ProcessEnv = { ...process.env, ...opts.env };
     if (opts.agentTeams) spawnEnv.CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS = "1";
 
     logger.debug("runner", `Spawning [${backend}]: ${resolved.bin} ${resolved.prefixArgs.length ? resolved.prefixArgs[0] + " " : ""}-p "<prompt>" --max-turns ${opts.maxTurns}`);

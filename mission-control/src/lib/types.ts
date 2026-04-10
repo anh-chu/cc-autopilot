@@ -430,6 +430,7 @@ export function valuesFromQuadrant(quadrant: EisenhowerQuadrant): { importance: 
 
 export interface WorkspaceSettings {
   daemonEnabled?: boolean; // defaults to true if absent
+  envVars?: Record<string, string>; // injected into agent subprocess env
 }
 
 export interface Workspace {
