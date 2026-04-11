@@ -1,6 +1,6 @@
 {
   "version": "1.0.0",
-  "lastScanned": 1775749748021,
+  "lastScanned": 1775845786200,
   "projectRoot": "/home/sil/ccmc",
   "techStack": {
     "languages": [],
@@ -38,27 +38,27 @@
       "path": "commands",
       "purpose": null,
       "fileCount": 0,
-      "lastAccessed": 1775749748015,
+      "lastAccessed": 1775845786180,
       "keyFiles": []
     },
     "mission-control": {
       "path": "mission-control",
       "purpose": null,
-      "fileCount": 18,
-      "lastAccessed": 1775749748018,
+      "fileCount": 19,
+      "lastAccessed": 1775845786186,
       "keyFiles": [
+        "CLAUDE.md",
         "README.md",
         "ecosystem.config.js",
         "eslint.config.mjs",
-        "next-env.d.ts",
-        "next.config.ts"
+        "next-env.d.ts"
       ]
     },
     "scripts": {
       "path": "scripts",
       "purpose": "Build/utility scripts",
       "fileCount": 2,
-      "lastAccessed": 1775749748018,
+      "lastAccessed": 1775845786189,
       "keyFiles": [
         "check-domains.mjs",
         "start-mc-test2.js"
@@ -68,7 +68,7 @@
       "path": "state",
       "purpose": null,
       "fileCount": 1,
-      "lastAccessed": 1775749748019,
+      "lastAccessed": 1775845786190,
       "keyFiles": [
         "cancel-signal-state.json"
       ]
@@ -77,156 +77,92 @@
       "path": "mission-control/__tests__",
       "purpose": "Test files",
       "fileCount": 7,
-      "lastAccessed": 1775749748020,
+      "lastAccessed": 1775845786197,
       "keyFiles": [
         "daemon.test.ts",
         "data.test.ts",
         "global-setup.ts"
-      ]
-    },
-    "mission-control/docs": {
-      "path": "mission-control/docs",
-      "purpose": "Documentation",
-      "fileCount": 2,
-      "lastAccessed": 1775749748020,
-      "keyFiles": [
-        "demo.gif",
-        "rocket.svg"
       ]
     }
   },
   "hotPaths": [
     {
       "path": "mission-control/scripts/daemon/run-task.ts",
+      "accessCount": 13,
+      "lastAccessed": 1775847496847,
+      "type": "file"
+    },
+    {
+      "path": "mission-control/src/app/settings/page.tsx",
+      "accessCount": 9,
+      "lastAccessed": 1775848590473,
+      "type": "file"
+    },
+    {
+      "path": "mission-control/scripts/daemon/run-brain-dump-triage.ts",
+      "accessCount": 8,
+      "lastAccessed": 1775847487058,
+      "type": "file"
+    },
+    {
+      "path": "mission-control/scripts/daemon/dispatcher.ts",
+      "accessCount": 7,
+      "lastAccessed": 1775847476896,
+      "type": "file"
+    },
+    {
+      "path": "mission-control",
       "accessCount": 6,
-      "lastAccessed": 1775760247602,
-      "type": "file"
-    },
-    {
-      "path": "mission-control/src/app/priority-matrix/page.tsx",
-      "accessCount": 5,
-      "lastAccessed": 1775751497483,
-      "type": "file"
-    },
-    {
-      "path": "mission-control/src/app/status-board/page.tsx",
-      "accessCount": 5,
-      "lastAccessed": 1775751499081,
-      "type": "file"
-    },
-    {
-      "path": "mission-control/src/app/api/emergency-stop/route.ts",
-      "accessCount": 4,
-      "lastAccessed": 1775751492134,
-      "type": "file"
-    },
-    {
-      "path": "mission-control/src/components/app-sidebar.tsx",
-      "accessCount": 4,
-      "lastAccessed": 1775808990347,
-      "type": "file"
-    },
-    {
-      "path": "mission-control/scripts/daemon/run-task-comment.ts",
-      "accessCount": 3,
-      "lastAccessed": 1775760257252,
-      "type": "file"
+      "lastAccessed": 1775847311312,
+      "type": "directory"
     },
     {
       "path": "mission-control/scripts/daemon/run-inbox-respond.ts",
-      "accessCount": 3,
-      "lastAccessed": 1775760279547,
+      "accessCount": 6,
+      "lastAccessed": 1775847484437,
       "type": "file"
     },
     {
-      "path": "mission-control/src/lib/types.ts",
-      "accessCount": 3,
-      "lastAccessed": 1775808854046,
+      "path": "mission-control/scripts/daemon/runner.ts",
+      "accessCount": 5,
+      "lastAccessed": 1775847317992,
       "type": "file"
     },
     {
-      "path": "mission-control/src/lib/paths.ts",
-      "accessCount": 3,
-      "lastAccessed": 1775808933134,
-      "type": "file"
-    },
-    {
-      "path": "mission-control/src/components/agent-console.tsx",
-      "accessCount": 2,
-      "lastAccessed": 1775760222071,
-      "type": "file"
-    },
-    {
-      "path": "mission-control/src/app/api/upload/route.ts",
-      "accessCount": 2,
-      "lastAccessed": 1775808891614,
-      "type": "file"
-    },
-    {
-      "path": "mission-control/src",
-      "accessCount": 1,
-      "lastAccessed": 1775760197404,
+      "path": "mission-control/scripts/daemon/types.ts",
+      "accessCount": 4,
+      "lastAccessed": 1775847317752,
       "type": "directory"
     },
     {
       "path": "mission-control/scripts/daemon",
-      "accessCount": 1,
-      "lastAccessed": 1775760260862,
+      "accessCount": 3,
+      "lastAccessed": 1775847314419,
       "type": "directory"
     },
     {
-      "path": "mission-control/.codesight/routes.md",
-      "accessCount": 1,
-      "lastAccessed": 1775808838304,
+      "path": "mission-control/src/lib/types.ts",
+      "accessCount": 3,
+      "lastAccessed": 1775847402564,
       "type": "file"
     },
     {
-      "path": "mission-control/src/components/sidebar-nav.tsx",
+      "path": "mission-control/src/lib/data.ts",
       "accessCount": 1,
-      "lastAccessed": 1775808842675,
+      "lastAccessed": 1775847305354,
       "type": "file"
     },
     {
-      "path": "mission-control/src/app/api/sidebar/route.ts",
+      "path": "mission-control/src/app/api/workspaces/route.ts",
       "accessCount": 1,
-      "lastAccessed": 1775808856920,
+      "lastAccessed": 1775847348404,
       "type": "file"
     },
     {
-      "path": "mission-control/.codesight/CODESIGHT.md",
+      "path": "mission-control/src/lib/paths.ts",
       "accessCount": 1,
-      "lastAccessed": 1775808873187,
-      "type": "file"
-    },
-    {
-      "path": "",
-      "accessCount": 1,
-      "lastAccessed": 1775808898098,
+      "lastAccessed": 1775847370465,
       "type": "directory"
-    },
-    {
-      "path": "mission-control/src/app/brain-dump/page.tsx",
-      "accessCount": 1,
-      "lastAccessed": 1775808898132,
-      "type": "file"
-    },
-    {
-      "path": "mission-control/src/app/api/wiki/route.ts",
-      "accessCount": 1,
-      "lastAccessed": 1775808944493,
-      "type": "file"
-    },
-    {
-      "path": "mission-control/src/app/api/wiki/upload/route.ts",
-      "accessCount": 1,
-      "lastAccessed": 1775808953591,
-      "type": "file"
-    },
-    {
-      "path": "mission-control/src/app/documents/page.tsx",
-      "accessCount": 1,
-      "lastAccessed": 1775808982608,
-      "type": "file"
     }
   ],
   "userDirectives": []

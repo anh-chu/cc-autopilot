@@ -1,6 +1,6 @@
 {
   "version": "1.0.0",
-  "lastScanned": 1775755875552,
+  "lastScanned": 1775851936591,
   "projectRoot": "/home/sil/ccmc/mission-control",
   "techStack": {
     "languages": [
@@ -94,7 +94,7 @@
       "path": "__tests__",
       "purpose": "Test files",
       "fileCount": 7,
-      "lastAccessed": 1775755875535,
+      "lastAccessed": 1775851936564,
       "keyFiles": [
         "daemon.test.ts",
         "data.test.ts",
@@ -107,14 +107,14 @@
       "path": "artifacts",
       "purpose": null,
       "fileCount": 0,
-      "lastAccessed": 1775755875539,
+      "lastAccessed": 1775851936565,
       "keyFiles": []
     },
     "docs": {
       "path": "docs",
       "purpose": "Documentation",
       "fileCount": 2,
-      "lastAccessed": 1775755875543,
+      "lastAccessed": 1775851936573,
       "keyFiles": [
         "demo.gif",
         "rocket.svg"
@@ -124,14 +124,14 @@
       "path": "public",
       "purpose": "Public files",
       "fileCount": 0,
-      "lastAccessed": 1775755875547,
+      "lastAccessed": 1775851936575,
       "keyFiles": []
     },
     "scripts": {
       "path": "scripts",
       "purpose": "Build/utility scripts",
       "fileCount": 7,
-      "lastAccessed": 1775755875547,
+      "lastAccessed": 1775851936575,
       "keyFiles": [
         "cleanup-uploads.ts",
         "create-launch-project.js",
@@ -144,7 +144,7 @@
       "path": "src",
       "purpose": "Source code",
       "fileCount": 3,
-      "lastAccessed": 1775755875548,
+      "lastAccessed": 1775851936576,
       "keyFiles": [
         "instrumentation.node.ts",
         "instrumentation.ts",
@@ -155,7 +155,7 @@
       "path": "src/app",
       "purpose": "Application code",
       "fileCount": 8,
-      "lastAccessed": 1775755875549,
+      "lastAccessed": 1775851936584,
       "keyFiles": [
         "error.tsx",
         "global-error.tsx",
@@ -166,7 +166,7 @@
       "path": "src/components",
       "purpose": "UI components",
       "fileCount": 35,
-      "lastAccessed": 1775755875550,
+      "lastAccessed": 1775851936588,
       "keyFiles": [
         "agent-console.tsx",
         "app-sidebar.tsx",
@@ -177,7 +177,7 @@
       "path": "src/lib",
       "purpose": "Library code",
       "fileCount": 14,
-      "lastAccessed": 1775755875550,
+      "lastAccessed": 1775851936588,
       "keyFiles": [
         "agent-icons.ts",
         "api-client.ts",
