@@ -2,7 +2,7 @@
 
 > **Navigation aid.** Component inventory and prop signatures extracted via AST. Read the source files before adding props or modifying component logic.
 
-**81 components** (react)
+**79 components** (react)
 
 ## Client Components
 
@@ -84,8 +84,6 @@
 - **PriorityMatrixLoading** — `mission-control/src/app/priority-matrix/loading.tsx`
 - **ProjectsDetailPage** — `mission-control/src/app/projects/[id]/page.tsx`
 - **StatusBoardLoading** — `mission-control/src/app/status-board/loading.tsx`
-- **AgentNotFound** — `mission-control/src/app/team/[role]/not-found.tsx`
-- **TeamMemberRedirect** — props: params — `mission-control/src/app/team/[role]/page.tsx`
 - **VenturesDetailPage** — `mission-control/src/app/ventures/[id]/page.tsx`
 - **EmptyState** — props: icon, title, description, actionLabel, onAction, className, compact — `mission-control/src/components/empty-state.tsx`
 - **ErrorState** — props: message, onRetry, className, compact — `mission-control/src/components/error-state.tsx`

@@ -36,8 +36,6 @@
 - **SkillsPage** [client] — `mission-control/src/app/skills/page.tsx`
 - **StatusBoardLoading** — `mission-control/src/app/status-board/loading.tsx`
 - **KanbanPage** [client] — `mission-control/src/app/status-board/page.tsx`
-- **AgentNotFound** — `mission-control/src/app/team/[role]/not-found.tsx`
-- **TeamMemberRedirect** — props: params — `mission-control/src/app/team/[role]/page.tsx`
 - **VenturesDetailPage** — `mission-control/src/app/ventures/[id]/page.tsx`
 - **ProjectsPage** [client] — `mission-control/src/app/ventures/page.tsx`
 - **AgentConsole** [client] — props: runId, onStop — `mission-control/src/components/agent-console.tsx`

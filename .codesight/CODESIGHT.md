@@ -2,8 +2,9 @@
 
 > **Stack:** next-app | none | react | typescript
 
-> 94 routes | 0 models | 81 components | 36 lib files | 21 env vars | 3 middleware | 0% test coverage
-> **Token savings:** this file is ~7,200 tokens. Without it, AI exploration would cost ~96,800 tokens. **Saves ~89,600 tokens per conversation.**
+> 94 routes | 0 models | 79 components | 36 lib files | 21 env vars | 3 middleware | 0% test coverage
+> **Token savings:** this file is ~7,200 tokens. Without it, AI exploration would cost ~96,100 tokens. **Saves ~89,000 tokens per conversation.**
+> **Last scanned:** 2026-04-17 20:54 — re-run after significant changes
 
 ---
 
@@ -110,8 +111,6 @@
 - **SkillsPage** [client] — `mission-control/src/app/skills/page.tsx`
 - **StatusBoardLoading** — `mission-control/src/app/status-board/loading.tsx`
 - **KanbanPage** [client] — `mission-control/src/app/status-board/page.tsx`
-- **AgentNotFound** — `mission-control/src/app/team/[role]/not-found.tsx`
-- **TeamMemberRedirect** — props: params — `mission-control/src/app/team/[role]/page.tsx`
 - **VenturesDetailPage** — `mission-control/src/app/ventures/[id]/page.tsx`
 - **ProjectsPage** [client] — `mission-control/src/app/ventures/page.tsx`
 - **AgentConsole** [client] — props: runId, onStop — `mission-control/src/components/agent-console.tsx`
