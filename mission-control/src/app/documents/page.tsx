@@ -477,12 +477,27 @@ export default function DocumentsPage() {
 				throw new Error(e.error ?? "Failed to initialize wiki");
 			}
 
-			const data: { pluginStatus?: "installed" | "already-installed" } =
-				await res.json();
-			setRunMessage(
+			const data: {
+				pluginStatus?: "installed" | "already-installed";
+				pluginUpdated?: boolean;
+				bootstrapStatus?: "bootstrapped" | "already-initialized";
+				pluginVersion?: string | null;
+			} = await res.json();
+			const pluginPart =
 				data.pluginStatus === "installed"
-					? "Wiki initialized and plugin installed."
-					: "Wiki initialized, plugin already installed.",
+					? "plugin installed"
+					: data.pluginUpdated
+						? "plugin updated"
+						: "plugin ready";
+			const bootstrapPart =
+				data.bootstrapStatus === "bootstrapped"
+					? "wiki bootstrapped from plugin"
+					: "wiki already initialized";
+			const versionPart = data.pluginVersion ? `v${data.pluginVersion}` : "";
+			setRunMessage(
+				["Wiki synced", pluginPart, bootstrapPart, versionPart]
+					.filter(Boolean)
+					.join(" · "),
 			);
 			await loadPrompt();
 			await loadRuns();
@@ -942,7 +957,7 @@ export default function DocumentsPage() {
 							{initingWiki ? (
 								<Loader2 className="h-3 w-3 animate-spin" />
 							) : null}
-							Init
+							Init/Sync
 						</Button>
 
 						<Button
@@ -976,8 +991,8 @@ export default function DocumentsPage() {
 
 				<div className="flex-1 overflow-auto p-3 min-h-0 space-y-4">
 					<p className="text-[11px] text-muted-foreground">
-						Init Wiki: one-time setup. Run update: process docs and update wiki
-						pages.
+						Init/Sync keeps llm-wiki-pm plugin current and lets plugin own wiki
+						scaffold. Run processes docs and updates pages.
 					</p>
 					{promptError && (
 						<div className="rounded-md border border-destructive/30 bg-destructive/10 px-3 py-2 text-xs text-destructive">

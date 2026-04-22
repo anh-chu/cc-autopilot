@@ -10,7 +10,7 @@ import {
 	writeFile,
 } from "fs/promises";
 import path from "path";
-import { DATA_DIR, getWikiDir } from "./paths";
+import { DATA_DIR, getDefaultWikiDir, getWikiDir, getWikiPathFile } from "./paths";
 import type {
 	ActiveRunsFile,
 	ActivityLogFile,
@@ -144,191 +144,23 @@ export async function ensureWorkspaceDir(workspaceId: string): Promise<void> {
 	await ensureDocMaintainerAgentForWorkspace(workspaceId);
 }
 
-// ─── Wiki bootstrap (llm-wiki-pm layout) ────────────────────────────────────
-
-const WIKI_SCHEMA_TEMPLATE = `# Wiki Schema
-
-## Domain
-
-Knowledge base. Scope:
-- Competitive landscape
-- Customer relations
-- Strategy and roadmap
-- Internal org (people, teams, decisions)
-- AI market intelligence
-
-Out of scope: code specifics.
-
-## Conventions
-
-- Filenames: lowercase, hyphens, no spaces
-- Every wiki page starts with YAML frontmatter
-- \`[[wikilinks]]\` between pages, minimum 2 outbound per page
-- Bump \`updated:\` date on any edit
-- Every new page → add to \`index.md\` under correct section
-- Every action → append to \`log.md\`
-
-## Frontmatter
-
-\`\`\`yaml
----
-title: Page Title
-created: YYYY-MM-DD
-updated: YYYY-MM-DD
-type: entity | concept | comparison | query | summary
-tags: [from taxonomy below]
-sources: []
-contradictions: []
-supersedes: []
-superseded_by: null
-private: false
-confidence: verified
----
-\`\`\`
-
-## Tag Taxonomy
-
-Every tag on a page must appear here. Add new tags here FIRST, then use.
-
-### Entities
-- \`company\`, external org
-- \`product\`, named product or SKU
-- \`person\`, named individual
-- \`team\`, org unit
-- \`model\`, AI model
-- \`vendor\`, tool/platform provider
-
-### Domains
-- \`competitive\`, rival positioning
-- \`customer\`, named account or persona
-- \`strategy\`, direction, positioning
-- \`roadmap\`, planned or shipped work
-- \`ai\`, AI features, market, models
-- \`pricing\`, pricing, packaging
-- \`gtm\`, sales, marketing, enablement
-
-### Meta
-- \`comparison\`, side-by-side
-- \`timeline\`, chronological synthesis
-- \`decision\`, recorded decision + rationale
-- \`risk\`, identified risk
-- \`question\`, open question
-
-Rule: tag sprawl kills wikis. Max ~40 tags. Consolidate quarterly.
-
-## Page Thresholds
-
-- **Create** when entity/concept appears in 2+ sources OR is central to one source
-- **Update** existing page for new info on covered ground
-- **Don't create** for passing mentions or out-of-scope items
-- **Archive** when fully superseded, move to \`_archive/\`, remove from index
-`;
-
-const WIKI_INDEX_TEMPLATE = `# Wiki Index
-
-> Content catalog. Every wiki page under its type with a one-line summary.
-> Read this first to find relevant pages for any query.
-> Last updated: YYYY-MM-DD | Total pages: 0
-
-## Entities
-<!-- Alphabetical. Companies, products, people, teams, models, vendors. -->
-
-## Concepts
-<!-- Strategies, themes, frameworks, ongoing bets. -->
-
-## Comparisons
-<!-- Side-by-side analyses. -->
-
-## Queries
-<!-- Filed Q&A worth keeping. -->
-`;
-
-const WIKI_LOG_TEMPLATE = `# Wiki Log
-
-> Chronological record of all wiki actions. Append-only.
-> Format: \`## [YYYY-MM-DD] action | subject\`
-> Actions: ingest, update, query, lint, create, archive, delete
-> Rotate when > 500 entries: rename to \`log-YYYY.md\`, start fresh.
-`;
-
-const WIKI_OVERVIEW_TEMPLATE = `---
-title: Overview
-created: YYYY-MM-DD
-updated: YYYY-MM-DD
-type: summary
-tags: [strategy]
-sources: []
----
-
-# Wiki Overview
-
-> Evolving synthesis of the domain. Single entry point. Keep under 200 lines.
-> Update whenever an ingest materially shifts understanding.
-
-## Current State
-
-_What do we know right now? Short paragraphs per theme._
-
-## Active Bets
-
-_Strategic bets in flight. One line each, link to concept page._
-
-## Open Questions
-
-_Things worth investigating. Link to query pages once answered._
-
-## Recent Shifts
-
-_What changed in the last 30 days. Link to log entries or updated pages._
-
-## Key Entities
-
-_Top 10-20 most-linked pages. Quick navigation._
-`;
-
-const WIKI_SUBDIRS = [
-	"raw/articles",
-	"raw/papers",
-	"raw/transcripts",
-	"raw/internal",
-	"raw/assets",
-	"entities",
-	"concepts",
-	"comparisons",
-	"queries",
-	"_archive",
-];
-
+// ─── Wiki bootstrap (plugin-first) ──────────────────────────────────────────
+// App owns directory existence only. llm-wiki-pm plugin owns wiki scaffold.
+// v2.5.0: writes .wiki-path sentinel so plugin discovers wiki dir on SessionStart.
 export async function initWikiDir(workspaceId: string): Promise<void> {
 	const wikiDir = getWikiDir(workspaceId);
-
-	// Idempotent: already initialized if SCHEMA.md exists
-	if (existsSync(path.join(wikiDir, "SCHEMA.md"))) return;
-
 	await mkdir(wikiDir, { recursive: true });
-	await Promise.all(
-		WIKI_SUBDIRS.map((d) => mkdir(path.join(wikiDir, d), { recursive: true })),
-	);
+	await mkdir(path.join(wikiDir, ".runs"), { recursive: true });
 
-	const today = new Date().toISOString().slice(0, 10);
-	const logContent =
-		WIKI_LOG_TEMPLATE +
-		`\n## [${today}] create | Wiki initialized\n- Structure scaffolded\n`;
-
-	await Promise.all([
-		writeFile(path.join(wikiDir, "SCHEMA.md"), WIKI_SCHEMA_TEMPLATE, "utf-8"),
-		writeFile(
-			path.join(wikiDir, "index.md"),
-			WIKI_INDEX_TEMPLATE.replace(/YYYY-MM-DD/g, today),
-			"utf-8",
-		),
-		writeFile(path.join(wikiDir, "log.md"), logContent, "utf-8"),
-		writeFile(
-			path.join(wikiDir, "overview.md"),
-			WIKI_OVERVIEW_TEMPLATE.replace(/YYYY-MM-DD/g, today),
-			"utf-8",
-		),
-	]);
+	// Write .wiki-path sentinel for llm-wiki-pm v2.5.0 SessionStart discovery.
+	// Use getDefaultWikiDir to avoid circular read of the sentinel itself.
+	const sentinelPath = getWikiPathFile(workspaceId);
+	const defaultDir = getDefaultWikiDir(workspaceId);
+	try {
+		await writeFile(sentinelPath, `${wikiDir !== defaultDir ? wikiDir : defaultDir}\n`, "utf-8");
+	} catch {
+		// non-fatal: plugin falls back to WIKI_PATH env var
+	}
 }
 
 export function getCheckpointsDir(): string {

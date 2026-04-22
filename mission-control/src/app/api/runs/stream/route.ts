@@ -132,7 +132,7 @@ export async function GET(request: NextRequest) {
       pollTimer = setInterval(() => {
         sendNewContent();
         checkRunStatus();
-      }, 300);
+      }, 1000);
 
       // Also try fs.watch for faster response (best-effort)
       if (existsSync(resolvedPath)) {

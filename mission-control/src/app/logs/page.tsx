@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { useActiveRuns } from "@/hooks/use-active-runs";
+import { useActiveRunsContext as useActiveRuns } from "@/providers/active-runs-provider";
 import { apiFetch } from "@/lib/api-client";
 import { Radio, Pause, Play } from "lucide-react";
 

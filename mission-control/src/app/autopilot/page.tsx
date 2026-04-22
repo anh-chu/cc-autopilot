@@ -2,7 +2,7 @@
 
 import { useState, useMemo } from "react";
 import { useDaemon } from "@/hooks/use-daemon";
-import { useActiveRuns } from "@/hooks/use-active-runs";
+import { useActiveRunsContext as useActiveRuns } from "@/providers/active-runs-provider";
 import { AgentConsole } from "@/components/agent-console";
 import { BreadcrumbNav } from "@/components/breadcrumb-nav";
 import { ErrorState } from "@/components/error-state";

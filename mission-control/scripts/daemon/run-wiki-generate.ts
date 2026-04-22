@@ -28,7 +28,10 @@ import {
 	initWikiDir,
 } from "../../src/lib/data";
 import { getWikiDir, getWorkspaceDir } from "../../src/lib/paths";
-import { ensureWikiPluginInstalledDetailed } from "../../src/lib/wiki-plugin";
+import {
+	ensureWikiBootstrappedFromPlugin,
+	ensureWikiPluginInstalledDetailed,
+} from "../../src/lib/wiki-plugin";
 import { logger } from "./logger";
 import { AgentRunner } from "./runner";
 
@@ -91,6 +94,13 @@ export interface WikiRunRecord {
 	agentId: string;
 	model?: string;
 	pluginStatus?: "installed" | "already-installed" | "missing";
+	pluginVersion?: string | null;
+	pluginUpdated?: boolean;
+	bootstrapStatus?: "bootstrapped" | "already-initialized";
+	/** v2.5.0: lock file path written by plugin after bootstrap/reconcile */
+	lockFile?: string | null;
+	/** v2.5.0: coverage report path written by plugin after lint */
+	coverageReport?: string | null;
 	streamFile?: string;
 	startedAt: string;
 	completedAt: string | null;
@@ -200,6 +210,8 @@ async function runWithSdk(prompt: string, pluginPath: string): Promise<number> {
 			env: {
 				...process.env,
 				WIKI_PATH: wikiDir,
+				WIKI_LOCK_PATH: path.join(wikiDir, ".wiki-lock"),
+				WIKI_COVERAGE_PATH: path.join(wikiDir, ".coverage.json"),
 			},
 		},
 	})) {
@@ -221,7 +233,11 @@ async function runWithCliFallback(prompt: string): Promise<number> {
 		skipPermissions: true,
 		cwd: wikiDir,
 		streamFile,
-		env: { WIKI_PATH: wikiDir },
+		env: {
+			WIKI_PATH: wikiDir,
+			WIKI_LOCK_PATH: path.join(wikiDir, ".wiki-lock"),
+			WIKI_COVERAGE_PATH: path.join(wikiDir, ".coverage.json"),
+		},
 	});
 	return result.exitCode ?? 1;
 }
@@ -260,9 +276,22 @@ async function main(): Promise<void> {
 
 	let pluginPath = "";
 	try {
-		const plugin = ensureWikiPluginInstalledDetailed(wikiDir);
+		const plugin = ensureWikiPluginInstalledDetailed(workspaceDir, {
+			update: true,
+		});
 		record.pluginStatus = plugin.status;
+		record.pluginVersion = plugin.version;
+		record.pluginUpdated = plugin.updated;
 		pluginPath = plugin.installPath;
+		const bootstrap = ensureWikiBootstrappedFromPlugin(
+			wikiDir,
+			pluginPath,
+			`Workspace ${workspaceId}`,
+			{ workspaceDir },
+		);
+		record.bootstrapStatus = bootstrap.status;
+		record.lockFile = bootstrap.lockFile ?? null;
+		record.coverageReport = bootstrap.coverageReport ?? null;
 		writeRun(record);
 	} catch (err) {
 		record.status = "failed";

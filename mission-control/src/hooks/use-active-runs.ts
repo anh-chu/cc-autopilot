@@ -5,7 +5,7 @@ import type { ActiveRun, DecisionItem, ProjectRun } from "@/lib/types";
 import { showSuccess, showError } from "@/lib/toast";
 import { apiFetch } from "@/lib/api-client";
 
-const POLL_INTERVAL = 3000; // 3 seconds
+const POLL_INTERVAL = 5000; // 5 seconds
 
 export function useActiveRuns() {
   const [runs, setRuns] = useState<ActiveRun[]>([]);
@@ -76,8 +76,27 @@ export function useActiveRuns() {
 
   useEffect(() => {
     fetchRuns();
-    const interval = setInterval(fetchRuns, POLL_INTERVAL);
-    return () => clearInterval(interval);
+
+    const interval = setInterval(() => {
+      if (document.visibilityState === "visible") {
+        void fetchRuns();
+      }
+    }, POLL_INTERVAL);
+
+    const onVisible = () => {
+      if (document.visibilityState === "visible") {
+        void fetchRuns();
+      }
+    };
+
+    document.addEventListener("visibilitychange", onVisible);
+    window.addEventListener("focus", onVisible);
+
+    return () => {
+      clearInterval(interval);
+      document.removeEventListener("visibilitychange", onVisible);
+      window.removeEventListener("focus", onVisible);
+    };
   }, [fetchRuns]);
 
   // Derived state
