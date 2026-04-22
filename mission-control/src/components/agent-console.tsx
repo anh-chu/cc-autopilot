@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useAgentStream, type StreamLine } from "@/hooks/use-agent-stream";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -53,6 +53,139 @@ type ContentBlock =
 	| ToolResultBlock
 	| ThinkingBlock
 	| { type: string; [key: string]: unknown };
+
+interface ThinkingDisplayLine extends StreamLine {
+	type: "merged_thinking";
+	thinking: string;
+}
+
+function getThinkingFromBlock(block: ContentBlock): string {
+	if (block.type !== "thinking") return "";
+	return (
+		(typeof (block as ThinkingBlock).thinking === "string"
+			? (block as ThinkingBlock).thinking
+			: typeof (block as ThinkingBlock).text === "string"
+				? (block as ThinkingBlock).text
+				: "") ?? ""
+	);
+}
+
+function ThinkingEntry({ thinking }: { thinking: string }) {
+	const [open, setOpen] = useState(false);
+	const preview = thinking.trim().replace(/\s+/g, " ");
+	const hint = preview.length > 90 ? `${preview.slice(0, 90)}…` : preview;
+
+	return (
+		<Collapsible open={open} onOpenChange={setOpen}>
+			<CollapsibleTrigger className="flex items-start gap-1.5 py-1.5 px-2 w-full hover:bg-violet-500/10 rounded text-left bg-violet-500/5">
+				{open ? (
+					<ChevronDown className="h-3 w-3 mt-0.5 shrink-0 text-muted-foreground" />
+				) : (
+					<ChevronRight className="h-3 w-3 mt-0.5 shrink-0 text-muted-foreground" />
+				)}
+				<Brain className="h-3.5 w-3.5 mt-0.5 shrink-0 text-violet-400" />
+				<div className="min-w-0 flex-1">
+					<div className="flex items-center gap-2">
+						<span className="text-[10px] font-mono uppercase tracking-wide text-violet-300/80">
+							Thinking
+						</span>
+						{!open && hint && (
+							<span className="text-[10px] text-violet-200/60 truncate">
+								{hint}
+							</span>
+						)}
+					</div>
+				</div>
+			</CollapsibleTrigger>
+			<CollapsibleContent>
+				<pre className="text-xs text-violet-200/90 whitespace-pre-wrap break-words font-mono leading-relaxed px-7 py-1.5">
+					{thinking}
+				</pre>
+			</CollapsibleContent>
+		</Collapsible>
+	);
+}
+
+function mergeThinkingLines(
+	lines: StreamLine[],
+): (StreamLine | ThinkingDisplayLine)[] {
+	const rendered: StreamLine[] = [];
+	let thinking = "";
+
+	for (const line of lines) {
+		if (line.type === "stream_event") {
+			const event = (line.event ?? {}) as Record<string, unknown>;
+			if (event.type === "content_block_delta") {
+				const delta = (event.delta ?? {}) as Record<string, unknown>;
+				if (delta.type === "thinking_delta") {
+					const chunk =
+						(typeof delta.thinking === "string"
+							? delta.thinking
+							: typeof delta.text === "string"
+								? delta.text
+								: "") ?? "";
+					if (chunk) thinking += chunk;
+				}
+			}
+
+			continue;
+		}
+
+		if (line.type === "assistant") {
+			const message =
+				(line.message as { content?: ContentBlock[] } | undefined) ?? {};
+			const blocks = message.content ?? [];
+			const assistantThinking = blocks
+				.filter((block) => block.type === "thinking")
+				.map(getThinkingFromBlock)
+				.join("");
+			const nonThinkingBlocks = blocks.filter(
+				(block) => block.type !== "thinking",
+			);
+
+			if (assistantThinking) {
+				if (thinking && assistantThinking.startsWith(thinking)) {
+					thinking = assistantThinking;
+				} else if (!thinking.endsWith(assistantThinking)) {
+					thinking += assistantThinking;
+				}
+			}
+
+			if (nonThinkingBlocks.length > 0) {
+				rendered.push({
+					...line,
+					message: {
+						...(typeof line.message === "object" && line.message !== null
+							? (line.message as Record<string, unknown>)
+							: {}),
+						content: nonThinkingBlocks,
+					},
+				});
+			}
+
+			continue;
+		}
+
+		rendered.push(line);
+	}
+
+	if (!thinking.trim()) return rendered;
+
+	const thinkingLine: ThinkingDisplayLine = {
+		type: "merged_thinking",
+		thinking,
+	};
+	const resultIndex = rendered.findIndex((line) => line.type === "result");
+	if (resultIndex === -1) {
+		return [...rendered, thinkingLine];
+	}
+
+	return [
+		...rendered.slice(0, resultIndex),
+		thinkingLine,
+		...rendered.slice(resultIndex),
+	];
+}
 
 function ToolUseEntry({ block }: { block: ToolUseBlock }) {
 	const [open, setOpen] = useState(false);
@@ -121,6 +254,12 @@ function ToolResultEntry({ block }: { block: ToolResultBlock }) {
 
 export function StreamEntry({ line }: { line: StreamLine }) {
 	const [open, setOpen] = useState(false);
+	if (line.type === "merged_thinking") {
+		const thinking = typeof line.thinking === "string" ? line.thinking : "";
+		if (!thinking.trim()) return null;
+		return <ThinkingEntry thinking={thinking} />;
+	}
+
 	if (line.type === "assistant") {
 		const blocks =
 			(line.message as { content?: ContentBlock[] })?.content ?? [];
@@ -133,26 +272,6 @@ export function StreamEntry({ line }: { line: StreamLine }) {
 						<MessageSquare className="h-3.5 w-3.5 mt-0.5 shrink-0 text-blue-400" />
 						<pre className="text-xs text-foreground/90 whitespace-pre-wrap break-words font-mono leading-relaxed">
 							{text}
-						</pre>
-					</div>,
-				];
-			}
-			if (block.type === "thinking") {
-				const thinking =
-					(typeof (block as ThinkingBlock).thinking === "string"
-						? (block as ThinkingBlock).thinking
-						: typeof (block as ThinkingBlock).text === "string"
-							? (block as ThinkingBlock).text
-							: "") ?? "";
-				if (!thinking.trim()) return [];
-				return [
-					<div
-						key={i}
-						className="flex gap-2 py-1.5 px-2 bg-violet-500/5 rounded"
-					>
-						<Brain className="h-3.5 w-3.5 mt-0.5 shrink-0 text-violet-400" />
-						<pre className="text-xs text-violet-200/90 whitespace-pre-wrap break-words font-mono leading-relaxed">
-							{thinking}
 						</pre>
 					</div>,
 				];
@@ -181,27 +300,6 @@ export function StreamEntry({ line }: { line: StreamLine }) {
 
 	// SDK partial stream events
 	if (line.type === "stream_event") {
-		const event = (line.event ?? {}) as Record<string, unknown>;
-		if (event.type === "content_block_delta") {
-			const delta = (event.delta ?? {}) as Record<string, unknown>;
-			if (delta.type === "thinking_delta") {
-				const thinking =
-					(typeof delta.thinking === "string"
-						? delta.thinking
-						: typeof delta.text === "string"
-							? delta.text
-							: "") ?? "";
-				if (!thinking.trim()) return null;
-				return (
-					<div className="flex gap-2 py-1.5 px-2 bg-violet-500/5 rounded">
-						<Brain className="h-3.5 w-3.5 mt-0.5 shrink-0 text-violet-400" />
-						<pre className="text-xs text-violet-200/90 whitespace-pre-wrap break-words font-mono leading-relaxed">
-							{thinking}
-						</pre>
-					</div>
-				);
-			}
-		}
 		// hide low-level stream events by default (text deltas, signatures, etc.)
 		return null;
 	}
@@ -273,6 +371,7 @@ export function StreamEntry({ line }: { line: StreamLine }) {
 
 export function AgentConsole({ runId, onStop }: AgentConsoleProps) {
 	const { lines, isConnected, isDone } = useAgentStream(runId);
+	const displayLines = useMemo(() => mergeThinkingLines(lines), [lines]);
 	const scrollRef = useRef<HTMLDivElement>(null);
 	const [autoScroll, setAutoScroll] = useState(true);
 
@@ -336,18 +435,18 @@ export function AgentConsole({ runId, onStop }: AgentConsoleProps) {
 				onScroll={handleScroll}
 				className="h-[300px] overflow-y-auto p-1 space-y-0.5"
 			>
-				{lines.length === 0 && !isDone && (
+				{displayLines.length === 0 && !isDone && (
 					<div className="flex items-center justify-center h-full text-xs text-muted-foreground">
 						<Loader2 className="h-4 w-4 mr-2 animate-spin" />
 						Waiting for agent output...
 					</div>
 				)}
-				{lines.length === 0 && isDone && (
+				{displayLines.length === 0 && isDone && (
 					<div className="flex items-center justify-center h-full text-xs text-muted-foreground">
 						No output captured
 					</div>
 				)}
-				{lines.map((line, i) => (
+				{displayLines.map((line, i) => (
 					<StreamEntry key={i} line={line} />
 				))}
 			</div>
