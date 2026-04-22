@@ -19,10 +19,10 @@ import {
 	Upload,
 	X,
 } from "lucide-react";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
-import { StreamEntry } from "@/components/agent-console";
+import { StreamEntry, prepareConsoleLines } from "@/components/agent-console";
 import type { StreamLine } from "@/hooks/use-agent-stream";
 import { useAgents } from "@/hooks/use-data";
 import { BreadcrumbNav } from "@/components/breadcrumb-nav";
@@ -160,6 +160,10 @@ export default function DocumentsPage() {
 	);
 	const [selectedModel, setSelectedModel] = useState("sonnet");
 	const [streamCursor, setStreamCursor] = useState(0);
+	const displayStreamEvents = useMemo(
+		() => prepareConsoleLines(streamEvents),
+		[streamEvents],
+	);
 
 	// Drag state
 	const dragNodeRef = useRef<TreeNode | null>(null);
@@ -1178,13 +1182,13 @@ export default function DocumentsPage() {
 						</Button>
 					</div>
 					<div className="flex-1 overflow-auto p-4 min-h-0">
-						{streamEvents.length === 0 ? (
+						{displayStreamEvents.length === 0 ? (
 							<p className="text-sm text-muted-foreground">
 								Waiting for Claude output...
 							</p>
 						) : (
 							<div className="space-y-1">
-								{streamEvents.map((line, i) => (
+								{displayStreamEvents.map((line, i) => (
 									<StreamEntry key={i} line={line} />
 								))}
 							</div>

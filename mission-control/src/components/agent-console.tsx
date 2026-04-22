@@ -59,6 +59,14 @@ interface ThinkingDisplayLine extends StreamLine {
 	thinking: string;
 }
 
+interface ToolUseGroupDisplayLine extends StreamLine {
+	type: "merged_tool_use";
+	entries: Array<
+		| { type: "tool_use"; block: ToolUseBlock }
+		| { type: "tool_result"; block: ToolResultBlock }
+	>;
+}
+
 function getThinkingFromBlock(block: ContentBlock): string {
 	if (block.type !== "thinking") return "";
 	return (
@@ -106,9 +114,9 @@ function ThinkingEntry({ thinking }: { thinking: string }) {
 	);
 }
 
-function mergeThinkingLines(
+export function prepareConsoleLines(
 	lines: StreamLine[],
-): (StreamLine | ThinkingDisplayLine)[] {
+	): (StreamLine | ThinkingDisplayLine | ToolUseGroupDisplayLine)[] {
 	const rendered: StreamLine[] = [];
 	let thinking = "";
 
@@ -169,22 +177,115 @@ function mergeThinkingLines(
 		rendered.push(line);
 	}
 
-	if (!thinking.trim()) return rendered;
+	const withThinking: (StreamLine | ThinkingDisplayLine)[] = !thinking.trim()
+		? rendered
+		: (() => {
+			const thinkingLine: ThinkingDisplayLine = {
+				type: "merged_thinking",
+				thinking,
+			};
+			const resultIndex = rendered.findIndex((line) => line.type === "result");
+			if (resultIndex === -1) {
+				return [...rendered, thinkingLine];
+			}
 
-	const thinkingLine: ThinkingDisplayLine = {
-		type: "merged_thinking",
-		thinking,
+			return [
+				...rendered.slice(0, resultIndex),
+				thinkingLine,
+				...rendered.slice(resultIndex),
+			];
+		})();
+
+	const grouped: (StreamLine | ThinkingDisplayLine | ToolUseGroupDisplayLine)[] = [];
+	let pendingToolEntries: ToolUseGroupDisplayLine["entries"] = [];
+
+	const flushToolUses = () => {
+		if (pendingToolEntries.length === 0) return;
+		grouped.push({
+			type: "merged_tool_use",
+			entries: pendingToolEntries,
+		});
+		pendingToolEntries = [];
 	};
-	const resultIndex = rendered.findIndex((line) => line.type === "result");
-	if (resultIndex === -1) {
-		return [...rendered, thinkingLine];
+
+	for (const line of withThinking) {
+		if (line.type === "assistant") {
+			const blocks =
+				(line.message as { content?: ContentBlock[] } | undefined)?.content ?? [];
+			const onlyToolUses =
+				blocks.length > 0 && blocks.every((block) => block.type === "tool_use");
+			if (onlyToolUses) {
+				pendingToolEntries.push(
+					...(blocks as ToolUseBlock[]).map((block) => ({
+						type: "tool_use" as const,
+						block,
+					})),
+				);
+				continue;
+			}
+		}
+
+		if (line.type === "user") {
+			const blocks =
+				(line.message as { content?: ContentBlock[] } | undefined)?.content ?? [];
+			const onlyToolResults =
+				blocks.length > 0 && blocks.every((block) => block.type === "tool_result");
+			if (onlyToolResults && pendingToolEntries.length > 0) {
+				pendingToolEntries.push(
+					...(blocks as ToolResultBlock[]).map((block) => ({
+						type: "tool_result" as const,
+						block,
+					})),
+				);
+				continue;
+			}
+		}
+
+		flushToolUses();
+		grouped.push(line);
 	}
 
-	return [
-		...rendered.slice(0, resultIndex),
-		thinkingLine,
-		...rendered.slice(resultIndex),
-	];
+	flushToolUses();
+	return grouped;
+}
+
+function ToolUseGroupEntry({
+	entries,
+}: {
+	entries: ToolUseGroupDisplayLine["entries"];
+}) {
+	const [open, setOpen] = useState(false);
+	const count = entries.filter((entry) => entry.type === "tool_use").length;
+	const label = `${count} tool call${count === 1 ? "" : "s"}`;
+
+	return (
+		<Collapsible open={open} onOpenChange={setOpen}>
+			<CollapsibleTrigger className="flex items-center gap-1.5 py-1 px-2 w-full hover:bg-amber-500/10 rounded text-left">
+				{open ? (
+					<ChevronDown className="h-3 w-3 shrink-0 text-muted-foreground" />
+				) : (
+					<ChevronRight className="h-3 w-3 shrink-0 text-muted-foreground" />
+				)}
+				<Wrench className="h-3 w-3 shrink-0 text-amber-400" />
+				<span className="text-xs font-mono text-amber-400">{label}</span>
+			</CollapsibleTrigger>
+			<CollapsibleContent className="space-y-0.5">
+				{entries.map((entry, index) =>
+					entry.type === "tool_use" ? (
+						<ToolUseEntry
+							key={entry.block.id}
+							block={entry.block}
+						/>
+					) : (
+						<ToolResultEntry
+							key={`${entry.block.tool_use_id}_${index}`}
+							block={entry.block}
+						/>
+					),
+				)}
+			</CollapsibleContent>
+		</Collapsible>
+	);
 }
 
 function ToolUseEntry({ block }: { block: ToolUseBlock }) {
@@ -258,6 +359,13 @@ export function StreamEntry({ line }: { line: StreamLine }) {
 		const thinking = typeof line.thinking === "string" ? line.thinking : "";
 		if (!thinking.trim()) return null;
 		return <ThinkingEntry thinking={thinking} />;
+	}
+	if (line.type === "merged_tool_use") {
+		const entries = Array.isArray(line.entries)
+			? (line.entries as ToolUseGroupDisplayLine["entries"])
+			: [];
+		if (entries.length === 0) return null;
+		return <ToolUseGroupEntry entries={entries} />;
 	}
 
 	if (line.type === "assistant") {
@@ -371,7 +479,7 @@ export function StreamEntry({ line }: { line: StreamLine }) {
 
 export function AgentConsole({ runId, onStop }: AgentConsoleProps) {
 	const { lines, isConnected, isDone } = useAgentStream(runId);
-	const displayLines = useMemo(() => mergeThinkingLines(lines), [lines]);
+	const displayLines = useMemo(() => prepareConsoleLines(lines), [lines]);
 	const scrollRef = useRef<HTMLDivElement>(null);
 	const [autoScroll, setAutoScroll] = useState(true);
 
