@@ -30,11 +30,12 @@ Open questions: review/approval model for agent edits, conflict handling when mu
 
 Deferred cleanup items from the component audit. Low priority but worth tracking.
 
-- **Sidebar navigation**: routes were cleaned up (removed dead pages), but visible vs hidden balance could still improve.
-- **Skeleton components**: 13 variants that could collapse into 3-4 generic loading placeholders.
-- **Context menus**: 4 variants following the same pattern. Pull out a shared wrapper.
-- **Dialog components**: Several create/edit pairs that differ only by mode. Merge into a single form dialog.
-- **Onboarding dialog**: 253 lines for a first-run flow with a single import. Evaluate if it still pulls its weight.
+- [ ] **Sidebar nav rationalization**: 12 hidden vs 7 visible routes. Rebalance.
+- [ ] **Skeleton consolidation**: 14 variants → 3-4 generic loading placeholders.
+- [ ] **Context menu shared wrapper**: 5 variants following same pattern. Extract shared wrapper.
+- [ ] **Dialog merge**: create/edit pairs that differ only by mode. Merge into single form dialog.
+- [ ] **Onboarding dialog evaluation**: 253 lines for a first-run flow with a single import. Evaluate if it still pulls its weight.
+- [ ] **Checkpoints system evaluation**: 5 API routes (~400 LOC) for snapshot/restore. Only used by Settings backup/restore. Consider removal.
 
 ## Done
 
@@ -49,6 +50,7 @@ Deferred cleanup items from the component audit. Low priority but worth tracking
 - ~~Delete sidebar-nav.tsx, use-dashboard.ts, goal components~~
 - ~~Evaluate sync route~~ (kept, still used by daemon)
 - ~~Evaluate missions route~~ (kept, used by project runs)
+- ~~Remove ventures, status-board, guide, objectives/goals, redirect stubs, dead code~~ (-3,900 LOC, 73 files)
 
 ---
 
