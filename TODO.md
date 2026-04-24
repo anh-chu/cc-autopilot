@@ -28,14 +28,28 @@ Open questions: review/approval model for agent edits, conflict handling when mu
 
 ## 3. Simplification candidates from minimalization audit
 
-These are deferred cleanup items that surfaced during the component audit. Low priority but worth tracking.
+Deferred cleanup items from the component audit. Low priority but worth tracking.
 
-- **Sidebar navigation**: 12 hidden routes that never render, paired against 7 visible ones. Need to audit which ones are dead code and either expose or strip.
-- **Skeleton components**: 14 component files that could collapse into 3-4 generic loading placeholders. Less to maintain, easier to theme.
-- **Context menus**: 5 variants following the same pattern. Pull out a shared wrapper and delete the noise.
-- **Dialog components**: Several create/edit pairs that differ only by mode. Merge into a single form dialog that handles both.
-- **Onboarding dialog**: 253 lines for a first-run flow with a single import dependency. Worth evaluating if it still pulls its weight or can go.
+- **Sidebar navigation**: routes were cleaned up (removed dead pages), but visible vs hidden balance could still improve.
+- **Skeleton components**: 13 variants that could collapse into 3-4 generic loading placeholders.
+- **Context menus**: 4 variants following the same pattern. Pull out a shared wrapper.
+- **Dialog components**: Several create/edit pairs that differ only by mode. Merge into a single form dialog.
+- **Onboarding dialog**: 253 lines for a first-run flow with a single import. Evaluate if it still pulls its weight.
+
+## Done
+
+- ~~Remove ventures (duplicate of projects)~~
+- ~~Remove status-board (subset of priority-matrix)~~
+- ~~Remove objectives/goals system, link initiatives to projects~~
+- ~~Remove guide page~~
+- ~~Replace redirect stubs with next.config redirects~~
+- ~~Remove ethers dependency~~
+- ~~Remove unused checkbox component~~
+- ~~Clean dead exports from data.ts, types.ts, validations.ts~~
+- ~~Delete sidebar-nav.tsx, use-dashboard.ts, goal components~~
+- ~~Evaluate sync route~~ (kept, still used by daemon)
+- ~~Evaluate missions route~~ (kept, used by project runs)
 
 ---
 
-*These don't require immediate action. Tackle them when refactoring the relevant area.*
+*Section 3 items don't require immediate action. Tackle them when refactoring the relevant area.*
