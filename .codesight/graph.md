@@ -2,35 +2,36 @@
 
 ## Most Imported Files (change these carefully)
 
-- `mission-control/src/lib/paths.ts` — imported by **20** files
-- `mission-control/scripts/daemon/logger.ts` — imported by **14** files
-- `mission-control/scripts/daemon/types.ts` — imported by **10** files
-- `mission-control/scripts/daemon/security.ts` — imported by **7** files
-- `mission-control/scripts/daemon/runner.ts` — imported by **7** files
-- `mission-control/scripts/daemon/config.ts` — imported by **6** files
-- `mission-control/scripts/daemon/prompt-builder.ts` — imported by **5** files
-- `mission-control/src/lib/logger.ts` — imported by **4** files
-- `mission-control/scripts/daemon/health.ts` — imported by **3** files
-- `mission-control/__tests__/helpers.ts` — imported by **2** files
-- `mission-control/scripts/daemon/recovery.ts` — imported by **2** files
-- `mission-control/scripts/daemon/dispatcher.ts` — imported by **2** files
-- `mission-control/src/lib/scrub.ts` — imported by **2** files
-- `mission-control/scripts/daemon/run-wiki-generate.ts` — imported by **2** files
-- `mission-control/src/lib/data.ts` — imported by **2** files
-- `mission-control/src/lib/validations.ts` — imported by **1** files
-- `mission-control/scripts/daemon/scheduler.ts` — imported by **1** files
-- `mission-control/src/instrumentation.node.ts` — imported by **1** files
-- `mission-control/src/lib/types.ts` — imported by **1** files
+- `src/lib/types.ts` — imported by **72** files
+- `src/lib/utils.ts` — imported by **56** files
+- `src/lib/paths.ts` — imported by **50** files
+- `src/components/ui/button.tsx` — imported by **45** files
+- `src/components/ui/badge.tsx` — imported by **31** files
+- `src/components/breadcrumb-nav.tsx` — imported by **31** files
+- `src/lib/data.ts` — imported by **28** files
+- `src/hooks/use-data.ts` — imported by **24** files
+- `src/components/ui/card.tsx` — imported by **20** files
+- `src/components/ui/input.tsx` — imported by **20** files
+- `src/components/skeletons.tsx` — imported by **19** files
+- `src/lib/workspace-context.ts` — imported by **18** files
+- `src/components/ui/tip.tsx` — imported by **15** files
+- `src/lib/api-client.ts` — imported by **15** files
+- `scripts/daemon/logger.ts` — imported by **14** files
+- `src/components/error-state.tsx` — imported by **14** files
+- `src/components/ui/textarea.tsx` — imported by **14** files
+- `src/components/ui/label.tsx` — imported by **14** files
+- `src/lib/validations.ts` — imported by **13** files
+- `src/lib/toast.ts` — imported by **11** files
 
 ## Import Map (who imports what)
 
-- `mission-control/src/lib/paths.ts` ← `mission-control/scripts/cleanup-uploads.ts`, `mission-control/scripts/daemon/config.ts`, `mission-control/scripts/daemon/dispatcher.ts`, `mission-control/scripts/daemon/health.ts`, `mission-control/scripts/daemon/index.ts` +15 more
-- `mission-control/scripts/daemon/logger.ts` ← `mission-control/scripts/daemon/config.ts`, `mission-control/scripts/daemon/dispatcher.ts`, `mission-control/scripts/daemon/health.ts`, `mission-control/scripts/daemon/index.ts`, `mission-control/scripts/daemon/prompt-builder.ts` +9 more
-- `mission-control/scripts/daemon/types.ts` ← `mission-control/scripts/daemon/config.ts`, `mission-control/scripts/daemon/dispatcher.ts`, `mission-control/scripts/daemon/health.ts`, `mission-control/scripts/daemon/prompt-builder.ts`, `mission-control/scripts/daemon/respond-runs.ts` +5 more
-- `mission-control/scripts/daemon/security.ts` ← `mission-control/__tests__/security.test.ts`, `mission-control/__tests__/security.test.ts`, `mission-control/scripts/daemon/health.ts`, `mission-control/scripts/daemon/prompt-builder.ts`, `mission-control/scripts/daemon/run-task-comment.ts` +2 more
-- `mission-control/scripts/daemon/runner.ts` ← `mission-control/scripts/daemon/dispatcher.ts`, `mission-control/scripts/daemon/index.ts`, `mission-control/scripts/daemon/run-brain-dump-triage.ts`, `mission-control/scripts/daemon/run-inbox-respond.ts`, `mission-control/scripts/daemon/run-task-comment.ts` +2 more
-- `mission-control/scripts/daemon/config.ts` ← `mission-control/__tests__/daemon.test.ts`, `mission-control/scripts/daemon/index.ts`, `mission-control/scripts/daemon/run-brain-dump-triage.ts`, `mission-control/scripts/daemon/run-inbox-respond.ts`, `mission-control/scripts/daemon/run-task.ts` +1 more
-- `mission-control/scripts/daemon/prompt-builder.ts` ← `mission-control/__tests__/daemon.test.ts`, `mission-control/scripts/daemon/dispatcher.ts`, `mission-control/scripts/daemon/dispatcher.ts`, `mission-control/scripts/daemon/dispatcher.ts`, `mission-control/scripts/daemon/run-task.ts`
-- `mission-control/src/lib/logger.ts` ← `mission-control/scripts/daemon/logger.ts`, `mission-control/scripts/daemon/run-inbox-respond.ts`, `mission-control/scripts/daemon/run-task-comment.ts`, `mission-control/scripts/daemon/run-task.ts`
-- `mission-control/scripts/daemon/health.ts` ← `mission-control/scripts/daemon/dispatcher.ts`, `mission-control/scripts/daemon/index.ts`, `mission-control/scripts/daemon/scheduler.ts`
-- `mission-control/__tests__/helpers.ts` ← `mission-control/__tests__/data.test.ts`, `mission-control/__tests__/integration/agent-flow.test.ts`
+- `src/lib/types.ts` ← `__tests__/data.test.ts`, `src/app/activity/page.tsx`, `src/app/activity/page.tsx`, `src/app/api/activity-log/route.ts`, `src/app/api/agents/route.ts` +67 more
+- `src/lib/utils.ts` ← `src/app/api/activity-log/route.ts`, `src/app/api/brain-dump/route.ts`, `src/app/api/decisions/route.ts`, `src/app/api/goals/route.ts`, `src/app/api/inbox/route.ts` +51 more
+- `src/lib/paths.ts` ← `scripts/cleanup-uploads.ts`, `scripts/daemon/config.ts`, `scripts/daemon/dispatcher.ts`, `scripts/daemon/health.ts`, `scripts/daemon/index.ts` +45 more
+- `src/components/ui/button.tsx` ← `src/app/autopilot/page.tsx`, `src/app/brain-dump/page.tsx`, `src/app/crew/[id]/edit/page.tsx`, `src/app/crew/[id]/page.tsx`, `src/app/crew/new/page.tsx` +40 more
+- `src/components/ui/badge.tsx` ← `src/app/activity/page.tsx`, `src/app/autopilot/page.tsx`, `src/app/brain-dump/page.tsx`, `src/app/crew/[id]/edit/page.tsx`, `src/app/crew/[id]/page.tsx` +26 more
+- `src/components/breadcrumb-nav.tsx` ← `src/app/activity/page.tsx`, `src/app/autopilot/page.tsx`, `src/app/brain-dump/loading.tsx`, `src/app/brain-dump/page.tsx`, `src/app/crew/[id]/edit/page.tsx` +26 more
+- `src/lib/data.ts` ← `__tests__/seeding.test.ts`, `src/app/api/activity-log/route.ts`, `src/app/api/brain-dump/route.ts`, `src/app/api/checkpoints/export/route.ts`, `src/app/api/checkpoints/import/route.ts` +23 more
+- `src/hooks/use-data.ts` ← `src/app/activity/page.tsx`, `src/app/brain-dump/page.tsx`, `src/app/crew/[id]/edit/page.tsx`, `src/app/crew/[id]/page.tsx`, `src/app/crew/new/page.tsx` +19 more
+- `src/components/ui/card.tsx` ← `src/app/activity/page.tsx`, `src/app/autopilot/page.tsx`, `src/app/brain-dump/page.tsx`, `src/app/crew/[id]/page.tsx`, `src/app/decisions/page.tsx` +15 more
+- `src/components/ui/input.tsx` ← `src/app/autopilot/page.tsx`, `src/app/crew/[id]/edit/page.tsx`, `src/app/crew/[id]/page.tsx`, `src/app/crew/new/page.tsx`, `src/app/decisions/page.tsx` +15 more

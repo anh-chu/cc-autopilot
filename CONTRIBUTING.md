@@ -12,7 +12,7 @@ Thanks for your interest in contributing! Mission Control is an open-source task
 ### Setup
 ```bash
 git clone https://github.com/MeisnerDan/mission-control.git
-cd mission-control/mission-control   # repo folder → app folder (where package.json lives)
+   # repo folder → app folder (where package.json lives)
 pnpm install
 pnpm dev
 ```

@@ -4,12 +4,12 @@
 </p>
 
 <p align="center">
-  <img src="mission-control/docs/rocket.svg" alt="Task Control" width="80" />
+  <img src="docs/rocket.svg" alt="Task Control" width="80" />
 </p>
 
 <h1 align="center">Task Control</h1>
 
-<p align="center"><img src="mission-control/docs/demo.gif" alt="Task Control Demo" width="800" /></p>
+<p align="center"><img src="docs/demo.gif" alt="Task Control Demo" width="800" /></p>
 
 ---
 
@@ -119,7 +119,7 @@ The daemon (`pnpm daemon:start`) is the engine. It runs as a detached background
 
 ```bash
 git clone https://github.com/anh-chu/claude-mission-control.git
-cd claude-mission-control/mission-control
+cd claude-mission-control
 pnpm install
 pnpm dev
 ```
@@ -245,7 +245,7 @@ Each agent can use Claude Code or Codex CLI as its backend, configurable from th
   agent-streams/                         Live JSONL output per active agent session
   uploads/                               File attachments (served at /uploads/[filename])
 
-mission-control/                         Next.js 15 app (source only, no data here)
+                         Next.js 15 app (source only, no data here)
   instrumentation.ts                     Boot hooks: upload cleanup + daemon auto-start
   scripts/daemon/
     index.ts                             Daemon start/stop/status + startup crash recovery
@@ -287,7 +287,7 @@ mission-control/                         Next.js 15 app (source only, no data he
 
 ## Commands
 
-Run from inside `mission-control/`:
+Run from inside ``:
 
 ```bash
 pnpm dev              # Start dev server (http://localhost:3000)

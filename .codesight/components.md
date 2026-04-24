@@ -1,81 +1,98 @@
 # Components
 
-- **ActivityPage** [client] — `mission-control/src/app/activity/page.tsx`
-- **AutopilotPage** [client] — `mission-control/src/app/autopilot/page.tsx`
-- **BrainDumpLoading** — `mission-control/src/app/brain-dump/loading.tsx`
-- **BrainDumpPage** [client] — `mission-control/src/app/brain-dump/page.tsx`
-- **EditAgentPage** [client] — `mission-control/src/app/crew/[id]/edit/page.tsx`
-- **AgentPage** [client] — `mission-control/src/app/crew/[id]/page.tsx`
-- **CrewLoading** — `mission-control/src/app/crew/loading.tsx`
-- **NewAgentPage** [client] — `mission-control/src/app/crew/new/page.tsx`
-- **CrewPage** [client] — `mission-control/src/app/crew/page.tsx`
-- **DaemonPage** — `mission-control/src/app/daemon/page.tsx`
-- **DecisionsPage** [client] — `mission-control/src/app/decisions/page.tsx`
-- **DocumentsPage** [client] — `mission-control/src/app/documents/page.tsx`
-- **Error** [client] — props: error, reset — `mission-control/src/app/error.tsx`
-- **GlobalError** [client] — props: error, reset — `mission-control/src/app/global-error.tsx`
-- **GoalsPage** — `mission-control/src/app/goals/page.tsx`
-- **GuidePage** [client] — `mission-control/src/app/guide/page.tsx`
-- **InboxLoading** — `mission-control/src/app/inbox/loading.tsx`
-- **InboxPage** [client] — `mission-control/src/app/inbox/page.tsx`
-- **InitiativeDetailPage** [client] — `mission-control/src/app/initiatives/[id]/page.tsx`
-- **InitiativesPage** [client] — props: open, onOpenChange, onSubmit, parentGoalOptions — `mission-control/src/app/initiatives/page.tsx`
-- **RootLayout** — `mission-control/src/app/layout.tsx`
-- **DashboardLoading** — `mission-control/src/app/loading.tsx`
-- **LogsPage** [client] — `mission-control/src/app/logs/page.tsx`
-- **NotFound** — `mission-control/src/app/not-found.tsx`
-- **GoalsPage** [client] — `mission-control/src/app/objectives/page.tsx`
-- **CommandCenterPage** [client] — `mission-control/src/app/page.tsx`
-- **PriorityMatrixLoading** — `mission-control/src/app/priority-matrix/loading.tsx`
-- **TasksPage** [client] — `mission-control/src/app/priority-matrix/page.tsx`
-- **ProjectsDetailPage** — `mission-control/src/app/projects/[id]/page.tsx`
-- **ProjectsPage** [client] — `mission-control/src/app/projects/page.tsx`
-- **SettingsPage** [client] — `mission-control/src/app/settings/page.tsx`
-- **SkillEditorPage** [client] — `mission-control/src/app/skills/[id]/page.tsx`
-- **NewSkillPage** [client] — `mission-control/src/app/skills/new/page.tsx`
-- **SkillsPage** [client] — `mission-control/src/app/skills/page.tsx`
-- **StatusBoardLoading** — `mission-control/src/app/status-board/loading.tsx`
-- **KanbanPage** [client] — `mission-control/src/app/status-board/page.tsx`
-- **VenturesDetailPage** — `mission-control/src/app/ventures/[id]/page.tsx`
-- **ProjectsPage** [client] — `mission-control/src/app/ventures/page.tsx`
-- **StreamEntry** [client] — props: runId, onStop — `mission-control/src/components/agent-console.tsx`
-- **AppSidebar** [client] — props: href, label, icon, isActive, collapsed, onClick, size, badge, badgeDot, tooltipSuffix — `mission-control/src/components/app-sidebar.tsx`
-- **DraggableTaskCard** [client] — props: task, project, onClick, isSelected, onToggleSelect, isRunning, onRun, pendingDecisionTaskIds, onStatusChange, onDuplicate — `mission-control/src/components/board-view.tsx`
-- **BreadcrumbNav** [client] — props: items, className — `mission-control/src/components/breadcrumb-nav.tsx`
-- **CommandBar** [client] — props: onCapture, sidebarOpen, onToggleSidebar, isMobile, tasks, onTaskClick — `mission-control/src/components/command-bar.tsx`
-- **ConfirmDialog** [client] — props: open, onOpenChange, title, description, confirmLabel, onConfirm, variant — `mission-control/src/components/confirm-dialog.tsx`
-- **AgentContextMenuContent** [client] — props: agent, href, onEdit, onNewTask, onToggleStatus — `mission-control/src/components/context-menus/agent-context-menu.tsx`
-- **GoalContextMenuContent** [client] — props: goal, onEdit, onAddMilestone, onMarkComplete, onDelete — `mission-control/src/components/context-menus/goal-context-menu.tsx`
-- **InitiativeContextMenuContent** [client] — props: initiative, onTogglePause, onArchive, onDelete — `mission-control/src/components/context-menus/initiative-context-menu.tsx`
-- **ProjectContextMenuContent** [client] — props: project, href, onEdit, onRun, onArchive, onDelete — `mission-control/src/components/context-menus/project-context-menu.tsx`
-- **TaskContextMenuContent** [client] — props: task, onOpen, onStatusChange, onDuplicate, onRun, onDelete — `mission-control/src/components/context-menus/task-context-menu.tsx`
-- **CreateGoalDialog** [client] — props: open, onOpenChange, projects, goals, onSubmit, title, type, timeframe, projectId, parentGoalId — `mission-control/src/components/create-goal-dialog.tsx`
-- **CreateProjectDialog** [client] — props: open, onOpenChange, onSubmit — `mission-control/src/components/create-project-dialog.tsx`
-- **CreateTaskDialog** [client] — props: open, onOpenChange, projects, goals, onSubmit, defaultValues — `mission-control/src/components/create-task-dialog.tsx`
-- **DecisionDialog** [client] — props: open, onOpenChange, decision, onAnswered — `mission-control/src/components/decision-dialog.tsx`
-- **EditGoalDialog** [client] — props: open, onOpenChange, goal, projects, goals, onSubmit, title, type, timeframe, status — `mission-control/src/components/edit-goal-dialog.tsx`
-- **EditProjectDialog** [client] — props: open, onOpenChange, project, agents, onSubmit, name, description, status, color, teamMembers — `mission-control/src/components/edit-project-dialog.tsx`
-- **EisenhowerSummary** [client] — props: tasks — `mission-control/src/components/eisenhower-summary.tsx`
-- **EmptyState** — props: icon, title, description, actionLabel, onAction, className, compact — `mission-control/src/components/empty-state.tsx`
-- **ErrorState** — props: message, onRetry, className, compact — `mission-control/src/components/error-state.tsx`
-- **GoalCard** [client] — props: goal, tasks, projects, milestones, onEdit, onAddMilestone, onMarkComplete, onDelete — `mission-control/src/components/goal-card.tsx`
-- **KeyboardShortcuts** [client] — props: onCreateTask — `mission-control/src/components/keyboard-shortcuts.tsx`
-- **LayoutShell** [client] — `mission-control/src/components/layout-shell.tsx`
-- **MarkdownContent** [client] — props: content, className — `mission-control/src/components/markdown-content.tsx`
-- **MentionTextarea** [client] — props: value, onChange, agents, placeholder, className, onSubmit, stagedFiles, onFilesChange — `mission-control/src/components/mention-textarea.tsx`
-- **ProjectRunProgress** [client] — props: projectRun, runs, onStop — `mission-control/src/components/mission-progress.tsx`
-- **OnboardingDialog** [client] — `mission-control/src/components/onboarding-dialog.tsx`
-- **ProjectCardLarge** [client] — props: project, tasks, goals, isRunning, isProjectRunActive, onRun, onStop, onEdit, onArchive, onDelete — `mission-control/src/components/project-card-large.tsx`
-- **ProjectDetailPage** [client] — props: parentLabel, parentHref — `mission-control/src/components/project-detail-page.tsx`
-- **RunButton** [client] — props: isRunning, onClick, size, disabled, title, isProjectRunActive, onStop — `mission-control/src/components/run-button.tsx`
-- **SearchDialog** [client] — `mission-control/src/components/search-dialog.tsx`
-- **SidebarFooter** [client] — props: collapsed — `mission-control/src/components/sidebar-footer.tsx`
-- **SidebarNav** [client] — `mission-control/src/components/sidebar-nav.tsx`
-- **TaskCardSkeleton** — `mission-control/src/components/skeletons.tsx`
-- **TaskCard** [client] — props: task, project, agents, className, isDragging, onClick, allTasks, pendingDecisionTaskIds, isRunning, onRun — `mission-control/src/components/task-card.tsx`
-- **TaskDetailPanel** [client] — props: task, projects, goals, allTasks, onUpdate, onDelete, onClose — `mission-control/src/components/task-detail-panel.tsx`
-- **TaskForm** [client] — props: initial, projects, goals, allTasks, currentTaskId, onSubmit, onCancel, submitLabel — `mission-control/src/components/task-form.tsx`
-- **ThemeProvider** [client] — `mission-control/src/components/theme-provider.tsx`
-- **ThemeToggle** [client] — `mission-control/src/components/theme-toggle.tsx`
-- **WorkspaceSwitcher** [client] — props: collapsed — `mission-control/src/components/workspace-switcher.tsx`
-- **ActiveRunsProvider** [client] — `mission-control/src/providers/active-runs-provider.tsx`
+- **ActivityPage** [client] — `src/app/activity/page.tsx`
+- **AutopilotPage** [client] — `src/app/autopilot/page.tsx`
+- **BrainDumpLoading** — `src/app/brain-dump/loading.tsx`
+- **BrainDumpPage** [client] — `src/app/brain-dump/page.tsx`
+- **EditAgentPage** [client] — `src/app/crew/[id]/edit/page.tsx`
+- **AgentPage** [client] — `src/app/crew/[id]/page.tsx`
+- **CrewLoading** — `src/app/crew/loading.tsx`
+- **NewAgentPage** [client] — `src/app/crew/new/page.tsx`
+- **CrewPage** [client] — `src/app/crew/page.tsx`
+- **DaemonPage** — `src/app/daemon/page.tsx`
+- **DecisionsPage** [client] — `src/app/decisions/page.tsx`
+- **DocumentsPage** [client] — `src/app/documents/page.tsx`
+- **Error** [client] — props: error, reset — `src/app/error.tsx`
+- **GlobalError** [client] — props: error, reset — `src/app/global-error.tsx`
+- **GoalsPage** — `src/app/goals/page.tsx`
+- **GuidePage** [client] — `src/app/guide/page.tsx`
+- **InboxLoading** — `src/app/inbox/loading.tsx`
+- **InboxPage** [client] — `src/app/inbox/page.tsx`
+- **InitiativeDetailPage** [client] — `src/app/initiatives/[id]/page.tsx`
+- **InitiativesPage** [client] — `src/app/initiatives/page.tsx`
+- **RootLayout** — `src/app/layout.tsx`
+- **DashboardLoading** — `src/app/loading.tsx`
+- **LogsPage** [client] — `src/app/logs/page.tsx`
+- **NotFound** — `src/app/not-found.tsx`
+- **GoalsPage** [client] — `src/app/objectives/page.tsx`
+- **CommandCenterPage** [client] — `src/app/page.tsx`
+- **PriorityMatrixLoading** — `src/app/priority-matrix/loading.tsx`
+- **TasksPage** [client] — `src/app/priority-matrix/page.tsx`
+- **ProjectsDetailPage** — `src/app/projects/[id]/page.tsx`
+- **ProjectsPage** [client] — `src/app/projects/page.tsx`
+- **SettingsPage** [client] — `src/app/settings/page.tsx`
+- **SkillEditorPage** [client] — `src/app/skills/[id]/page.tsx`
+- **NewSkillPage** [client] — `src/app/skills/new/page.tsx`
+- **SkillsPage** [client] — `src/app/skills/page.tsx`
+- **StatusBoardLoading** — `src/app/status-board/loading.tsx`
+- **KanbanPage** [client] — `src/app/status-board/page.tsx`
+- **VenturesDetailPage** — `src/app/ventures/[id]/page.tsx`
+- **ProjectsPage** [client] — `src/app/ventures/page.tsx`
+- **StreamEntry** [client] — props: line — `src/components/agent-console.tsx`
+- **AgentConsole** [client] — props: runId, onStop — `src/components/agent-console.tsx`
+- **AppSidebar** [client] — props: collapsed, unreadInbox, pendingDecisions, isMobile, onClose — `src/components/app-sidebar.tsx`
+- **DraggableTaskCard** [client] — props: task, project, onClick, isSelected, onToggleSelect, isRunning, onRun, pendingDecisionTaskIds, onStatusChange, onDuplicate — `src/components/board-view.tsx`
+- **BoardColumn** [client] — props: config, tasks, projects, onTaskClick, minHeight, maxHeight, selected, onToggleSelect, runningTaskIds, onRunTask — `src/components/board-view.tsx`
+- **BoardPanels** [client] — props: tasks, projects, goals, selectedTask, showCreateTask, onUpdate, onDelete, onCloseDetail, onCloseCreate, onSubmitCreate — `src/components/board-view.tsx`
+- **BoardDndWrapper** [client] — props: activeTask, projects, onDragStart, onDragEnd — `src/components/board-view.tsx`
+- **BreadcrumbNav** [client] — props: items, className — `src/components/breadcrumb-nav.tsx`
+- **CommandBar** [client] — props: onCapture, sidebarOpen, onToggleSidebar, isMobile, tasks, onTaskClick — `src/components/command-bar.tsx`
+- **ConfirmDialog** [client] — props: open, onOpenChange, title, description, confirmLabel, onConfirm, variant — `src/components/confirm-dialog.tsx`
+- **AgentContextMenuContent** [client] — props: agent, href, onEdit, onNewTask, onToggleStatus — `src/components/context-menus/agent-context-menu.tsx`
+- **GoalContextMenuContent** [client] — props: goal, onEdit, onAddMilestone, onMarkComplete, onDelete — `src/components/context-menus/goal-context-menu.tsx`
+- **InitiativeContextMenuContent** [client] — props: initiative, onTogglePause, onArchive, onDelete — `src/components/context-menus/initiative-context-menu.tsx`
+- **ProjectContextMenuContent** [client] — props: project, href, onEdit, onRun, onArchive, onDelete — `src/components/context-menus/project-context-menu.tsx`
+- **TaskContextMenuContent** [client] — props: task, onOpen, onStatusChange, onDuplicate, onRun, onDelete — `src/components/context-menus/task-context-menu.tsx`
+- **CreateGoalDialog** [client] — props: open, onOpenChange, onSubmit — `src/components/create-goal-dialog.tsx`
+- **CreateProjectDialog** [client] — props: open, onOpenChange, onSubmit — `src/components/create-project-dialog.tsx`
+- **CreateTaskDialog** [client] — props: open, onOpenChange, projects, goals, onSubmit, defaultValues — `src/components/create-task-dialog.tsx`
+- **DecisionDialog** [client] — props: open, onOpenChange, decision, onAnswered — `src/components/decision-dialog.tsx`
+- **EditGoalDialog** [client] — props: open, onOpenChange, goal, onSubmit — `src/components/edit-goal-dialog.tsx`
+- **EditProjectDialog** [client] — props: open, onOpenChange, project, agents, onSubmit — `src/components/edit-project-dialog.tsx`
+- **EisenhowerSummary** [client] — props: tasks — `src/components/eisenhower-summary.tsx`
+- **EmptyState** — props: Icon, title, description, actionLabel, onAction, className, compact — `src/components/empty-state.tsx`
+- **ErrorState** — props: message, onRetry, className, compact — `src/components/error-state.tsx`
+- **GoalCard** [client] — props: goal, tasks, projects, milestones, onEdit, onAddMilestone, onMarkComplete, onDelete — `src/components/goal-card.tsx`
+- **KeyboardShortcuts** [client] — props: onCreateTask — `src/components/keyboard-shortcuts.tsx`
+- **LayoutShell** [client] — `src/components/layout-shell.tsx`
+- **MarkdownContent** [client] — props: content, className — `src/components/markdown-content.tsx`
+- **MentionTextarea** [client] — props: value, onChange, agents, placeholder, className, onSubmit, stagedFiles, onFilesChange — `src/components/mention-textarea.tsx`
+- **ProjectRunProgress** [client] — props: projectRun, runs, onStop — `src/components/mission-progress.tsx`
+- **OnboardingDialog** [client] — `src/components/onboarding-dialog.tsx`
+- **ProjectCardLarge** [client] — props: project, tasks, goals, isRunning, isProjectRunActive, onRun, onStop, onEdit, onArchive, onDelete — `src/components/project-card-large.tsx`
+- **ProjectDetailPage** [client] — props: parentLabel, parentHref — `src/components/project-detail-page.tsx`
+- **RunButton** [client] — props: isRunning, onClick, size, disabled, title, isProjectRunActive, onStop — `src/components/run-button.tsx`
+- **SearchDialog** [client] — `src/components/search-dialog.tsx`
+- **SidebarFooter** [client] — props: collapsed — `src/components/sidebar-footer.tsx`
+- **SidebarNav** [client] — `src/components/sidebar-nav.tsx`
+- **TaskCardSkeleton** — `src/components/skeletons.tsx`
+- **StatsBarSkeleton** — `src/components/skeletons.tsx`
+- **ProjectCardSkeleton** — `src/components/skeletons.tsx`
+- **GoalCardSkeleton** — `src/components/skeletons.tsx`
+- **MessageRowSkeleton** — `src/components/skeletons.tsx`
+- **EventRowSkeleton** — `src/components/skeletons.tsx`
+- **EntryRowSkeleton** — `src/components/skeletons.tsx`
+- **DecisionCardSkeleton** — `src/components/skeletons.tsx`
+- **WidgetSkeleton** — props: rows — `src/components/skeletons.tsx`
+- **EisenhowerSkeleton** — `src/components/skeletons.tsx`
+- **KanbanSkeleton** — `src/components/skeletons.tsx`
+- **AgentCardSkeleton** — `src/components/skeletons.tsx`
+- **SkillCardSkeleton** — `src/components/skeletons.tsx`
+- **DashboardSkeleton** — `src/components/skeletons.tsx`
+- **TaskCard** [client] — props: task, project, agents, className, isDragging, onClick, allTasks, pendingDecisionTaskIds, isRunning, onRun — `src/components/task-card.tsx`
+- **TaskDetailPanel** [client] — props: task, projects, goals, allTasks, onUpdate, onDelete, onClose — `src/components/task-detail-panel.tsx`
+- **TaskForm** [client] — props: initial, allTasks, currentTaskId, onSubmit, onCancel, submitLabel — `src/components/task-form.tsx`
+- **ThemeProvider** [client] — `src/components/theme-provider.tsx`
+- **ThemeToggle** [client] — `src/components/theme-toggle.tsx`
+- **WorkspaceSwitcher** [client] — props: collapsed — `src/components/workspace-switcher.tsx`
+- **ActiveRunsProvider** [client] — `src/providers/active-runs-provider.tsx`
