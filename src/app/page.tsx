@@ -690,7 +690,7 @@ export default function CommandCenterPage() {
 				className="grid gap-4 lg:grid-cols-2"
 			>
 				{/* Activity Feed */}
-				<Link href="/activity">
+				<Link href="/logs?tab=activity">
 					<Card className="bg-card/50 cursor-pointer transition-all hover:shadow-lg hover:border-primary/30 h-full">
 						<CardHeader className="pb-2">
 							<CardTitle className="text-sm flex items-center gap-2">

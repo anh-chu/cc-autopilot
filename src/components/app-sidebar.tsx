@@ -1,7 +1,6 @@
 "use client";
 
 import {
-	Crosshair,
 	FileText,
 	FolderKanban,
 	Grid2x2,
@@ -40,7 +39,6 @@ const mainLinks = [
 
 const workbenchLinks = [
 	{ href: "/projects", label: "Projects", icon: FolderKanban },
-	{ href: "/initiatives", label: "Initiatives", icon: Crosshair },
 	{ href: "/initiatives", label: "Initiatives", icon: Layers },
 	{ href: "/priority-matrix", label: "Tasks", icon: Grid2x2 },
 	{ href: "/crew", label: "Agents", icon: Users },
