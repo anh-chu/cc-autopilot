@@ -35,7 +35,7 @@ Deferred cleanup items from the component audit. Low priority but worth tracking
 - [x] **Dialog merge**: create/edit pairs that differ only by mode. Merge into single form dialog.
 - [x] **Crew (agent) form merge**: `crew/new/page.tsx` (483 lines) and `crew/[id]/edit/page.tsx` (560 lines) are ~80% identical. Extract `AgentForm` component, thin create/edit page wrappers.
 - [x] **Skills form merge**: `skills/new/page.tsx` (226 lines) and `skills/[id]/page.tsx` (277 lines) same pattern. Extract `SkillForm` component.
-- [ ] **Checkpoints system evaluation**: 5 API routes (~400 LOC) for snapshot/restore. Only used by Settings backup/restore. Consider removal.
+- [x] **Checkpoints system evaluation**: removed. File-based system means users can back up the data dir directly.
 
 ## Done
 

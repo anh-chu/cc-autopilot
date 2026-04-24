@@ -1,14 +1,6 @@
 import { Mutex } from "async-mutex";
 import { existsSync } from "fs";
-import {
-	copyFile,
-	cp,
-	mkdir,
-	readdir,
-	readFile,
-	unlink,
-	writeFile,
-} from "fs/promises";
+import { copyFile, cp, mkdir, readFile, writeFile } from "fs/promises";
 import path from "path";
 import {
 	DATA_DIR,
@@ -34,8 +26,6 @@ import type {
 export const DOC_MAINTAINER_AGENT_ID = "doc-maintainer";
 export const DOC_MAINTAINER_AGENT_INSTRUCTIONS =
 	"Follow llm-wiki-pm plugin skill instructions exactly.";
-
-const CHECKPOINTS_DIR = path.join(DATA_DIR, "checkpoints");
 
 // ─── Workspace path helpers ───────────────────────────────────────────────────
 
@@ -164,139 +154,6 @@ export async function initWikiDir(workspaceId: string): Promise<void> {
 	} catch {
 		// non-fatal: plugin falls back to WIKI_PATH env var
 	}
-}
-
-async function ensureCheckpointsDir(): Promise<void> {
-	await mkdir(CHECKPOINTS_DIR, { recursive: true });
-}
-
-// ─── Checkpoint metadata type ────────────────────────────────────────────────
-
-export interface CheckpointMeta {
-	id: string;
-	name: string;
-	description: string;
-	createdAt: string;
-	version: number;
-	stats: {
-		tasks: number;
-		projects: number;
-		brainDump: number;
-		inbox: number;
-		decisions: number;
-		agents: number;
-		skills: number;
-	};
-}
-
-export interface CheckpointFile {
-	id: string;
-	name: string;
-	description: string;
-	createdAt: string;
-	version: number;
-	data: {
-		tasks: TasksFile;
-		projects: ProjectsFile;
-		brainDump: BrainDumpFile;
-		inbox: InboxFile;
-		decisions: DecisionsFile;
-		agents: AgentsFile;
-		skillsLibrary: SkillsLibraryFile;
-	};
-}
-
-// ─── Bulk checkpoint helpers ─────────────────────────────────────────────────
-
-export async function getAllCoreData(): Promise<CheckpointFile["data"]> {
-	const [tasks, projects, brainDump, inbox, decisions, agents, skillsLibrary] =
-		await Promise.all([
-			getTasks(),
-			getProjects(),
-			getBrainDump(),
-			getInbox(),
-			getDecisions(),
-			getAgents(),
-			getSkillsLibrary(),
-		]);
-	return {
-		tasks,
-		projects,
-		brainDump,
-		inbox,
-		decisions,
-		agents,
-		skillsLibrary,
-	};
-}
-
-export async function loadCoreData(
-	data: CheckpointFile["data"],
-): Promise<void> {
-	// Write sequentially to avoid overwhelming mutexes
-	await saveTasks(data.tasks);
-	await saveProjects(data.projects);
-	await saveBrainDump(data.brainDump);
-	await saveInbox(data.inbox);
-	await saveDecisions(data.decisions);
-	await saveAgents(data.agents);
-	await saveSkillsLibrary(data.skillsLibrary);
-	// Reset activity log to empty
-	await saveActivityLog({ events: [] });
-}
-
-// ─── Checkpoint CRUD helpers ─────────────────────────────────────────────────
-
-export async function listCheckpoints(): Promise<CheckpointMeta[]> {
-	await ensureCheckpointsDir();
-	const files = await readdir(CHECKPOINTS_DIR);
-	const jsonFiles = files.filter((f) => f.endsWith(".json"));
-	const metas: CheckpointMeta[] = [];
-	for (const file of jsonFiles) {
-		try {
-			const raw = await readFile(path.join(CHECKPOINTS_DIR, file), "utf-8");
-			const snap = JSON.parse(raw) as CheckpointFile;
-			metas.push({
-				id: snap.id,
-				name: snap.name,
-				description: snap.description,
-				createdAt: snap.createdAt,
-				version: snap.version,
-				stats: {
-					tasks: snap.data.tasks.tasks.length,
-					projects: snap.data.projects.projects.length,
-					brainDump: snap.data.brainDump.entries.length,
-					inbox: snap.data.inbox.messages.length,
-					decisions: snap.data.decisions.decisions.length,
-					agents: snap.data.agents.agents.length,
-					skills: snap.data.skillsLibrary.skills.length,
-				},
-			});
-		} catch {
-			// Skip malformed checkpoint files
-		}
-	}
-	return metas.sort(
-		(a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
-	);
-}
-
-export async function getCheckpoint(id: string): Promise<CheckpointFile> {
-	const raw = await readFile(path.join(CHECKPOINTS_DIR, `${id}.json`), "utf-8");
-	return JSON.parse(raw) as CheckpointFile;
-}
-
-export async function saveCheckpoint(snap: CheckpointFile): Promise<void> {
-	await ensureCheckpointsDir();
-	await writeFile(
-		path.join(CHECKPOINTS_DIR, `${snap.id}.json`),
-		JSON.stringify(snap, null, 2),
-		"utf-8",
-	);
-}
-
-export async function deleteCheckpoint(id: string): Promise<void> {
-	await unlink(path.join(CHECKPOINTS_DIR, `${id}.json`));
 }
 
 // ─── Internal write helper (no mutex — caller must hold the lock) ────────────

@@ -46,30 +46,29 @@
   - interface DashboardAttention
   - interface DashboardEisenhowerCounts
   - interface DashboardData
-- `src/hooks/use-dashboard.ts` — function useDashboard: () => void, interface DashboardData
 - `src/hooks/use-data.ts`
   - function useTasks: () => void
   - function useInitiativeTasks: (initiativeId) => void
-  - function useGoals: () => void
   - function useProjects: () => void
   - function useBrainDump: () => void
   - function useActivityLog: () => void
-  - _...5 more_
+  - function useInbox: () => void
+  - _...4 more_
 - `src/hooks/use-fast-task-poll.ts` — function useFastTaskPoll: (hasRunningTasks, refetchTasks) => void
 - `src/hooks/use-processing-entries.ts` — function useProcessingEntries: (entries) => void
 - `src/hooks/use-sidebar.ts` — function useSidebar: () => void
 - `src/hooks/use-workspace.ts` — function useWorkspace: () => void
 - `src/instrumentation.ts` — function register: () => void
-- `src/lib/agent-icons.ts` — function getAgentIcon: (agentId, iconName?) => LucideIcon, function getIconByName: (name) => LucideIcon
+- `src/lib/agent-icons.ts` — function getAgentIcon: (agentId, iconName?) => LucideIcon
 - `src/lib/api-client.ts` — function apiFetch: (url, init?) => Promise<Response>, interface ApiFetchInit
 - `src/lib/data.ts`
-  - function getCurrentWorkspace: () => string
   - function setCurrentWorkspace: (id) => void
   - function getWorkspaceDataDir: (workspaceId) => string
   - function ensureWorkspaceDir: (workspaceId) => Promise<void>
   - function initWikiDir: (workspaceId) => Promise<void>
-  - function getCheckpointsDir: () => string
-  - _...63 more_
+  - function ensureDocMaintainerAgentForWorkspace: (workspaceId) => Promise<void>
+  - function getTasks: () => Promise<TasksFile>
+  - _...36 more_
 - `src/lib/log-reader.ts`
   - function isAllowedLogPath: (filePath) => boolean
   - function scrubLogLines: (lines) => string[]
@@ -92,7 +91,6 @@
 - `src/lib/scrub.ts` — function scrubCredentials: (text) => string
 - `src/lib/sync-commands.ts`
   - function generateAgentCommandMarkdown: (agent, linkedSkills) => string
-  - function resolveLinkedSkills: (agent, allSkills) => SkillDefinition[]
   - function syncAgentCommand: (agent) => Promise<void>
   - function syncAllAgentCommands: () => Promise<void>
   - function syncSkillFile: (skill) => Promise<void>
@@ -108,7 +106,7 @@
   - interface AgentDefinition
   - interface AgentsFile
   - interface SkillDefinition
-  - _...50 more_
+  - _...46 more_
 - `src/lib/utils.ts`
   - function cn: (...inputs) => void
   - function generateId: (prefix) => string
@@ -119,8 +117,8 @@
   - const LIMITS
   - const taskCreateSchema
   - const taskUpdateSchema
-  - const goalCreateSchema
-  - _...17 more_
+  - const projectCreateSchema
+  - _...15 more_
 - `src/lib/wiki-plugin.ts`
   - function ensureWikiPluginInstalledDetailed: (cwd, options?) => WikiPluginInstall
   - function ensureWikiPluginInstalled: (cwd) => WikiPluginStatus

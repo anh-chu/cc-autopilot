@@ -5,25 +5,18 @@
 - **`/api/activity-log`** GET | POST | DELETE/:id → Activity-log
 - **`/api/agents`** GET | POST | PUT/:id | DELETE/:id → Agent
 - **`/api/brain-dump`** GET | POST | PUT/:id | DELETE/:id → Brain-dump
-- **`/api/checkpoints`** GET | POST | DELETE/:id → Checkpoint
 - **`/api/daemon`** GET | POST | PUT/:id → Daemon
 - **`/api/decisions`** GET | POST | PUT/:id | DELETE/:id → Decision
-- **`/api/goals`** GET | POST | PUT/:id | DELETE/:id → Goal
 - **`/api/inbox`** GET | POST | PUT/:id | DELETE/:id → Inbox
 - **`/api/initiatives`** GET | POST | PUT/:id | DELETE/:id → Initiative
 - **`/api/projects`** GET | POST | PUT/:id | DELETE/:id → Project
 - **`/api/skills`** GET | POST | PUT/:id | DELETE/:id → Skill
 - **`/api/tasks`** GET | POST | PUT/:id | DELETE/:id → Task
-- **`/api/ventures`** GET | POST | PUT/:id | DELETE/:id → Venture
 - **`/api/workspaces`** GET | POST | PUT/:id | DELETE/:id → Workspace
 
 ## Other Routes
 
 - `POST` `/api/brain-dump/automate` → out: { error }
-- `GET` `/api/checkpoints/export` → out: { error }
-- `POST` `/api/checkpoints/import` → out: { error }
-- `POST` `/api/checkpoints/load` → out: { error }
-- `POST` `/api/checkpoints/new` → out: { ok }
 - `GET` `/api/dashboard` [cache]
 - `POST` `/api/emergency-stop` → out: { ok, results }
 - `POST` `/api/inbox/respond` → out: { error }
@@ -49,8 +42,6 @@
 - `PUT` `/api/tasks/bulk` → out: { error }
 - `DELETE` `/api/tasks/bulk` → out: { error }
 - `POST` `/api/upload` → out: { error } [upload]
-- `POST` `/api/ventures/[id]/run` params(id) → out: { error, missionId } [queue]
-- `POST` `/api/ventures/[id]/stop` params(id) → out: { error }
 - `GET` `/api/wiki/content` → out: { error }
 - `PUT` `/api/wiki/content` → out: { error }
 - `GET` `/api/wiki/file` → out: { error } [cache]

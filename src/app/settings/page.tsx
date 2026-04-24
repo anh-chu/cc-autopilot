@@ -1,20 +1,7 @@
 "use client";
 
-import {
-	Download,
-	FileJson,
-	FolderOpen,
-	Loader2,
-	Plus,
-	Rocket,
-	Save,
-	Square,
-	Trash2,
-	Upload,
-	X,
-} from "lucide-react";
-import { useRouter } from "next/navigation";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { Plus, Rocket, Square, X } from "lucide-react";
+import { useEffect, useState } from "react";
 import { BreadcrumbNav } from "@/components/breadcrumb-nav";
 import { ConfirmDialog } from "@/components/confirm-dialog";
 import { Badge } from "@/components/ui/badge";
@@ -26,21 +13,11 @@ import {
 	CardHeader,
 	CardTitle,
 } from "@/components/ui/card";
-import {
-	Dialog,
-	DialogContent,
-	DialogDescription,
-	DialogFooter,
-	DialogHeader,
-	DialogTitle,
-} from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
-import { Textarea } from "@/components/ui/textarea";
 import { useDaemon } from "@/hooks/use-daemon";
 import { useWorkspace } from "@/hooks/use-workspace";
-import { showError, showSuccess } from "@/lib/toast";
 
 const COLORS = [
 	"#6366f1",
@@ -55,35 +32,7 @@ const COLORS = [
 	"#06b6d4",
 ];
 
-interface CheckpointMeta {
-	id: string;
-	name: string;
-	description: string;
-	createdAt: string;
-	version: number;
-	stats: {
-		tasks: number;
-		projects: number;
-		brainDump: number;
-		inbox: number;
-		decisions: number;
-		agents: number;
-		skills: number;
-	};
-}
-
-function formatDate(iso: string) {
-	return new Date(iso).toLocaleDateString("en-US", {
-		month: "short",
-		day: "numeric",
-		year: "numeric",
-		hour: "numeric",
-		minute: "2-digit",
-	});
-}
-
 export default function SettingsPage() {
-	const router = useRouter();
 	const { currentWorkspace, loading } = useWorkspace();
 	const {
 		config,
@@ -112,16 +61,6 @@ export default function SettingsPage() {
 	const [envSaved, setEnvSaved] = useState(false);
 	const [revealedEnvIdx, setRevealedEnvIdx] = useState<Set<number>>(new Set());
 
-	const [checkpoints, setCheckpoints] = useState<CheckpointMeta[]>([]);
-	const [cpLoading, setCpLoading] = useState(true);
-	const [cpBusy, setCpBusy] = useState(false);
-	const [showSave, setShowSave] = useState(false);
-	const [showLoad, setShowLoad] = useState<CheckpointMeta | null>(null);
-	const [showDelete, setShowDelete] = useState<CheckpointMeta | null>(null);
-	const [saveName, setSaveName] = useState("");
-	const [saveDesc, setSaveDesc] = useState("");
-	const importRef = useRef<HTMLInputElement>(null);
-
 	useEffect(() => {
 		if (currentWorkspace) {
 			setName(currentWorkspace.name);
@@ -135,24 +74,6 @@ export default function SettingsPage() {
 		setPollingEnabled(config.polling.enabled);
 		setMaxParallelAgents(config.concurrency.maxParallelAgents);
 	}, [config]);
-
-	const fetchCheckpoints = useCallback(async () => {
-		try {
-			const res = await fetch("/api/checkpoints");
-			if (res.ok) {
-				const data = await res.json();
-				setCheckpoints(data);
-			}
-		} catch {
-			showError("Failed to fetch checkpoints");
-		} finally {
-			setCpLoading(false);
-		}
-	}, []);
-
-	useEffect(() => {
-		fetchCheckpoints();
-	}, [fetchCheckpoints]);
 
 	const handleSave = async () => {
 		if (!currentWorkspace) return;
@@ -218,117 +139,6 @@ export default function SettingsPage() {
 			setDaemonSaving(false);
 		}
 	};
-
-	async function handleCpSave() {
-		if (!saveName.trim()) return;
-		setCpBusy(true);
-		try {
-			const res = await fetch("/api/checkpoints", {
-				method: "POST",
-				headers: { "Content-Type": "application/json" },
-				body: JSON.stringify({
-					name: saveName.trim(),
-					description: saveDesc.trim(),
-				}),
-			});
-			if (!res.ok) {
-				const err = await res.json();
-				throw new Error(err.error || "Save failed");
-			}
-			showSuccess(`Checkpoint "${saveName.trim()}" saved`);
-			setShowSave(false);
-			setSaveName("");
-			setSaveDesc("");
-			fetchCheckpoints();
-		} catch (err) {
-			showError(String(err));
-		} finally {
-			setCpBusy(false);
-		}
-	}
-
-	async function handleCpLoad() {
-		if (!showLoad) return;
-		setCpBusy(true);
-		try {
-			const res = await fetch("/api/checkpoints/load", {
-				method: "POST",
-				headers: { "Content-Type": "application/json" },
-				body: JSON.stringify({ id: showLoad.id }),
-			});
-			if (!res.ok) {
-				const err = await res.json();
-				throw new Error(err.error || "Load failed");
-			}
-			showSuccess(`Loaded "${showLoad.name}"`);
-			setShowLoad(null);
-			router.push("/");
-		} catch (err) {
-			showError(String(err));
-		} finally {
-			setCpBusy(false);
-		}
-	}
-
-	async function handleCpDelete() {
-		if (!showDelete) return;
-		setCpBusy(true);
-		try {
-			const res = await fetch(`/api/checkpoints?id=${showDelete.id}`, {
-				method: "DELETE",
-			});
-			if (!res.ok) {
-				const err = await res.json();
-				throw new Error(err.error || "Delete failed");
-			}
-			showSuccess(`Deleted "${showDelete.name}"`);
-			setShowDelete(null);
-			fetchCheckpoints();
-		} catch (err) {
-			showError(String(err));
-		} finally {
-			setCpBusy(false);
-		}
-	}
-
-	function handleExport(cp: CheckpointMeta) {
-		const safeName = cp.name
-			.replace(/[^a-zA-Z0-9-_ ]/g, "")
-			.replace(/\s+/g, "-")
-			.toLowerCase();
-		const filename = `${safeName || cp.id}.json`;
-		const link = document.createElement("a");
-		link.href = `/api/checkpoints/export?id=${cp.id}`;
-		link.download = filename;
-		link.click();
-	}
-
-	async function handleImport(e: React.ChangeEvent<HTMLInputElement>) {
-		const file = e.target.files?.[0];
-		if (!file) return;
-		setCpBusy(true);
-		try {
-			const text = await file.text();
-			const json = JSON.parse(text);
-			const res = await fetch("/api/checkpoints/import", {
-				method: "POST",
-				headers: { "Content-Type": "application/json" },
-				body: JSON.stringify(json),
-			});
-			if (!res.ok) {
-				const err = await res.json();
-				throw new Error(err.error || "Import failed");
-			}
-			const result = await res.json();
-			showSuccess(`Imported "${result.name}"`);
-			fetchCheckpoints();
-		} catch (err) {
-			showError(`Import failed: ${err}`);
-		} finally {
-			setCpBusy(false);
-			if (importRef.current) importRef.current.value = "";
-		}
-	}
 
 	if (loading) {
 		return (
@@ -402,7 +212,7 @@ export default function SettingsPage() {
 					<CardContent className="space-y-4">
 						<div className="space-y-2">
 							{envVars.map((entry, i) => (
-								<div key={i} className="flex items-center gap-2">
+								<div key={entry.id} className="flex items-center gap-2">
 									<Input
 										placeholder="KEY"
 										value={entry.key}
@@ -440,7 +250,7 @@ export default function SettingsPage() {
 										variant="ghost"
 										className="h-7 w-7 p-0 text-muted-foreground hover:text-destructive"
 										onClick={() =>
-											setEnvVars(envVars.filter((_, j) => j !== i))
+											setEnvVars(envVars.filter((e) => e.id !== entry.id))
 										}
 									>
 										<X className="h-3.5 w-3.5" />
@@ -458,7 +268,12 @@ export default function SettingsPage() {
 								size="sm"
 								variant="outline"
 								className="gap-1.5 h-7 text-xs"
-								onClick={() => setEnvVars([...envVars, { key: "", value: "" }])}
+								onClick={() =>
+									setEnvVars([
+										...envVars,
+										{ id: `env-new-${Date.now()}`, key: "", value: "" },
+									])
+								}
 							>
 								<Plus className="h-3 w-3" /> Add variable
 							</Button>
@@ -553,112 +368,6 @@ export default function SettingsPage() {
 					</CardContent>
 				</Card>
 
-				<Card>
-					<CardHeader>
-						<div className="flex items-center justify-between">
-							<div>
-								<CardTitle>Backup &amp; Restore</CardTitle>
-								<CardDescription>
-									Save and restore workspace snapshots.
-								</CardDescription>
-							</div>
-							<div className="flex items-center gap-2">
-								<Button
-									size="sm"
-									variant="outline"
-									className="gap-1.5 h-7 text-xs"
-									onClick={() => importRef.current?.click()}
-									disabled={cpBusy}
-								>
-									<Upload className="h-3 w-3" /> Import
-								</Button>
-								<input
-									ref={importRef}
-									type="file"
-									accept=".json"
-									className="hidden"
-									onChange={handleImport}
-								/>
-								<Button
-									size="sm"
-									className="gap-1.5 h-7 text-xs"
-									onClick={() => {
-										setSaveName("");
-										setSaveDesc("");
-										setShowSave(true);
-									}}
-									disabled={cpBusy}
-								>
-									<Save className="h-3 w-3" /> Create Backup
-								</Button>
-							</div>
-						</div>
-					</CardHeader>
-					<CardContent>
-						{cpLoading ? (
-							<div className="flex items-center justify-center py-6">
-								<Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
-							</div>
-						) : checkpoints.length === 0 ? (
-							<p className="text-sm text-muted-foreground py-2">
-								No checkpoints yet. Create a backup to snapshot your current
-								workspace.
-							</p>
-						) : (
-							<div className="space-y-2">
-								{checkpoints.map((cp) => (
-									<div
-										key={cp.id}
-										className="flex items-center gap-3 rounded-lg border bg-card/50 px-3 py-2"
-									>
-										<FileJson className="h-4 w-4 text-primary shrink-0" />
-										<div className="flex-1 min-w-0">
-											<p className="text-sm font-medium truncate">{cp.name}</p>
-											<p className="text-xs text-muted-foreground">
-												{formatDate(cp.createdAt)}
-												{cp.stats.tasks > 0 && ` · ${cp.stats.tasks} tasks`}
-												{cp.stats.projects > 0 &&
-													` · ${cp.stats.projects} projects`}
-											</p>
-										</div>
-										<div className="flex items-center gap-1 shrink-0">
-											<Button
-												size="sm"
-												variant="outline"
-												className="h-6 text-xs px-2 gap-1"
-												onClick={() => setShowLoad(cp)}
-												disabled={cpBusy}
-											>
-												<FolderOpen className="h-3 w-3" /> Restore
-											</Button>
-											<Button
-												size="sm"
-												variant="ghost"
-												className="h-6 w-6 p-0"
-												onClick={() => handleExport(cp)}
-												disabled={cpBusy}
-												title="Export"
-											>
-												<Download className="h-3 w-3" />
-											</Button>
-											<Button
-												size="sm"
-												variant="ghost"
-												className="h-6 w-6 p-0 text-destructive hover:text-destructive"
-												onClick={() => setShowDelete(cp)}
-												disabled={cpBusy}
-												title="Delete"
-											>
-												<Trash2 className="h-3 w-3" />
-											</Button>
-										</div>
-									</div>
-								))}
-							</div>
-						)}
-					</CardContent>
-				</Card>
-
 				<Card className="border-destructive/40">
 					<CardHeader>
 						<CardTitle className="text-destructive">Danger Zone</CardTitle>
@@ -696,122 +405,6 @@ export default function SettingsPage() {
 				confirmLabel="Delete workspace"
 				onConfirm={handleDelete}
 			/>
-
-			<Dialog open={showSave} onOpenChange={setShowSave}>
-				<DialogContent>
-					<DialogHeader>
-						<DialogTitle>Create Backup</DialogTitle>
-						<DialogDescription>
-							Save a copy of your current workspace that you can restore later.
-						</DialogDescription>
-					</DialogHeader>
-					<div className="space-y-3">
-						<div>
-							<label className="text-sm font-medium" htmlFor="cp-name">
-								Name
-							</label>
-							<Input
-								id="cp-name"
-								placeholder="e.g. Before big refactor"
-								value={saveName}
-								onChange={(e) => setSaveName(e.target.value)}
-								maxLength={200}
-								autoFocus
-							/>
-						</div>
-						<div>
-							<label className="text-sm font-medium" htmlFor="cp-desc">
-								Description (optional)
-							</label>
-							<Textarea
-								id="cp-desc"
-								placeholder="What state is this workspace in?"
-								value={saveDesc}
-								onChange={(e) => setSaveDesc(e.target.value)}
-								maxLength={1000}
-								rows={2}
-							/>
-						</div>
-					</div>
-					<DialogFooter>
-						<Button variant="outline" onClick={() => setShowSave(false)}>
-							Cancel
-						</Button>
-						<Button
-							onClick={handleCpSave}
-							disabled={!saveName.trim() || cpBusy}
-						>
-							{cpBusy ? (
-								<Loader2 className="h-4 w-4 animate-spin mr-2" />
-							) : (
-								<Save className="h-4 w-4 mr-2" />
-							)}
-							Save Checkpoint
-						</Button>
-					</DialogFooter>
-				</DialogContent>
-			</Dialog>
-
-			<Dialog
-				open={!!showLoad}
-				onOpenChange={(open) => !open && setShowLoad(null)}
-			>
-				<DialogContent>
-					<DialogHeader>
-						<DialogTitle>Restore Checkpoint</DialogTitle>
-						<DialogDescription>
-							This will replace all current data with &ldquo;{showLoad?.name}
-							&rdquo;. Make sure to create a backup first if you want to keep
-							your current state.
-						</DialogDescription>
-					</DialogHeader>
-					<DialogFooter>
-						<Button variant="outline" onClick={() => setShowLoad(null)}>
-							Cancel
-						</Button>
-						<Button onClick={handleCpLoad} disabled={cpBusy}>
-							{cpBusy ? (
-								<Loader2 className="h-4 w-4 animate-spin mr-2" />
-							) : (
-								<FolderOpen className="h-4 w-4 mr-2" />
-							)}
-							Restore
-						</Button>
-					</DialogFooter>
-				</DialogContent>
-			</Dialog>
-
-			<Dialog
-				open={!!showDelete}
-				onOpenChange={(open) => !open && setShowDelete(null)}
-			>
-				<DialogContent>
-					<DialogHeader>
-						<DialogTitle>Delete Checkpoint</DialogTitle>
-						<DialogDescription>
-							Are you sure you want to delete &ldquo;{showDelete?.name}&rdquo;?
-							This cannot be undone.
-						</DialogDescription>
-					</DialogHeader>
-					<DialogFooter>
-						<Button variant="outline" onClick={() => setShowDelete(null)}>
-							Cancel
-						</Button>
-						<Button
-							variant="destructive"
-							onClick={handleCpDelete}
-							disabled={cpBusy}
-						>
-							{cpBusy ? (
-								<Loader2 className="h-4 w-4 animate-spin mr-2" />
-							) : (
-								<Trash2 className="h-4 w-4 mr-2" />
-							)}
-							Delete
-						</Button>
-					</DialogFooter>
-				</DialogContent>
-			</Dialog>
 		</div>
 	);
 }
