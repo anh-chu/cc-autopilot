@@ -6,7 +6,36 @@ import { getWorkspaceDataDir } from "@/lib/data";
 import { getUploadsDir } from "@/lib/paths";
 import { generateId, parseAgentMentions } from "@/lib/utils";
 import { applyWorkspaceContext } from "@/lib/workspace-context";
-import { readJSON, type TaskEntry } from "../../shared";
+
+function readJSON<T>(file: string): T | null {
+	try {
+		if (!existsSync(file)) return null;
+		return JSON.parse(readFileSync(file, "utf-8")) as T;
+	} catch {
+		return null;
+	}
+}
+
+interface TaskEntry {
+	id: string;
+	title: string;
+	assignedTo: string | null;
+	kanban: string;
+	comments?: Array<{
+		id: string;
+		author: string;
+		content: string;
+		createdAt: string;
+		type?: "note" | "comment" | "system";
+		attachments?: Array<{
+			id: string;
+			type: string;
+			url: string;
+			filename: string;
+		}>;
+	}>;
+	[key: string]: unknown;
+}
 
 interface AgentEntry {
 	id: string;
@@ -24,6 +53,7 @@ export async function POST(
 	let body: {
 		content: string;
 		author?: string;
+		type?: "note" | "comment" | "system";
 		attachments?: Array<{
 			id: string;
 			type: "image" | "file";
@@ -52,6 +82,10 @@ export async function POST(
 	}
 
 	const author = body.author ?? "me";
+	const VALID_TYPES = ["note", "comment", "system"] as const;
+	const type = VALID_TYPES.includes(body.type as (typeof VALID_TYPES)[number])
+		? body.type
+		: "comment";
 
 	const tasksPath = path.join(wsDir, "tasks.json");
 	const tasksData = readJSON<{ tasks: TaskEntry[] }>(tasksPath);
@@ -74,6 +108,7 @@ export async function POST(
 		id: generateId("cmt"),
 		author,
 		content,
+		type,
 		createdAt: new Date().toISOString(),
 		...(attachments.length > 0 ? { attachments } : {}),
 	};

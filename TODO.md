@@ -50,27 +50,46 @@ Original pitch (merge into single event stream) is not viable:
 
 ---
 
-### 3g. notes + comments unification
+### ~~3g. notes + comments unification~~ done
 
-**Types file**: `$T2` — `Task.notes: string` and `Task.comments: TaskComment[]`.
-
-Both carry daemon-generated text about a task, built at different times with different shapes:
-- `notes` — flat string, append-only scratchpad. Daemon writes mid-run progress, reads it back to resume. Also human-editable via form. No author, no timestamp.
-- `comments` — structured `{ author, content, createdAt, attachments? }` array. Daemon pushes post-run summaries via `run-task-comment.ts`. Rendered as a thread in UI.
-
-The split means users see two separate surfaces for daemon communication. A task has notes AND comments with no clear mental model for which is which.
-
-Proposed unification: drop `notes: string`, extend comments with `type: 'note' | 'comment' | 'system'`. `note`-type comments replace the scratchpad role. Mid-run append in `run-task.ts` becomes a push-as-object instead of string concat. Daemon reads back the latest `note`-type comment instead of `task.notes`.
-
-Files to update: `types.ts`, `validations.ts`, `tasks/route.ts`, `tasks/[id]/comment/route.ts`, `task-form.tsx`, `tasks/[id]/page.tsx`, `scripts/daemon/run-task.ts`, `scripts/daemon/run-task-comment.ts`, `scripts/daemon/prompt-builder.ts`.
-
-Not urgent — both fields work. Design debt from incremental buildup.
+Dropped `Task.notes`, added `TaskComment.type`. Daemon, API, UI, validation all updated.
 
 ---
 
-### ~~3h. Comms section restructure~~ ✅
+### 3f. API action consolidation
 
-Done. Deleted inbox/respond API routes, orphaned daemon scripts, dead keyboard shortcuts. Renamed Logs → Debug Logs. Fixed /activity redirect. Added inline decision actions to Activity page. Net ~980 LOC cut.
+Current task action routes (all thin wrappers, ~50 LOC each):
+- `POST /api/tasks/[id]/run`
+- `POST /api/tasks/[id]/stop`
+- `POST /api/tasks/[id]/comment`
+
+Consolidate into `POST /api/tasks/[id]/actions` with body `{ action: 'run' | 'stop' | 'comment', params?: {...} }`. Saves 3 route files, unifies auth/validation pattern.
+
+Check all UI callers before merging: `grep -r "tasks.*run\|tasks.*stop\|tasks.*comment" src/`
+
+---
+
+### 3h. Comms section restructure (next phase)
+
+Sidebar grouping done (`c3e3aa0`). Structural cuts still pending.
+
+**What remains:**
+- Inbox page (~500 LOC): email metaphor doesn't fit agent communication. Agent outputs already surface via activity log and decisions.
+- Decisions page (~230 LOC): redundant now that dashboard Attention Required has inline approve/reject.
+- Logs: ops tabs (Daemon, App, Runs) should move to a dedicated debug page; Activity tab belongs with comms.
+
+**Plan:**
+- PR 1: Kill Inbox page, kill Decisions page, split Logs into ops vs. activity.
+- PR 2: Single Activity page with agent event stream, filters by agent/type/status, inline decision actions.
+
+Expected: ~730 LOC cut, one mental model for agent interactions.
+
+---
+
+### Verify before cutting
+
+- `/api/brain-dump/automate` — route exists, daemon script exists. Confirm whether any UI surface triggers it. If not, cut both.
+- `/api/sync` — already evaluated in previous audit, kept (called by daemon). Do not remove.
 
 ---
 
@@ -78,7 +97,7 @@ Done. Deleted inbox/respond API routes, orphaned daemon scripts, dead keyboard s
 
 Deferred cleanup items from the component audit. Low priority but worth tracking.
 
-- [x] **Sidebar nav rationalization**: Activity page restored as standalone, /logs renamed to Debug Logs.
+- [x] **Sidebar nav rationalization**: merged /activity into /logs (Activity tab), removed /initiatives duplicate, deleted empty stub dirs.
 - [x] **Context menu shared wrapper**: 5 variants following same pattern. Extract shared wrapper.
 - [x] **Dialog merge**: create/edit pairs that differ only by mode. Merge into single form dialog.
 - [x] **Crew (agent) form merge**: `crew/new/page.tsx` (483 lines) and `crew/[id]/edit/page.tsx` (560 lines) are ~80% identical. Extract `AgentForm` component, thin create/edit page wrappers.
@@ -87,7 +106,6 @@ Deferred cleanup items from the component audit. Low priority but worth tracking
 
 ## Done
 
-- ~~API action consolidation (3f)~~: evaluated and rejected. Shared helpers extracted to tasks/shared.ts instead.
 - ~~Task field trim~~: removed `fieldTaskIds`, `dailyActions`/`DailyAction`, narrowed `acceptanceCriteria`. Commit `refactor(types): trim dead Task fields`.
 - ~~Dashboard lean pass~~: 934 → 844 LOC, 10 → 4 widgets, 6 → 5 data fetches. Inline decision/report/brain-dump actions in Attention Required.
 - ~~Comms sidebar grouping~~: Inbox, Decisions, Logs grouped under Messages. Commit `c3e3aa0`.

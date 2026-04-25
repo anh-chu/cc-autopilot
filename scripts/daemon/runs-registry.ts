@@ -1,8 +1,8 @@
 /**
  * runs-registry.ts — Shared CRUD utilities for JSON-run-file registries.
  *
- * Provides generic read/write/prune utilities used by recovery.ts
- * and any module that manages a JSON file containing an array of run/session entries.
+ * Provides generic read/write/prune utilities used by respond-runs.ts, recovery.ts,
+ * and any future module that manages a JSON file containing an array of run/session entries.
  */
 
 import { existsSync, readFileSync, renameSync, writeFileSync } from "fs";
@@ -44,9 +44,9 @@ export function atomicWriteJson<T>(filePath: string, data: T): void {
 /**
  * Entry with a status field and optional completedAt timestamp.
  */
-interface PrunableEntry {
-	status?: string | undefined;
-	completedAt?: string;
+export interface PrunableEntry {
+	status?: string;
+	completedAt?: string | null;
 }
 
 /**
@@ -56,7 +56,7 @@ interface PrunableEntry {
  * @param maxAgeMs - max age in milliseconds (default: 1 hour)
  * @returns new array with old completed entries removed
  */
-export function pruneOldEntries<T extends PrunableEntry>(
+export function pruneOldEntries<T extends PrunableEntry & { id: string }>(
 	entries: T[],
 	maxAgeMs: number = 60 * 60 * 1000,
 ): T[] {
