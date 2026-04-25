@@ -32,60 +32,6 @@ From codebase audit 2026-04-24. All types in `src/lib/types.ts`. All routes unde
 
 ---
 
-### ~~3a. Inbox + ActivityLog merge / API pagination dedup~~
-
-**Investigated 2026-04-25. Original goal revised.**
-
-Original pitch (merge into single event stream) is not viable:
-- Inbox is bilateral (from → to), ActivityLog is unidirectional (actor only). from/to is load-bearing for threading and reply-to logic.
-- 5 daemon scripts bypass the API and write directly to inbox.json / activity-log.json. Merging storage = race conditions without a mutex-aware write layer first.
-- "Triple-fetch" doesn't exist — dashboard does 2 parallel reads, not 3.
-- Full merge requires daemon executor consolidation (3e) as prerequisite. Doing 3e to enable a low-value merge is backwards.
-
-**Revised scope — what's actually safe:**
-- Extract shared pagination/filter helper from `src/app/api/inbox/route.ts` and `src/app/api/activity-log/route.ts` — both have identical offset/limit/sort logic (~80 LOC saved)
-- Leave storage, types, and UI untouched
-
-**Do not merge** Inbox and ActivityLog at the data or UX layer — they serve different user mental models ("what needs my attention" vs "what happened") and different interaction patterns (threading + reply vs audit trail).
-
----
-
-### ~~3g. notes + comments unification~~ done
-
-Dropped `Task.notes`, added `TaskComment.type`. Daemon, API, UI, validation all updated.
-
----
-
-### ~~3f. API action consolidation~~ done
-
-Current task action routes (all thin wrappers, ~50 LOC each):
-- `POST /api/tasks/[id]/run`
-- `POST /api/tasks/[id]/stop`
-- `POST /api/tasks/[id]/comment`
-
-Consolidate into `POST /api/tasks/[id]/actions` with body `{ action: 'run' | 'stop' | 'comment', params?: {...} }`. Saves 3 route files, unifies auth/validation pattern.
-
-Check all UI callers before merging: `grep -r "tasks.*run\|tasks.*stop\|tasks.*comment" src/`
-
----
-
-### ~~3h. Comms section restructure~~ done
-
-Sidebar grouping done (`c3e3aa0`). Structural cuts still pending.
-
-**What remains:**
-- Inbox page (~500 LOC): email metaphor doesn't fit agent communication. Agent outputs already surface via activity log and decisions.
-- Decisions page (~230 LOC): redundant now that dashboard Attention Required has inline approve/reject.
-- Logs: ops tabs (Daemon, App, Runs) should move to a dedicated debug page; Activity tab belongs with comms.
-
-**Plan:**
-- PR 1: Kill Inbox page, kill Decisions page, split Logs into ops vs. activity.
-- PR 2: Single Activity page with agent event stream, filters by agent/type/status, inline decision actions.
-
-Expected: ~730 LOC cut, one mental model for agent interactions.
-
----
-
 ### Verify before cutting
 
 - `/api/brain-dump/automate` — route exists, daemon script exists. Confirm whether any UI surface triggers it. If not, cut both.
@@ -106,6 +52,10 @@ Deferred cleanup items from the component audit. Low priority but worth tracking
 
 ## Done
 
+- ~~Inbox/ActivityLog pagination dedup~~: shared pagination helper extracted. Full stream merge ruled out (bilateral vs unidirectional, daemon bypasses API).
+- ~~Notes + comments unification~~: dropped `Task.notes`, added `TaskComment.type`. Daemon, API, UI, validation all updated.
+- ~~API action consolidation~~: `run`, `stop`, `comment` sub-routes consolidated into shared task route helpers. Commit `30cd06a`.
+- ~~Comms section restructure~~: Inbox and Decisions pages removed, Logs split into ops/activity, single Activity page with inline decision actions. Commit `c87dc96`.
 - ~~Task field trim~~: removed `fieldTaskIds`, `dailyActions`/`DailyAction`, narrowed `acceptanceCriteria`. Commit `refactor(types): trim dead Task fields`.
 - ~~Dashboard lean pass~~: 934 → 844 LOC, 10 → 4 widgets, 6 → 5 data fetches. Inline decision/report/brain-dump actions in Attention Required.
 - ~~Comms sidebar grouping~~: Inbox, Decisions, Logs grouped under Messages. Commit `c3e3aa0`.
