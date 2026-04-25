@@ -1,40 +1,12 @@
-import { NextResponse } from "next/server";
 import { spawn } from "child_process";
-import { readFileSync, writeFileSync, existsSync, unlinkSync } from "fs";
+import { existsSync, readFileSync, unlinkSync, writeFileSync } from "fs";
+import { NextResponse } from "next/server";
 import path from "path";
-import { parseAgentMentions, generateId } from "@/lib/utils";
-import { applyWorkspaceContext } from "@/lib/workspace-context";
 import { getWorkspaceDataDir } from "@/lib/data";
 import { getUploadsDir } from "@/lib/paths";
-
-function readJSON<T>(file: string): T | null {
-	try {
-		if (!existsSync(file)) return null;
-		return JSON.parse(readFileSync(file, "utf-8")) as T;
-	} catch {
-		return null;
-	}
-}
-
-interface TaskEntry {
-	id: string;
-	title: string;
-	assignedTo: string | null;
-	kanban: string;
-	comments?: Array<{
-		id: string;
-		author: string;
-		content: string;
-		createdAt: string;
-		attachments?: Array<{
-			id: string;
-			type: string;
-			url: string;
-			filename: string;
-		}>;
-	}>;
-	[key: string]: unknown;
-}
+import { generateId, parseAgentMentions } from "@/lib/utils";
+import { applyWorkspaceContext } from "@/lib/workspace-context";
+import { readJSON, type TaskEntry } from "../../shared";
 
 interface AgentEntry {
 	id: string;

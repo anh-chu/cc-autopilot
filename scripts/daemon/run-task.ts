@@ -124,7 +124,9 @@ function consumeDecisionSession(taskId: string): string | null {
 /**
  * Prune completed/failed/timeout/stopped runs older than 1 hour.
  */
-function pruneOldRuns(data: ActiveRunsData): ActiveRunsData {
+function pruneOldRuns(data: { runs: ActiveRunEntry[] }): {
+	runs: ActiveRunEntry[];
+} {
 	const ONE_HOUR = 60 * 60 * 1000;
 	const now = Date.now();
 

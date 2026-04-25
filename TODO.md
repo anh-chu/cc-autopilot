@@ -68,19 +68,6 @@ Not urgent — both fields work. Design debt from incremental buildup.
 
 ---
 
-### 3f. API action consolidation
-
-Current task action routes (all thin wrappers, ~50 LOC each):
-- `POST /api/tasks/[id]/run`
-- `POST /api/tasks/[id]/stop`
-- `POST /api/tasks/[id]/comment`
-
-Consolidate into `POST /api/tasks/[id]/actions` with body `{ action: 'run' | 'stop' | 'comment', params?: {...} }`. Saves 3 route files, unifies auth/validation pattern.
-
-Check all UI callers before merging: `grep -r "tasks.*run\|tasks.*stop\|tasks.*comment" src/`
-
----
-
 ### ~~3h. Comms section restructure~~ ✅
 
 Done. Deleted inbox/respond API routes, orphaned daemon scripts, dead keyboard shortcuts. Renamed Logs → Debug Logs. Fixed /activity redirect. Added inline decision actions to Activity page. Net ~980 LOC cut.
@@ -100,6 +87,7 @@ Deferred cleanup items from the component audit. Low priority but worth tracking
 
 ## Done
 
+- ~~API action consolidation (3f)~~: evaluated and rejected. Shared helpers extracted to tasks/shared.ts instead.
 - ~~Task field trim~~: removed `fieldTaskIds`, `dailyActions`/`DailyAction`, narrowed `acceptanceCriteria`. Commit `refactor(types): trim dead Task fields`.
 - ~~Dashboard lean pass~~: 934 → 844 LOC, 10 → 4 widgets, 6 → 5 data fetches. Inline decision/report/brain-dump actions in Attention Required.
 - ~~Comms sidebar grouping~~: Inbox, Decisions, Logs grouped under Messages. Commit `c3e3aa0`.

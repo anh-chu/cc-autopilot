@@ -1,33 +1,8 @@
-import { NextResponse } from "next/server";
 import { spawn } from "child_process";
-import { readFileSync, existsSync } from "fs";
+import { NextResponse } from "next/server";
 import path from "path";
 import { DATA_DIR } from "@/lib/paths";
-
-// ─── Helpers ─────────────────────────────────────────────────────────────────
-
-function readJSON<T>(file: string): T | null {
-	try {
-		if (!existsSync(file)) return null;
-		return JSON.parse(readFileSync(file, "utf-8")) as T;
-	} catch {
-		return null;
-	}
-}
-
-interface TaskEntry {
-	id: string;
-	assignedTo: string | null;
-	kanban: string;
-	projectId: string | null;
-	blockedBy?: string[];
-}
-
-interface RunEntry {
-	id: string;
-	taskId: string;
-	status: string;
-}
+import { type RunEntry, readJSON, type TaskEntry } from "../../shared";
 
 // ─── POST: Run a single task ─────────────────────────────────────────────────
 
