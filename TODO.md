@@ -32,13 +32,6 @@ From codebase audit 2026-04-24. All types in `src/lib/types.ts`. All routes unde
 
 ---
 
-### Verify before cutting
-
-- `/api/brain-dump/automate` — route exists, daemon script exists. Confirm whether any UI surface triggers it. If not, cut both.
-- `/api/sync` — already evaluated in previous audit, kept (called by daemon). Do not remove.
-
----
-
 ## 4. Simplification candidates (older audit)
 
 Deferred cleanup items from the component audit. Low priority but worth tracking.
@@ -52,6 +45,7 @@ Deferred cleanup items from the component audit. Low priority but worth tracking
 
 ## Done
 
+- ~~Verify brain-dump/automate~~: called by `brain-dump/page.tsx` (lines 68, 83). Keep route and daemon script.
 - ~~Inbox/ActivityLog pagination dedup~~: shared pagination helper extracted. Full stream merge ruled out (bilateral vs unidirectional, daemon bypasses API).
 - ~~Notes + comments unification~~: dropped `Task.notes`, added `TaskComment.type`. Daemon, API, UI, validation all updated.
 - ~~API action consolidation~~: `run`, `stop`, `comment` sub-routes consolidated into shared task route helpers. Commit `30cd06a`.
