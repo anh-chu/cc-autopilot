@@ -33,25 +33,10 @@ const taskLogger = createLogger("task", { sync: true });
 // ─── Paths ──────────────────────────────────────────────────────────────────
 
 import { DATA_DIR, getWorkspaceDir } from "../../src/lib/paths";
+import { getWorkspaceEnv } from "./workspace-env";
 
 const workspaceId = process.env.CMC_WORKSPACE_ID ?? "default";
 const WORKSPACE_DIR = getWorkspaceDir(workspaceId);
-
-function getWorkspaceEnv(wsId: string): Record<string, string> {
-	try {
-		const raw = readFileSync(path.join(DATA_DIR, "workspaces.json"), "utf-8");
-		const data = JSON.parse(raw) as {
-			workspaces: Array<{
-				id: string;
-				settings?: { envVars?: Record<string, string> };
-			}>;
-		};
-		const ws = data.workspaces.find((w) => w.id === wsId);
-		return ws?.settings?.envVars ?? {};
-	} catch {
-		return {};
-	}
-}
 const TSX_BIN = path.resolve(__dirname, "../../node_modules/.bin/tsx");
 
 // ─── Data Types ─────────────────────────────────────────────────────────────
