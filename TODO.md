@@ -50,24 +50,6 @@ Original pitch (merge into single event stream) is not viable:
 
 ---
 
-### 3e. Daemon executor consolidation (partial)
-
-**Done 2026-04-25:** Extracted `getWorkspaceEnv()` (duplicated in 4 scripts) to `workspace-env.ts`. Extracted shared JSON I/O and prune logic to `runs-registry.ts`. `respond-runs.ts` and `recovery.ts` now import from it.
-
-**Remaining:** The 5 run-*.ts scripts still duplicate the core spawn-Claude loop (load context, build prompt, spawn child, stream output, write result). Full consolidation = single dispatcher with a handler registry.
-
-| File | Size | Purpose |
-|------|------|---------|
-| `run-task.ts` | ~55 KB | execute a task via Claude |
-| `run-inbox-respond.ts` | ~25 KB | respond to inbox message |
-| `run-task-comment.ts` | ~19 KB | generate task comment |
-| `run-brain-dump-triage.ts` | ~9 KB | triage brain dump input |
-| `run-wiki-generate.ts` | ~9 KB | generate wiki content (uses SDK directly, different pattern) |
-
-`scripts/daemon/runner.ts` and `scripts/daemon/security.ts` are shared infra — build on top of those.
-
----
-
 ### 3g. notes + comments unification
 
 **Types file**: `$T2` — `Task.notes: string` and `Task.comments: TaskComment[]`.
@@ -139,7 +121,7 @@ Deferred cleanup items from the component audit. Low priority but worth tracking
 - ~~Task field trim~~: removed `fieldTaskIds`, `dailyActions`/`DailyAction`, narrowed `acceptanceCriteria`. Commit `refactor(types): trim dead Task fields`.
 - ~~Dashboard lean pass~~: 934 → 844 LOC, 10 → 4 widgets, 6 → 5 data fetches. Inline decision/report/brain-dump actions in Attention Required.
 - ~~Comms sidebar grouping~~: Inbox, Decisions, Logs grouped under Messages. Commit `c3e3aa0`.
-- ~~Daemon shared utils~~: `getWorkspaceEnv()` extracted to `workspace-env.ts` (was in 4 scripts). Shared JSON I/O in `runs-registry.ts`. Used by `respond-runs.ts` and `recovery.ts`.
+- ~~Daemon executor consolidation~~: `getWorkspaceEnv()` → `workspace-env.ts`, shared JSON I/O → `runs-registry.ts`, `ActiveRunEntry`/active-runs I/O → `active-runs.ts`, `extractSummary()` → `spawn-utils.ts`, `readJSON<T>()` → `data-io.ts`. Net -62 LOC across 4 scripts.
 - ~~Missions route evaluated~~ — kept. Polled by `use-active-runs.ts`.
 - ~~Agent field consolidation~~: `capabilities` removed. `allowedTools`, `skipPermissions`, `yolo` kept on Agent type by design.
 - ~~Remove ventures (duplicate of projects)~~
