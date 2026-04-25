@@ -25,9 +25,8 @@ Runs entirely on your machine. Data in `~/.cmc/`. No cloud.
 
 ```
 Workspace
-  ├── Objectives          (long-term outcomes)
   ├── Projects            (group related work)
-  │     └── Initiatives   (active execution units, linked to an Objective)
+  │     └── Initiatives   (active execution units)
   │           └── Tasks   (work items; agents run these)
 ```
 
@@ -70,7 +69,7 @@ The daemon (`pnpm daemon:start`) is the engine. It runs as a detached background
 - **Eisenhower Matrix:** Prioritize by importance x urgency; drag-and-drop between Do, Schedule, Delegate, Eliminate
 - **Kanban Board:** Not Started → In Progress → Done (+ Awaiting Decision for paused agent tasks)
 - **Workspaces:** Isolated data contexts; switch workspaces from the sidebar header
-- **Objectives + Projects + Initiatives:** Long-term objectives broken into initiatives via projects; each initiative owns its Tasks and Actions
+- **Projects + Initiatives:** Group related work into projects; break each project into initiatives that own their Tasks
 - **Quick Capture:** Capture ideas instantly, triage into tasks later
 
 ### Agent Execution
@@ -252,6 +251,8 @@ Each agent can use Claude Code or Codex CLI as its backend, configurable from th
     dispatcher.ts                        Task dispatch, retry queue, session resume, inbox notifications
     runner.ts                            CLI runner (Claude Code + Codex, stream-json output)
     recovery.ts                          Orphan detection + session ID persistence
+    runs-registry.ts                     Shared JSON read/write/prune utilities for run-tracking modules
+    workspace-env.ts                     Shared workspace env-var loader for daemon scripts
     health.ts                            Session tracking, PID checks, status persistence
     scheduler.ts                         Cron scheduled commands
   src/app/                               Pages + API routes

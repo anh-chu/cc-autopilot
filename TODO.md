@@ -50,40 +50,28 @@ Original pitch (merge into single event stream) is not viable:
 
 ---
 
-### ~~3b. Task field trim~~
+### 3c. Agent field consolidation
 
-~~**Types file**: `src/lib/types.ts` — `Task` interface, currently 21 fields.~~
+**Types file**: `src/lib/types.ts` — `Agent` interface.
 
-Done. Removed `fieldTaskIds` (dead), `dailyActions`/`DailyAction` (always `[]`, never populated), changed `acceptanceCriteria: string[]` to `string`. Added `normalizeAcceptanceCriteria()` for persisted data compat. Time tracking fields kept (4 distinct concepts). See commit `refactor(types): trim dead Task fields`.
+- `capabilities` already removed from the type, but `src/app/crew/page.tsx` still references it (tsc error). Fix crew/page.tsx first.
+- `allowedTools: string[]`, `skipPermissions: 'inherit' | 'on' | 'off'`, `yolo: boolean` still in types. Move to `WorkspaceConfig` or daemon invocation options — they are execution knobs, not agent identity.
 
----
-
-### ~~3c. Agent field consolidation~~
-
-**Types file**: `src/lib/types.ts` — `Agent` interface, currently 11 fields.
-
-Problems:
-- `capabilities: string[]` and `skillIds: string[]` both describe what an agent can do — different data model, same intent. Pick one. `skillIds` ties to the skills registry; `capabilities` is free-text. Recommend keeping `skillIds`, dropping `capabilities`.
-- `allowedTools: string[]`, `skipPermissions: 'inherit' | 'on' | 'off'`, `yolo: boolean` — execution-level knobs that belong in workspace or daemon config, not the agent definition. Only referenced in ~9 files. Move to `WorkspaceConfig` or daemon invocation options.
-- After trim: 11 fields → ~7
-
-Search usages before removing: `grep -r "allowedTools\|skipPermissions\|yolo\|capabilities" src/ scripts/`
+Search before removing: `grep -r "allowedTools\|skipPermissions\|yolo" src/ scripts/`
 
 ---
 
-### 3d. Missions route
+### ~~3d. Missions route — evaluated, kept~~
 
-- `src/app/api/missions/` — 367 LOC, handles multi-agent orchestration with reconciliation loops
-- Only caller: `src/app/api/projects/[id]/run/route.ts`
-- `ProjectRun` (simpler model) and `Mission` (adds reconciliation) overlap in `src/lib/types.ts`
-- Options: inline mission logic into project run route, or add `ENABLE_MISSIONS=true` env flag
-- Not surfaced in sidebar nav — already hidden from users
+Active: polled every 5s by `src/hooks/use-active-runs.ts:32`. Not dead. Do not cut.
 
 ---
 
-### 3e. Daemon executor consolidation
+### 3e. Daemon executor consolidation (partial)
 
-All scripts in `scripts/daemon/`:
+**Done 2026-04-25:** Extracted `getWorkspaceEnv()` (duplicated in 4 scripts) to `workspace-env.ts`. Extracted shared JSON I/O and prune logic to `runs-registry.ts`. `respond-runs.ts` and `recovery.ts` now import from it.
+
+**Remaining:** The 5 run-*.ts scripts still duplicate the core spawn-Claude loop (load context, build prompt, spawn child, stream output, write result). Full consolidation = single dispatcher with a handler registry.
 
 | File | Size | Purpose |
 |------|------|---------|
@@ -91,11 +79,9 @@ All scripts in `scripts/daemon/`:
 | `run-inbox-respond.ts` | ~25 KB | respond to inbox message |
 | `run-task-comment.ts` | ~19 KB | generate task comment |
 | `run-brain-dump-triage.ts` | ~9 KB | triage brain dump input |
-| `run-wiki-generate.ts` | ~9 KB | generate wiki content |
+| `run-wiki-generate.ts` | ~9 KB | generate wiki content (uses SDK directly, different pattern) |
 
-All 5 spawn a Claude Code subprocess with a prompt. Pattern is identical — load context, build prompt, spawn child, stream output, write result. Consolidate into `runner.ts` dispatcher with `{ actionType, payload }` input and a handler registry.
-
-`scripts/daemon/runner.ts` and `scripts/daemon/security.ts` already exist as shared infra — build on top of those.
+`scripts/daemon/runner.ts` and `scripts/daemon/security.ts` are shared infra — build on top of those.
 
 ---
 
@@ -130,52 +116,20 @@ Check all UI callers before merging: `grep -r "tasks.*run\|tasks.*stop\|tasks.*c
 
 ---
 
-### ~~3g. Dashboard lean pass~~
+### 3h. Comms section restructure (next phase)
 
-**Completed 2026-04-25.** Cut 6 widgets, crew status exceptions-only, attention required expanded with inline actions.
+Sidebar grouping done (`c3e3aa0`). Structural cuts still pending.
 
-Result: 934 → 844 LOC (not 400 — inline actions added back ~176 LOC), 6 → 5 data fetches, 10 → 4 widgets. Net -90 LOC. Inline action UX (approve/reject decisions, ack reports, triage brain dump) justified the LOC trade-off over pure deletion.
+**What remains:**
+- Inbox page (~500 LOC): email metaphor doesn't fit agent communication. Agent outputs already surface via activity log and decisions.
+- Decisions page (~230 LOC): redundant now that dashboard Attention Required has inline approve/reject.
+- Logs: ops tabs (Daemon, App, Runs) should move to a dedicated debug page; Activity tab belongs with comms.
 
-Future: could drop inline actions and link out to `/decisions`, `/inbox`, `/brain-dump` to hit ~450 LOC if dashboard stays too heavy.
+**Plan:**
+- PR 1: Kill Inbox page, kill Decisions page, split Logs into ops vs. activity.
+- PR 2: Single Activity page with agent event stream, filters by agent/type/status, inline decision actions.
 
----
-
-### ~~3h. Comms section lean pass~~ ✓
-
-Done in `c3e3aa0`. From product audit 2026-04-25. Sidebar groups Inbox, Decisions, Logs under "Messages" (subtitle: "Agent reports, decisions, and activity").
-
-**Current state:**
-
-| Page | LOC | What it renders |
-|------|-----|-----------------|
-| Inbox | ~500 | Full email client: thread grouping, compose dialog, reply/archive, agent auto-respond with SSE polling |
-| Decisions | ~230 | Pending/answered queue with option buttons + custom text input |
-| Logs | ~450 | 5 tabs: Daemon tail, App tail, Runs + consoles, Activity feed. SSE live stream. |
-
-**Problems identified:**
-
-1. **Grouping broken.** Logs mixes ops debugging (daemon tails, run consoles) with communications (activity events). Daemon log tails are not "messages."
-2. **Inbox over-engineered.** Email metaphor wrong for AI agents. Threading, archive, unread, compose dialog, all model bilateral human communication. Agents respond to tasks/contexts, not mail threads. 500 LOC for a metaphor mismatch.
-3. **Decisions redundant as standalone page.** If 3g's Attention Required gets inline actions (approve/reject), Decisions page has no reason to exist.
-4. **Activity tab in Logs overlaps Inbox.** Both show "what agents did" in different shapes. Same data, two views.
-
-**PR 1, cut pass:**
-- Kill Inbox page (500 LOC). Agent communication already surfaces as activity events and decision requests.
-- Kill Decisions page (230 LOC). Fold pending decisions into dashboard Attention Required per 3g.
-- Extract ops tabs from Logs (Daemon, App, Runs) into dedicated Debug/Ops page.
-- Remove sidebar "Messages" group.
-
-**PR 2, restructure:**
-- Create single Activity page: unified chronological stream of agent events + interactions.
-  - Filters: by agent, by event type, by status.
-  - Inline actions for decisions (from 3g's Attention Required pattern).
-  - No threading, no email metaphor.
-- Sidebar becomes: ops page (logs/runs/consoles) separate from activity page.
-- Dashboard Attention Required pulls actionable items from same activity data.
-
-**Prerequisite:** ~~3g PR 1 (dashboard cut pass) should land first.~~ Done. Attention Required inline actions landed. This restructure can proceed independently.
-
-**Expected result:** ~730 LOC cut, cleaner nav grouping, one mental model for agent interactions instead of three overlapping ones.
+Expected: ~730 LOC cut, one mental model for agent interactions.
 
 ---
 
@@ -199,6 +153,11 @@ Deferred cleanup items from the component audit. Low priority but worth tracking
 
 ## Done
 
+- ~~Task field trim~~: removed `fieldTaskIds`, `dailyActions`/`DailyAction`, narrowed `acceptanceCriteria`. Commit `refactor(types): trim dead Task fields`.
+- ~~Dashboard lean pass~~: 934 → 844 LOC, 10 → 4 widgets, 6 → 5 data fetches. Inline decision/report/brain-dump actions in Attention Required.
+- ~~Comms sidebar grouping~~: Inbox, Decisions, Logs grouped under Messages. Commit `c3e3aa0`.
+- ~~Daemon shared utils~~: `getWorkspaceEnv()` extracted to `workspace-env.ts` (was in 4 scripts). Shared JSON I/O in `runs-registry.ts`. Used by `respond-runs.ts` and `recovery.ts`.
+- ~~Missions route evaluated~~ — kept. Polled by `use-active-runs.ts`.
 - ~~Remove ventures (duplicate of projects)~~
 - ~~Remove status-board (subset of priority-matrix)~~
 - ~~Remove objectives/goals system, link initiatives to projects~~
