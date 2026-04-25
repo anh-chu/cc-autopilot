@@ -54,9 +54,9 @@ export default function SettingsPage() {
 	const [daemonSaving, setDaemonSaving] = useState(false);
 	const [daemonSaved, setDaemonSaved] = useState(false);
 
-	const [envVars, setEnvVars] = useState<Array<{ key: string; value: string }>>(
-		[],
-	);
+	const [envVars, setEnvVars] = useState<
+		Array<{ id: string; key: string; value: string }>
+	>([]);
 	const [envSaving, setEnvSaving] = useState(false);
 	const [envSaved, setEnvSaved] = useState(false);
 	const [revealedEnvIdx, setRevealedEnvIdx] = useState<Set<number>>(new Set());
@@ -66,7 +66,9 @@ export default function SettingsPage() {
 			setName(currentWorkspace.name);
 			setColor(currentWorkspace.color);
 			const vars = currentWorkspace.settings?.envVars ?? {};
-			setEnvVars(Object.entries(vars).map(([key, value]) => ({ key, value })));
+			setEnvVars(
+				Object.entries(vars).map(([key, value]) => ({ id: key, key, value })),
+			);
 		}
 	}, [currentWorkspace]);
 

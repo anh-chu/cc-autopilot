@@ -83,21 +83,21 @@ function AgentCard({
 							</div>
 						</div>
 
-						{/* Capabilities preview */}
-						{(agent.capabilities ?? []).length > 0 && (
+						{/* Skill IDs preview */}
+						{agent.skillIds.length > 0 && (
 							<div className="flex flex-wrap gap-1 mt-3">
-								{(agent.capabilities ?? []).slice(0, 3).map((cap) => (
+								{agent.skillIds.slice(0, 3).map((skillId) => (
 									<Badge
-										key={cap}
+										key={skillId}
 										variant="secondary"
 										className="text-[10px] px-1.5 py-0"
 									>
-										{cap}
+										{skillId}
 									</Badge>
 								))}
-								{(agent.capabilities ?? []).length > 3 && (
+								{agent.skillIds.length > 3 && (
 									<Badge variant="outline" className="text-[10px] px-1.5 py-0">
-										+{(agent.capabilities ?? []).length - 3}
+										+{agent.skillIds.length - 3}
 									</Badge>
 								)}
 							</div>
