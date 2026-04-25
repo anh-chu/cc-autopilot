@@ -61,12 +61,6 @@ Search before removing: `grep -r "allowedTools\|skipPermissions\|yolo" src/ scri
 
 ---
 
-### ~~3d. Missions route — evaluated, kept~~
-
-Active: polled every 5s by `src/hooks/use-active-runs.ts:32`. Not dead. Do not cut.
-
----
-
 ### 3e. Daemon executor consolidation (partial)
 
 **Done 2026-04-25:** Extracted `getWorkspaceEnv()` (duplicated in 4 scripts) to `workspace-env.ts`. Extracted shared JSON I/O and prune logic to `runs-registry.ts`. `respond-runs.ts` and `recovery.ts` now import from it.
