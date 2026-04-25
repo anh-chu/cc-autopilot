@@ -1,11 +1,10 @@
 "use client";
 
 import {
+	Activity,
 	FileText,
 	FolderKanban,
 	Grid2x2,
-	HelpCircle,
-	Inbox,
 	Layers,
 	LayoutDashboard,
 	Lightbulb,
@@ -18,7 +17,6 @@ import {
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { SidebarFooter } from "@/components/sidebar-footer";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
@@ -45,20 +43,9 @@ const workbenchLinks = [
 	{ href: "/documents", label: "Documents", icon: FileText },
 ];
 
-const commsLinks = [
-	{
-		href: "/inbox",
-		label: "Inbox",
-		icon: Inbox,
-		badgeKey: "unreadInbox" as const,
-	},
-	{ href: "/logs", label: "Logs", icon: Terminal, badgeKey: null },
-	{
-		href: "/decisions",
-		label: "Decisions",
-		icon: HelpCircle,
-		badgeKey: "pendingDecisions" as const,
-	},
+const opsLinks = [
+	{ href: "/logs", label: "Logs", icon: Terminal },
+	{ href: "/activity", label: "Activity", icon: Activity },
 ];
 
 const utilityLinks = [{ href: "/settings", label: "Settings", icon: User }];
@@ -150,21 +137,16 @@ function NavLink({
 
 interface AppSidebarProps {
 	collapsed: boolean;
-	unreadInbox?: number;
-	pendingDecisions?: number;
 	isMobile?: boolean;
 	onClose?: () => void;
 }
 
 export function AppSidebar({
 	collapsed,
-	unreadInbox = 0,
-	pendingDecisions = 0,
 	isMobile = false,
 	onClose,
 }: AppSidebarProps) {
 	const pathname = usePathname();
-	const badges = { unreadInbox, pendingDecisions };
 
 	if (isMobile) {
 		return (
@@ -228,7 +210,7 @@ export function AppSidebar({
 						<nav className="space-y-0.5 px-2">
 							{workbenchLinks.map(({ href, label, icon: Icon }) => {
 								const isActive =
-									pathname === href || pathname.startsWith(href + "/");
+									pathname === href || pathname.startsWith(`${href}/`);
 								return (
 									<Link
 										key={href}
@@ -251,17 +233,13 @@ export function AppSidebar({
 						<Separator className="mx-2 my-2" />
 						<div className="px-3 pb-1">
 							<p className="text-xs font-semibold uppercase tracking-wider text-sidebar-foreground/50">
-								Messages
-							</p>
-							<p className="text-[10px] text-sidebar-foreground/30 mt-0.5">
-								Agent reports, decisions, and activity
+								Ops
 							</p>
 						</div>
 						<nav className="space-y-0.5 px-2">
-							{commsLinks.map(({ href, label, icon: Icon, badgeKey }) => {
+							{opsLinks.map(({ href, label, icon: Icon }) => {
 								const isActive =
-									pathname === href || pathname.startsWith(href + "/");
-								const count = badgeKey ? badges[badgeKey] : 0;
+									pathname === href || pathname.startsWith(`${href}/`);
 								return (
 									<Link
 										key={href}
@@ -275,15 +253,7 @@ export function AppSidebar({
 										)}
 									>
 										<Icon className="h-4 w-4 shrink-0" />
-										<span className="flex-1">{label}</span>
-										{count > 0 && (
-											<Badge
-												variant="destructive"
-												className="h-5 min-w-5 justify-center px-1.5 text-xs"
-											>
-												{count}
-											</Badge>
-										)}
+										<span>{label}</span>
 									</Link>
 								);
 							})}
@@ -298,7 +268,7 @@ export function AppSidebar({
 						<nav className="space-y-0.5 px-2">
 							{utilityLinks.map(({ href, label, icon: Icon }) => {
 								const isActive =
-									pathname === href || pathname.startsWith(href + "/");
+									pathname === href || pathname.startsWith(`${href}/`);
 								return (
 									<Link
 										key={href}
@@ -371,7 +341,7 @@ export function AppSidebar({
 								href={href}
 								label={label}
 								icon={icon}
-								isActive={pathname === href || pathname.startsWith(href + "/")}
+								isActive={pathname === href || pathname.startsWith(`${href}/`)}
 								collapsed={collapsed}
 							/>
 						))}
@@ -381,41 +351,21 @@ export function AppSidebar({
 					{!collapsed && (
 						<div className="px-3 pb-1">
 							<p className="text-xs font-semibold uppercase tracking-wider text-sidebar-foreground/50">
-								Messages
-							</p>
-							<p className="text-[10px] text-sidebar-foreground/30 mt-0.5">
-								Agent reports, decisions, and activity
+								Ops
 							</p>
 						</div>
 					)}
 					<nav className="space-y-0.5 px-2">
-						{commsLinks.map(({ href, label, icon, badgeKey }) => {
-							const count = badgeKey ? badges[badgeKey] : 0;
-							return (
-								<NavLink
-									key={href}
-									href={href}
-									label={label}
-									icon={icon}
-									isActive={
-										pathname === href || pathname.startsWith(href + "/")
-									}
-									collapsed={collapsed}
-									badge={
-										count > 0 ? (
-											<Badge
-												variant="destructive"
-												className="h-5 min-w-5 justify-center px-1.5 text-xs"
-											>
-												{count}
-											</Badge>
-										) : undefined
-									}
-									badgeDot={count > 0 ? "bg-destructive" : undefined}
-									tooltipSuffix={count > 0 ? ` (${count})` : undefined}
-								/>
-							);
-						})}
+						{opsLinks.map(({ href, label, icon }) => (
+							<NavLink
+								key={href}
+								href={href}
+								label={label}
+								icon={icon}
+								isActive={pathname === href || pathname.startsWith(`${href}/`)}
+								collapsed={collapsed}
+							/>
+						))}
 					</nav>
 
 					<Separator className="mx-2 my-2" />
@@ -433,7 +383,7 @@ export function AppSidebar({
 								href={href}
 								label={label}
 								icon={icon}
-								isActive={pathname === href || pathname.startsWith(href + "/")}
+								isActive={pathname === href || pathname.startsWith(`${href}/`)}
 								collapsed={collapsed}
 							/>
 						))}

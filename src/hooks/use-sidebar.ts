@@ -1,23 +1,19 @@
 "use client";
 
-import { useState, useEffect, useCallback, useRef } from "react";
-import type { Task, AgentDefinition } from "@/lib/types";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { apiFetch } from "@/lib/api-client";
+import type { AgentDefinition, Task } from "@/lib/types";
 
 interface SidebarData {
 	tasks: Task[];
-	unreadInbox: number;
-	pendingDecisions: number;
 	agents: AgentDefinition[];
 }
 
-const POLL_INTERVAL = 10_000; // 10s — matches inbox/decisions frequency
+const POLL_INTERVAL = 10_000;
 
 export function useSidebar() {
 	const [tasks, setTasks] = useState<Task[]>([]);
 	const [agents, setAgents] = useState<AgentDefinition[]>([]);
-	const [unreadInbox, setUnreadInbox] = useState(0);
-	const [pendingDecisions, setPendingDecisions] = useState(0);
 	const [loading, setLoading] = useState(true);
 	const initialLoadDone = useRef(false);
 
@@ -29,8 +25,6 @@ export function useSidebar() {
 			const json: SidebarData = await res.json();
 			setTasks(json.tasks);
 			setAgents(json.agents);
-			setUnreadInbox(json.unreadInbox);
-			setPendingDecisions(json.pendingDecisions);
 			initialLoadDone.current = true;
 		} catch {
 			// Silently fail on polls — sidebar badges are non-critical
@@ -57,5 +51,5 @@ export function useSidebar() {
 		};
 	}, [refetch]);
 
-	return { tasks, agents, unreadInbox, pendingDecisions, loading, refetch };
+	return { tasks, agents, loading, refetch };
 }

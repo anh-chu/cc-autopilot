@@ -559,12 +559,6 @@ export default function CommandCenterPage() {
 													</Button>
 												</>
 											)}
-											<Link
-												href="/decisions"
-												className="text-[11px] text-muted-foreground hover:text-foreground ml-auto"
-											>
-												Details →
-											</Link>
 										</>
 									}
 								>
@@ -594,12 +588,6 @@ export default function CommandCenterPage() {
 											>
 												{loadingItems.has(msg.id) ? "…" : "Ack"}
 											</Button>
-											<Link
-												href="/inbox"
-												className="text-[11px] text-muted-foreground hover:text-foreground ml-auto"
-											>
-												Open →
-											</Link>
 										</>
 									}
 								>
