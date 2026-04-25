@@ -1,6 +1,5 @@
 import { NextResponse } from "next/server";
 import {
-	getActivityLog,
 	getBrainDump,
 	getDecisions,
 	getInbox,
@@ -12,21 +11,14 @@ export const dynamic = "force-dynamic";
 
 export async function GET() {
 	// Read all data files in parallel (reads are safe, no locking needed)
-	const [
-		tasksData,
-		projectsData,
-		brainDumpData,
-		inboxData,
-		decisionsData,
-		activityData,
-	] = await Promise.all([
-		getTasks(),
-		getProjects(),
-		getBrainDump(),
-		getInbox(),
-		getDecisions(),
-		getActivityLog(),
-	]);
+	const [tasksData, projectsData, brainDumpData, inboxData, decisionsData] =
+		await Promise.all([
+			getTasks(),
+			getProjects(),
+			getBrainDump(),
+			getInbox(),
+			getDecisions(),
+		]);
 
 	// Filter soft-deleted
 	const tasks = tasksData.tasks.filter((t) => !t.deletedAt);
@@ -34,7 +26,6 @@ export async function GET() {
 	const entries = brainDumpData.entries;
 	const messages = inboxData.messages;
 	const decisions = decisionsData.decisions;
-	const events = activityData.events;
 
 	// Stats
 	const doneTasks = tasks.filter((t) => t.kanban === "done");
@@ -45,12 +36,6 @@ export async function GET() {
 	// Comms
 	const unreadMessages = messages.filter((m) => m.status === "unread");
 	const pendingDecisions = decisions.filter((d) => d.status === "pending");
-	const recentEvents = [...events]
-		.sort(
-			(a, b) =>
-				new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime(),
-		)
-		.slice(0, 5);
 
 	// Eisenhower counts
 	const eisenhowerCounts = {
@@ -109,7 +94,6 @@ export async function GET() {
 			eisenhowerCounts,
 			unreadMessages: unreadMessages.slice(0, 5),
 			pendingDecisionsList: pendingDecisions.slice(0, 5),
-			recentActivity: recentEvents,
 			tasks,
 			projects,
 			entries: unprocessedEntries.slice(0, 5),

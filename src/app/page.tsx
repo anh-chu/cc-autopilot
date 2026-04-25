@@ -1,7 +1,6 @@
 "use client";
 
 import {
-	Activity,
 	AlertTriangle,
 	BarChart3,
 	CheckSquare,
@@ -9,7 +8,6 @@ import {
 	Code,
 	FolderOpen,
 	HelpCircle,
-	Lightbulb,
 	Mail,
 	Megaphone,
 	Plus,
@@ -25,7 +23,6 @@ import {
 import dynamic from "next/dynamic";
 import { useState } from "react";
 import { BreadcrumbNav } from "@/components/breadcrumb-nav";
-import { EisenhowerSummary } from "@/components/eisenhower-summary";
 import { ProjectCardLarge } from "@/components/project-card-large";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -107,8 +104,6 @@ export default function CommandCenterPage() {
 	const unprocessedEntries = data?.entries ?? [];
 	const unreadMessages = data?.messages ?? [];
 	const pendingDecisions = data?.decisions ?? [];
-	const recentEvents = data?.recentActivity ?? [];
-	const stats = data?.stats;
 
 	// Agent workload (enhanced)
 	const pendingDecisionTaskIds = new Set(
@@ -470,78 +465,6 @@ export default function CommandCenterPage() {
 				</Card>
 			</Link>
 
-			{/* Stats Bar */}
-			<section
-				aria-label="Stats overview"
-				className="grid grid-cols-2 gap-3 sm:grid-cols-4"
-			>
-				<Card className="bg-card/50">
-					<CardContent className="p-4">
-						<div className="flex items-center gap-3">
-							<div className="h-9 w-9 rounded-lg bg-primary/10 flex items-center justify-center">
-								<CheckSquare className="h-4 w-4 text-primary" />
-							</div>
-							<div>
-								<p className="text-2xl font-bold tabular-nums">
-									{stats?.totalTasks ?? tasks.length}
-								</p>
-								<p className="text-xs text-muted-foreground">
-									{stats?.inProgressTasks ?? 0} active · {stats?.doneTasks ?? 0}{" "}
-									done
-								</p>
-							</div>
-						</div>
-						<Button
-							size="sm"
-							variant="ghost"
-							className="mt-2 h-6 text-xs gap-1 text-muted-foreground hover:text-foreground w-full justify-start"
-							onClick={() => setShowCreateTask(true)}
-						>
-							<Plus className="h-3 w-3" /> New Task
-						</Button>
-					</CardContent>
-				</Card>
-				<Card className="bg-card/50">
-					<CardContent className="p-4">
-						<div className="flex items-center gap-3">
-							<div className="h-9 w-9 rounded-lg bg-primary/10 flex items-center justify-center">
-								<FolderOpen className="h-4 w-4 text-primary" />
-							</div>
-							<div>
-								<p className="text-2xl font-bold tabular-nums">
-									{stats?.activeProjects ??
-										projects.filter((p) => p.status === "active").length}
-								</p>
-								<p className="text-xs text-muted-foreground">active projects</p>
-							</div>
-						</div>
-						<Button
-							size="sm"
-							variant="ghost"
-							className="mt-2 h-6 text-xs gap-1 text-muted-foreground hover:text-foreground w-full justify-start"
-							onClick={() => setShowCreateProject(true)}
-						>
-							<Plus className="h-3 w-3" /> New Project
-						</Button>
-					</CardContent>
-				</Card>
-				<Link href="/brain-dump">
-					<Card className="bg-card/50 cursor-pointer hover:border-primary/30 transition-all h-full">
-						<CardContent className="p-4 flex items-center gap-3 h-full">
-							<div className="h-9 w-9 rounded-lg bg-primary/10 flex items-center justify-center">
-								<Lightbulb className="h-4 w-4 text-primary" />
-							</div>
-							<div>
-								<p className="text-2xl font-bold tabular-nums">
-									{stats?.unprocessedBrainDump ?? unprocessedEntries.length}
-								</p>
-								<p className="text-xs text-muted-foreground">to process</p>
-							</div>
-						</CardContent>
-					</Card>
-				</Link>
-			</section>
-
 			{/* Attention Required */}
 			{attentionItems.length > 0 && (
 				<Card className="border-yellow-500/20 bg-yellow-500/5">
@@ -572,267 +495,103 @@ export default function CommandCenterPage() {
 				</Card>
 			)}
 
-			{/* ─── Comms: Inbox + Decisions ──────────────────────────────────────── */}
-			<section
-				aria-label="Communications"
-				className="grid gap-4 lg:grid-cols-2"
-			>
-				{/* Inbox Widget */}
-				<Link href="/inbox">
-					<Card className="bg-card/50 cursor-pointer transition-all hover:shadow-lg hover:border-primary/30 h-full">
-						<CardHeader className="pb-2">
-							<CardTitle className="text-sm flex items-center justify-between">
-								<span className="flex items-center gap-2">
-									<Mail className="h-4 w-4 text-primary" />
-									Inbox
-								</span>
-								{unreadMessages.length > 0 && (
-									<Badge className="text-xs tabular-nums">
-										{unreadMessages.length} unread
-									</Badge>
-								)}
-							</CardTitle>
-						</CardHeader>
-						<CardContent>
-							{unreadMessages.length === 0 ? (
-								<p className="text-xs text-muted-foreground py-2">
-									No unread messages
-								</p>
-							) : (
-								<div className="space-y-2">
-									{unreadMessages.slice(0, 3).map((msg) => (
-										<div
-											key={msg.id}
-											className="flex items-center gap-2 text-xs"
-										>
-											<Badge
-												variant="outline"
-												className="text-xs shrink-0 px-1.5 py-0"
-											>
-												{msg.type}
-											</Badge>
-											<span className="truncate flex-1 font-medium">
-												{msg.subject}
-											</span>
-											<span className="text-xs text-muted-foreground shrink-0">
-												{msg.from}
-											</span>
-										</div>
-									))}
-									{unreadMessages.length > 3 && (
-										<p className="text-xs text-muted-foreground/60">
-											+{unreadMessages.length - 3} more
-										</p>
-									)}
-								</div>
-							)}
-						</CardContent>
-					</Card>
-				</Link>
-
-				{/* Decisions Widget */}
-				<Link href="/decisions">
-					<Card
-						className={cn(
-							"bg-card/50 cursor-pointer transition-all hover:shadow-lg hover:border-primary/30 h-full",
-							pendingDecisions.length > 0 && "border-yellow-500/20",
-						)}
-					>
-						<CardHeader className="pb-2">
-							<CardTitle className="text-sm flex items-center justify-between">
-								<span className="flex items-center gap-2">
-									<HelpCircle className="h-4 w-4 text-yellow-500" />
-									Decisions
-								</span>
-								{pendingDecisions.length > 0 && (
-									<Badge
-										variant="secondary"
-										className="text-xs tabular-nums border-yellow-500/30 text-yellow-500"
-									>
-										{pendingDecisions.length} pending
-									</Badge>
-								)}
-							</CardTitle>
-						</CardHeader>
-						<CardContent>
-							{pendingDecisions.length === 0 ? (
-								<p className="text-xs text-muted-foreground py-2">
-									No pending decisions
-								</p>
-							) : (
-								<div className="space-y-2">
-									{pendingDecisions.slice(0, 3).map((dec) => (
-										<div
-											key={dec.id}
-											className="text-xs border-l-2 border-yellow-500/30 pl-2"
-										>
-											<p className="font-medium truncate">{dec.question}</p>
-											<p className="text-xs text-muted-foreground">
-												from {dec.requestedBy} · {dec.options.length} options
-											</p>
-										</div>
-									))}
-									{pendingDecisions.length > 3 && (
-										<p className="text-xs text-muted-foreground/60">
-											+{pendingDecisions.length - 3} more
-										</p>
-									)}
-								</div>
-							)}
-						</CardContent>
-					</Card>
-				</Link>
-			</section>
-
-			{/* ─── Activity Feed + Agent Workload ────────────────────────────────── */}
-			<section
-				aria-label="Activity and agent workload"
-				className="grid gap-4 lg:grid-cols-2"
-			>
-				{/* Activity Feed */}
-				<Link href="/logs?tab=activity">
-					<Card className="bg-card/50 cursor-pointer transition-all hover:shadow-lg hover:border-primary/30 h-full">
-						<CardHeader className="pb-2">
-							<CardTitle className="text-sm flex items-center gap-2">
-								<Activity className="h-4 w-4 text-primary" />
-								Recent Activity
-							</CardTitle>
-						</CardHeader>
-						<CardContent>
-							{recentEvents.length === 0 ? (
-								<p className="text-xs text-muted-foreground py-2">
-									No recent activity
-								</p>
-							) : (
-								<div className="space-y-1.5">
-									{recentEvents.map((evt) => (
-										<div
-											key={evt.id}
-											className="flex items-center gap-2 text-xs"
-										>
-											<div className="h-1.5 w-1.5 rounded-full bg-primary/50 shrink-0" />
-											<Badge
-												variant="secondary"
-												className="text-xs shrink-0 px-1.5 py-0"
-											>
-												{evt.actor}
-											</Badge>
-											<span className="truncate flex-1 text-muted-foreground">
-												{evt.summary}
-											</span>
-											<span className="text-xs text-muted-foreground/60 shrink-0">
-												{new Date(evt.timestamp).toLocaleTimeString([], {
-													hour: "2-digit",
-													minute: "2-digit",
-												})}
-											</span>
-										</div>
-									))}
-								</div>
-							)}
-						</CardContent>
-					</Card>
-				</Link>
-
-				{/* Agent Workload */}
-				<Card className="bg-card/50">
-					<CardHeader className="pb-2">
-						<CardTitle className="text-sm flex items-center gap-2">
-							<User className="h-4 w-4 text-primary" />
-							Crew Status
-						</CardTitle>
-					</CardHeader>
-					<CardContent>
-						<div className="space-y-3">
-							{agentWorkload.map((agent) => {
-								const Icon = agentIcons[agent.id];
-								const statusIndicator =
-									agent.status === "idle"
-										? "bg-muted-foreground/40"
-										: agent.status === "overloaded"
-											? "bg-red-500"
-											: agent.status === "awaiting-decision"
-												? "bg-amber-500"
-												: agent.status === "dependencies"
-													? "bg-blue-500"
-													: "bg-green-500";
-								const statusLabel =
-									agent.status === "idle"
-										? "Idle"
-										: agent.status === "overloaded"
-											? "Overloaded"
-											: agent.status === "awaiting-decision"
-												? "Awaiting Decision"
-												: agent.status === "dependencies"
-													? "Dependencies"
-													: "On track";
-								return (
-									<Link
-										key={agent.id}
-										href={`/crew/${agent.id}`}
-										className="block"
-									>
-										<div className="group hover:bg-accent/30 rounded-lg px-2 py-1.5 -mx-2 transition-colors">
-											<div className="flex items-center gap-2">
-												<div className="relative">
-													<Icon className="h-4 w-4 text-muted-foreground shrink-0" />
-													<CircleDot
-														className={cn(
-															"h-2.5 w-2.5 absolute -bottom-0.5 -right-0.5",
-															statusIndicator,
-															"rounded-full",
-														)}
-													/>
-												</div>
-												<span className="text-xs font-medium flex-1 truncate">
-													{agent.label}
-												</span>
-												<span
+			{/* Agent Workload */}
+			<Card className="bg-card/50">
+				<CardHeader className="pb-2">
+					<CardTitle className="text-sm flex items-center gap-2">
+						<User className="h-4 w-4 text-primary" />
+						Crew Status
+					</CardTitle>
+				</CardHeader>
+				<CardContent>
+					<div className="space-y-3">
+						{agentWorkload.map((agent) => {
+							const Icon = agentIcons[agent.id];
+							const statusIndicator =
+								agent.status === "idle"
+									? "bg-muted-foreground/40"
+									: agent.status === "overloaded"
+										? "bg-red-500"
+										: agent.status === "awaiting-decision"
+											? "bg-amber-500"
+											: agent.status === "dependencies"
+												? "bg-blue-500"
+												: "bg-green-500";
+							const statusLabel =
+								agent.status === "idle"
+									? "Idle"
+									: agent.status === "overloaded"
+										? "Overloaded"
+										: agent.status === "awaiting-decision"
+											? "Awaiting Decision"
+											: agent.status === "dependencies"
+												? "Dependencies"
+												: "On track";
+							return (
+								<Link
+									key={agent.id}
+									href={`/crew/${agent.id}`}
+									className="block"
+								>
+									<div className="group hover:bg-accent/30 rounded-lg px-2 py-1.5 -mx-2 transition-colors">
+										<div className="flex items-center gap-2">
+											<div className="relative">
+												<Icon className="h-4 w-4 text-muted-foreground shrink-0" />
+												<CircleDot
 													className={cn(
-														"text-[10px] px-1.5 py-0 rounded-full",
-														agent.status === "idle" &&
-															"text-muted-foreground bg-muted",
-														agent.status === "on-track" &&
-															"text-green-600 dark:text-green-400 bg-green-500/10",
-														agent.status === "dependencies" &&
-															"text-blue-600 dark:text-blue-400 bg-blue-500/10",
-														agent.status === "awaiting-decision" &&
-															"text-amber-600 dark:text-amber-400 bg-amber-500/10",
-														agent.status === "overloaded" &&
-															"text-red-600 dark:text-red-400 bg-red-500/10",
+														"h-2.5 w-2.5 absolute -bottom-0.5 -right-0.5",
+														statusIndicator,
+														"rounded-full",
 													)}
-												>
-													{statusLabel}
-												</span>
-												<span className="text-xs text-muted-foreground tabular-nums w-8 text-right">
-													{agent.activeCount} task
-													{agent.activeCount !== 1 ? "s" : ""}
-												</span>
+												/>
 											</div>
-											{agent.currentTask && (
-												<p className="text-[11px] text-muted-foreground ml-6 mt-0.5 truncate">
-													Working on: {agent.currentTask.title}
-												</p>
-											)}
-											{agent.dependencyCount > 0 && (
-												<p className="text-[11px] text-blue-500 ml-6 mt-0.5">
-													{agent.dependencyCount} waiting on dependencies
-												</p>
-											)}
-											{agent.awaitingDecisionCount > 0 && (
-												<p className="text-[11px] text-amber-500 ml-6 mt-0.5">
-													{agent.awaitingDecisionCount} awaiting decision
-												</p>
-											)}
+											<span className="text-xs font-medium flex-1 truncate">
+												{agent.label}
+											</span>
+											<span
+												className={cn(
+													"text-[10px] px-1.5 py-0 rounded-full",
+													agent.status === "idle" &&
+														"text-muted-foreground bg-muted",
+													agent.status === "on-track" &&
+														"text-green-600 dark:text-green-400 bg-green-500/10",
+													agent.status === "dependencies" &&
+														"text-blue-600 dark:text-blue-400 bg-blue-500/10",
+													agent.status === "awaiting-decision" &&
+														"text-amber-600 dark:text-amber-400 bg-amber-500/10",
+													agent.status === "overloaded" &&
+														"text-red-600 dark:text-red-400 bg-red-500/10",
+												)}
+											>
+												{statusLabel}
+											</span>
+											<span className="text-xs text-muted-foreground tabular-nums w-8 text-right">
+												{agent.activeCount} task
+												{agent.activeCount !== 1 ? "s" : ""}
+											</span>
 										</div>
-									</Link>
-								);
-							})}
-						</div>
-					</CardContent>
-				</Card>
-			</section>
-
+										{agent.currentTask && (
+											<p className="text-[11px] text-muted-foreground ml-6 mt-0.5 truncate">
+												Working on: {agent.currentTask.title}
+											</p>
+										)}
+										{agent.dependencyCount > 0 && (
+											<p className="text-[11px] text-blue-500 ml-6 mt-0.5">
+												{agent.dependencyCount} waiting on dependencies
+											</p>
+										)}
+										{agent.awaitingDecisionCount > 0 && (
+											<p className="text-[11px] text-amber-500 ml-6 mt-0.5">
+												{agent.awaitingDecisionCount} awaiting decision
+											</p>
+										)}
+									</div>
+								</Link>
+							);
+						})}
+					</div>
+				</CardContent>
+			</Card>
 			{/* Projects Section */}
 			<section aria-label="Projects">
 				<div className="flex items-center justify-between mb-3">
@@ -840,12 +599,30 @@ export default function CommandCenterPage() {
 						<Sparkles className="h-4 w-4 text-primary" />
 						Projects
 					</h2>
-					<Link
-						href="/projects"
-						className="text-xs text-muted-foreground hover:text-foreground"
-					>
-						View all →
-					</Link>
+					<div className="flex items-center gap-2">
+						<Button
+							size="sm"
+							variant="outline"
+							className="text-xs gap-1"
+							onClick={() => setShowCreateTask(true)}
+						>
+							<Plus className="h-3 w-3" /> New Task
+						</Button>
+						<Button
+							size="sm"
+							variant="outline"
+							className="text-xs gap-1"
+							onClick={() => setShowCreateProject(true)}
+						>
+							<Plus className="h-3 w-3" /> New Project
+						</Button>
+						<Link
+							href="/projects"
+							className="text-xs text-muted-foreground hover:text-foreground"
+						>
+							View all →
+						</Link>
+					</div>
 				</div>
 				<div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
 					{projects
@@ -873,47 +650,6 @@ export default function CommandCenterPage() {
 						</Card>
 					)}
 				</div>
-			</section>
-
-			{/* Eisenhower + Quick Capture row */}
-			<section
-				aria-label="Eisenhower matrix and quick capture"
-				className="grid gap-4 lg:grid-cols-2"
-			>
-				<EisenhowerSummary tasks={tasks} />
-
-				{/* Recent Quick Capture */}
-				{unprocessedEntries.length > 0 && (
-					<Link href="/brain-dump">
-						<Card className="cursor-pointer transition-all hover:shadow-lg hover:border-primary/30 h-full">
-							<CardHeader className="pb-2">
-								<CardTitle className="text-sm flex items-center justify-between">
-									Quick Capture
-									<Badge variant="secondary" className="text-xs tabular-nums">
-										{unprocessedEntries.length} unprocessed
-									</Badge>
-								</CardTitle>
-							</CardHeader>
-							<CardContent>
-								<div className="space-y-2">
-									{unprocessedEntries.slice(0, 4).map((entry) => (
-										<div
-											key={entry.id}
-											className="text-xs text-muted-foreground border-l-2 border-primary/30 pl-2"
-										>
-											<p className="line-clamp-1">{entry.content}</p>
-										</div>
-									))}
-									{unprocessedEntries.length > 4 && (
-										<p className="text-xs text-muted-foreground/60">
-											+{unprocessedEntries.length - 4} more
-										</p>
-									)}
-								</div>
-							</CardContent>
-						</Card>
-					</Link>
-				)}
 			</section>
 
 			{/* Dialogs */}
