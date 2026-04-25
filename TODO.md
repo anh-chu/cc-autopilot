@@ -81,27 +81,9 @@ Check all UI callers before merging: `grep -r "tasks.*run\|tasks.*stop\|tasks.*c
 
 ---
 
-### 3h. Comms section restructure (next phase)
+### ~~3h. Comms section restructure~~ ✅
 
-Sidebar grouping done (`c3e3aa0`). Structural cuts still pending.
-
-**What remains:**
-- Inbox page (~500 LOC): email metaphor doesn't fit agent communication. Agent outputs already surface via activity log and decisions.
-- Decisions page (~230 LOC): redundant now that dashboard Attention Required has inline approve/reject.
-- Logs: ops tabs (Daemon, App, Runs) should move to a dedicated debug page; Activity tab belongs with comms.
-
-**Plan:**
-- PR 1: Kill Inbox page, kill Decisions page, split Logs into ops vs. activity.
-- PR 2: Single Activity page with agent event stream, filters by agent/type/status, inline decision actions.
-
-Expected: ~730 LOC cut, one mental model for agent interactions.
-
----
-
-### Verify before cutting
-
-- `/api/brain-dump/automate` — route exists, daemon script exists. Confirm whether any UI surface triggers it. If not, cut both.
-- `/api/sync` — already evaluated in previous audit, kept (called by daemon). Do not remove.
+Done. Deleted inbox/respond API routes, orphaned daemon scripts, dead keyboard shortcuts. Renamed Logs → Debug Logs. Fixed /activity redirect. Added inline decision actions to Activity page. Net ~980 LOC cut.
 
 ---
 
@@ -109,7 +91,7 @@ Expected: ~730 LOC cut, one mental model for agent interactions.
 
 Deferred cleanup items from the component audit. Low priority but worth tracking.
 
-- [x] **Sidebar nav rationalization**: merged /activity into /logs (Activity tab), removed /initiatives duplicate, deleted empty stub dirs.
+- [x] **Sidebar nav rationalization**: Activity page restored as standalone, /logs renamed to Debug Logs.
 - [x] **Context menu shared wrapper**: 5 variants following same pattern. Extract shared wrapper.
 - [x] **Dialog merge**: create/edit pairs that differ only by mode. Merge into single form dialog.
 - [x] **Crew (agent) form merge**: `crew/new/page.tsx` (483 lines) and `crew/[id]/edit/page.tsx` (560 lines) are ~80% identical. Extract `AgentForm` component, thin create/edit page wrappers.
