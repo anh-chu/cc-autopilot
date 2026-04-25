@@ -105,7 +105,7 @@ export default function CommandCenterPage() {
 	const unreadMessages = data?.messages ?? [];
 	const pendingDecisions = data?.decisions ?? [];
 
-	// Agent workload (enhanced)
+	// Agent workload — compute status per agent
 	const pendingDecisionTaskIds = new Set(
 		pendingDecisions.filter((d) => d.taskId).map((d) => d.taskId as string),
 	);
@@ -125,7 +125,6 @@ export default function CommandCenterPage() {
 			pendingDecisionTaskIds.has(t.id),
 		);
 		const currentTask = inProgress[0];
-		const impededCount = withDeps.length + withDecisions.length;
 		const status:
 			| "idle"
 			| "on-track"
@@ -147,11 +146,15 @@ export default function CommandCenterPage() {
 			inProgressCount: inProgress.length,
 			dependencyCount: withDeps.length,
 			awaitingDecisionCount: withDecisions.length,
-			impededCount,
 			currentTask,
 			status,
 		};
 	});
+
+	// Crew exceptions: agents that need attention (not idle or on-track)
+	const exceptionAgents = agentWorkload.filter(
+		(a) => a.status !== "idle" && a.status !== "on-track",
+	);
 
 	// Attention Required items
 	const doQuadrantMyTasks = tasks.filter(
@@ -495,103 +498,111 @@ export default function CommandCenterPage() {
 				</Card>
 			)}
 
-			{/* Agent Workload */}
+			{/* Crew Status — exceptions only */}
 			<Card className="bg-card/50">
 				<CardHeader className="pb-2">
 					<CardTitle className="text-sm flex items-center gap-2">
 						<User className="h-4 w-4 text-primary" />
 						Crew Status
+						<Link
+							href="/crew"
+							className="ml-auto text-xs text-muted-foreground hover:text-foreground font-normal"
+						>
+							View all →
+						</Link>
 					</CardTitle>
 				</CardHeader>
 				<CardContent>
-					<div className="space-y-3">
-						{agentWorkload.map((agent) => {
-							const Icon = agentIcons[agent.id];
-							const statusIndicator =
-								agent.status === "idle"
-									? "bg-muted-foreground/40"
-									: agent.status === "overloaded"
+					{exceptionAgents.length === 0 ? (
+						<div className="flex items-center justify-between py-1">
+							<p className="text-sm text-muted-foreground">
+								All agents nominal
+							</p>
+							<Link
+								href="/crew"
+								className="text-xs text-muted-foreground hover:text-foreground"
+							>
+								/crew →
+							</Link>
+						</div>
+					) : (
+						<div className="space-y-3">
+							{exceptionAgents.map((agent) => {
+								const Icon = agentIcons[agent.id];
+								const statusIndicator =
+									agent.status === "overloaded"
 										? "bg-red-500"
 										: agent.status === "awaiting-decision"
 											? "bg-amber-500"
-											: agent.status === "dependencies"
-												? "bg-blue-500"
-												: "bg-green-500";
-							const statusLabel =
-								agent.status === "idle"
-									? "Idle"
-									: agent.status === "overloaded"
+											: "bg-blue-500";
+								const statusLabel =
+									agent.status === "overloaded"
 										? "Overloaded"
 										: agent.status === "awaiting-decision"
 											? "Awaiting Decision"
-											: agent.status === "dependencies"
-												? "Dependencies"
-												: "On track";
-							return (
-								<Link
-									key={agent.id}
-									href={`/crew/${agent.id}`}
-									className="block"
-								>
-									<div className="group hover:bg-accent/30 rounded-lg px-2 py-1.5 -mx-2 transition-colors">
-										<div className="flex items-center gap-2">
-											<div className="relative">
-												<Icon className="h-4 w-4 text-muted-foreground shrink-0" />
-												<CircleDot
+											: "Dependencies";
+								return (
+									<Link
+										key={agent.id}
+										href={`/crew/${agent.id}`}
+										className="block"
+									>
+										<div className="group hover:bg-accent/30 rounded-lg px-2 py-1.5 -mx-2 transition-colors">
+											<div className="flex items-center gap-2">
+												<div className="relative">
+													<Icon className="h-4 w-4 text-muted-foreground shrink-0" />
+													<CircleDot
+														className={cn(
+															"h-2.5 w-2.5 absolute -bottom-0.5 -right-0.5 rounded-full",
+															statusIndicator,
+														)}
+													/>
+												</div>
+												<span className="text-xs font-medium flex-1 truncate">
+													{agent.label}
+												</span>
+												<span
 													className={cn(
-														"h-2.5 w-2.5 absolute -bottom-0.5 -right-0.5",
-														statusIndicator,
-														"rounded-full",
+														"text-[10px] px-1.5 py-0 rounded-full",
+														agent.status === "dependencies" &&
+															"text-blue-600 dark:text-blue-400 bg-blue-500/10",
+														agent.status === "awaiting-decision" &&
+															"text-amber-600 dark:text-amber-400 bg-amber-500/10",
+														agent.status === "overloaded" &&
+															"text-red-600 dark:text-red-400 bg-red-500/10",
 													)}
-												/>
+												>
+													{statusLabel}
+												</span>
+												<span className="text-xs text-muted-foreground tabular-nums w-8 text-right">
+													{agent.activeCount} task
+													{agent.activeCount !== 1 ? "s" : ""}
+												</span>
 											</div>
-											<span className="text-xs font-medium flex-1 truncate">
-												{agent.label}
-											</span>
-											<span
-												className={cn(
-													"text-[10px] px-1.5 py-0 rounded-full",
-													agent.status === "idle" &&
-														"text-muted-foreground bg-muted",
-													agent.status === "on-track" &&
-														"text-green-600 dark:text-green-400 bg-green-500/10",
-													agent.status === "dependencies" &&
-														"text-blue-600 dark:text-blue-400 bg-blue-500/10",
-													agent.status === "awaiting-decision" &&
-														"text-amber-600 dark:text-amber-400 bg-amber-500/10",
-													agent.status === "overloaded" &&
-														"text-red-600 dark:text-red-400 bg-red-500/10",
-												)}
-											>
-												{statusLabel}
-											</span>
-											<span className="text-xs text-muted-foreground tabular-nums w-8 text-right">
-												{agent.activeCount} task
-												{agent.activeCount !== 1 ? "s" : ""}
-											</span>
+											{agent.currentTask && (
+												<p className="text-[11px] text-muted-foreground ml-6 mt-0.5 truncate">
+													Working on: {agent.currentTask.title}
+												</p>
+											)}
+											{agent.dependencyCount > 0 && (
+												<p className="text-[11px] text-blue-500 ml-6 mt-0.5">
+													{agent.dependencyCount} waiting on dependencies
+												</p>
+											)}
+											{agent.awaitingDecisionCount > 0 && (
+												<p className="text-[11px] text-amber-500 ml-6 mt-0.5">
+													{agent.awaitingDecisionCount} awaiting decision
+												</p>
+											)}
 										</div>
-										{agent.currentTask && (
-											<p className="text-[11px] text-muted-foreground ml-6 mt-0.5 truncate">
-												Working on: {agent.currentTask.title}
-											</p>
-										)}
-										{agent.dependencyCount > 0 && (
-											<p className="text-[11px] text-blue-500 ml-6 mt-0.5">
-												{agent.dependencyCount} waiting on dependencies
-											</p>
-										)}
-										{agent.awaitingDecisionCount > 0 && (
-											<p className="text-[11px] text-amber-500 ml-6 mt-0.5">
-												{agent.awaitingDecisionCount} awaiting decision
-											</p>
-										)}
-									</div>
-								</Link>
-							);
-						})}
-					</div>
+									</Link>
+								);
+							})}
+						</div>
+					)}
 				</CardContent>
 			</Card>
+
 			{/* Projects Section */}
 			<section aria-label="Projects">
 				<div className="flex items-center justify-between mb-3">
