@@ -140,9 +140,9 @@ Future: could drop inline actions and link out to `/decisions`, `/inbox`, `/brai
 
 ---
 
-### 3h. Comms section lean pass
+### ~~3h. Comms section lean pass~~ ✓
 
-From product audit 2026-04-25. Sidebar groups Inbox, Decisions, Logs under "Messages" (subtitle: "Agent reports, decisions, and activity").
+Done in `c3e3aa0`. From product audit 2026-04-25. Sidebar groups Inbox, Decisions, Logs under "Messages" (subtitle: "Agent reports, decisions, and activity").
 
 **Current state:**
 
