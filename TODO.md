@@ -32,7 +32,7 @@ From codebase audit 2026-04-24. All types in `src/lib/types.ts`. All routes unde
 
 ---
 
-### 3a. ~~Inbox + ActivityLog merge~~ API pagination dedup only
+### ~~3a. Inbox + ActivityLog merge / API pagination dedup~~
 
 **Investigated 2026-04-25. Original goal revised.**
 
