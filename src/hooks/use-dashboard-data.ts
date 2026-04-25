@@ -3,7 +3,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { apiFetch } from "@/lib/api-client";
 import type {
-	ActivityEvent,
 	BrainDumpEntry,
 	DecisionItem,
 	InboxMessage,
@@ -12,35 +11,11 @@ import type {
 } from "@/lib/types";
 
 export interface DashboardStats {
-	totalTasks: number;
-	inProgressTasks: number;
-	doneTasks: number;
-	completedMilestones: number;
-	totalMilestones: number;
-	activeProjects: number;
 	unprocessedBrainDump: number;
-}
-
-export interface DashboardAttention {
-	pendingDecisions: number;
-	unreadReports: number;
-	doQuadrantNotStarted: number;
-}
-
-export interface DashboardEisenhowerCounts {
-	do: number;
-	schedule: number;
-	delegate: number;
-	eliminate: number;
 }
 
 export interface DashboardData {
 	stats: DashboardStats;
-	attention: DashboardAttention;
-	eisenhowerCounts: DashboardEisenhowerCounts;
-	unreadMessages: InboxMessage[];
-	pendingDecisionsList: DecisionItem[];
-	recentActivity: ActivityEvent[];
 	tasks: Task[];
 	projects: Project[];
 	entries: BrainDumpEntry[];

@@ -19,7 +19,7 @@ import {
 	Zap,
 } from "lucide-react";
 import dynamic from "next/dynamic";
-import { useState } from "react";
+import { type ReactNode, useState } from "react";
 import { BreadcrumbNav } from "@/components/breadcrumb-nav";
 import { ProjectCardLarge } from "@/components/project-card-large";
 import { Badge } from "@/components/ui/badge";
@@ -74,6 +74,30 @@ const agentIcons: Record<AgentRole, typeof User> = {
 	marketer: Megaphone,
 	"business-analyst": BarChart3,
 };
+
+function AttentionRow({
+	icon,
+	children,
+	actions,
+}: {
+	icon: string;
+	children: ReactNode;
+	actions?: ReactNode;
+}) {
+	return (
+		<div className="rounded-lg border border-border/50 bg-background/60 p-3 space-y-2">
+			<div className="flex items-start gap-2">
+				<span className="text-base leading-none mt-0.5">{icon}</span>
+				<div className="flex-1 min-w-0">{children}</div>
+			</div>
+			{actions && (
+				<div className="flex items-center gap-1.5 ml-6 flex-wrap">
+					{actions}
+				</div>
+			)}
+		</div>
+	);
+}
 
 export default function CommandCenterPage() {
 	const { data, loading, error, refetch } = useDashboardData();
@@ -142,7 +166,6 @@ export default function CommandCenterPage() {
 		return {
 			...role,
 			activeCount: agentTasks.length,
-			inProgressCount: inProgress.length,
 			dependencyCount: withDeps.length,
 			awaitingDecisionCount: withDecisions.length,
 			currentTask,
@@ -155,7 +178,6 @@ export default function CommandCenterPage() {
 		(a) => a.status !== "idle" && a.status !== "on-track",
 	);
 
-	// Attention Required items
 	const doQuadrantMyTasks = tasks.filter(
 		(t) =>
 			t.importance === "important" &&
@@ -221,8 +243,9 @@ export default function CommandCenterPage() {
 	const totalAttentionCount =
 		pendingDecisions.length +
 		unreadReports.length +
-		unprocessedEntries.length +
-		doQuadrantMyTasks.length;
+		(data?.stats?.unprocessedBrainDump ?? 0) +
+		doQuadrantMyTasks.length +
+		recentCompletions.length;
 
 	const handleCreateTask = async (formData: TaskFormData) => {
 		try {
@@ -363,7 +386,6 @@ export default function CommandCenterPage() {
 					</div>
 				</div>
 
-				{/* Dialogs */}
 				<CreateTaskDialog
 					open={showCreateTask}
 					onOpenChange={setShowCreateTask}
@@ -384,7 +406,6 @@ export default function CommandCenterPage() {
 		<div className="space-y-6">
 			<BreadcrumbNav items={[]} />
 
-			{/* Automation */}
 			<Link href="/autopilot">
 				<Card
 					className={cn(
@@ -468,7 +489,6 @@ export default function CommandCenterPage() {
 				</Card>
 			</Link>
 
-			{/* Attention Required — primary inbox */}
 			<Card className="border-yellow-500/20 bg-yellow-500/5">
 				<CardContent className="p-4">
 					<div className="flex items-center gap-2 mb-3">
@@ -492,144 +512,130 @@ export default function CommandCenterPage() {
 						</p>
 					) : (
 						<div className="space-y-2">
-							{/* Pending decisions — inline answer buttons */}
 							{pendingDecisions.map((decision) => (
-								<div
+								<AttentionRow
 									key={decision.id}
-									className="rounded-lg border border-border/50 bg-background/60 p-3 space-y-2"
-								>
-									<div className="flex items-start gap-2">
-										<span className="text-base leading-none mt-0.5">🔴</span>
-										<div className="flex-1 min-w-0">
-											<p className="text-xs font-medium text-foreground leading-snug">
-												{decision.question}
-											</p>
-											{decision.context && (
-												<p className="text-[11px] text-muted-foreground mt-0.5 line-clamp-2">
-													{decision.context}
-												</p>
+									icon="🔴"
+									actions={
+										<>
+											{decision.options.length > 0 ? (
+												decision.options.slice(0, 4).map((opt) => (
+													<Button
+														key={opt}
+														size="sm"
+														variant="outline"
+														className="text-xs h-6 px-2"
+														disabled={loadingItems.has(decision.id)}
+														onClick={() =>
+															handleDecisionAnswer(decision.id, opt)
+														}
+													>
+														{loadingItems.has(decision.id) ? "…" : opt}
+													</Button>
+												))
+											) : (
+												<>
+													<Button
+														size="sm"
+														variant="outline"
+														className="text-xs h-6 px-2 text-green-600 border-green-500/30 hover:bg-green-500/10"
+														disabled={loadingItems.has(decision.id)}
+														onClick={() =>
+															handleDecisionAnswer(decision.id, "approved")
+														}
+													>
+														{loadingItems.has(decision.id) ? "…" : "Approve"}
+													</Button>
+													<Button
+														size="sm"
+														variant="outline"
+														className="text-xs h-6 px-2 text-red-600 border-red-500/30 hover:bg-red-500/10"
+														disabled={loadingItems.has(decision.id)}
+														onClick={() =>
+															handleDecisionAnswer(decision.id, "rejected")
+														}
+													>
+														{loadingItems.has(decision.id) ? "…" : "Reject"}
+													</Button>
+												</>
 											)}
-										</div>
-									</div>
-									<div className="flex items-center gap-1.5 ml-6 flex-wrap">
-										{decision.options.length > 0 ? (
-											decision.options.slice(0, 4).map((opt) => (
-												<Button
-													key={opt}
-													size="sm"
-													variant="outline"
-													className="text-xs h-6 px-2"
-													disabled={loadingItems.has(decision.id)}
-													onClick={() => handleDecisionAnswer(decision.id, opt)}
-												>
-													{loadingItems.has(decision.id) ? "…" : opt}
-												</Button>
-											))
-										) : (
-											<>
-												<Button
-													size="sm"
-													variant="outline"
-													className="text-xs h-6 px-2 text-green-600 border-green-500/30 hover:bg-green-500/10"
-													disabled={loadingItems.has(decision.id)}
-													onClick={() =>
-														handleDecisionAnswer(decision.id, "approved")
-													}
-												>
-													{loadingItems.has(decision.id) ? "…" : "Approve"}
-												</Button>
-												<Button
-													size="sm"
-													variant="outline"
-													className="text-xs h-6 px-2 text-red-600 border-red-500/30 hover:bg-red-500/10"
-													disabled={loadingItems.has(decision.id)}
-													onClick={() =>
-														handleDecisionAnswer(decision.id, "rejected")
-													}
-												>
-													{loadingItems.has(decision.id) ? "…" : "Reject"}
-												</Button>
-											</>
-										)}
-										<Link
-											href="/decisions"
-											className="text-[11px] text-muted-foreground hover:text-foreground ml-auto"
-										>
-											Details →
-										</Link>
-									</div>
-								</div>
+											<Link
+												href="/decisions"
+												className="text-[11px] text-muted-foreground hover:text-foreground ml-auto"
+											>
+												Details →
+											</Link>
+										</>
+									}
+								>
+									<p className="text-xs font-medium text-foreground leading-snug">
+										{decision.question}
+									</p>
+									{decision.context && (
+										<p className="text-[11px] text-muted-foreground mt-0.5 line-clamp-2">
+											{decision.context}
+										</p>
+									)}
+								</AttentionRow>
 							))}
 
-							{/* Unread agent reports — Ack button */}
 							{unreadReports.map((msg) => (
-								<div
+								<AttentionRow
 									key={msg.id}
-									className="rounded-lg border border-border/50 bg-background/60 p-3 space-y-2"
-								>
-									<div className="flex items-start gap-2">
-										<span className="text-base leading-none mt-0.5">🟡</span>
-										<div className="flex-1 min-w-0">
-											<p className="text-xs font-medium text-foreground leading-snug">
-												{msg.subject}
-											</p>
-											<p className="text-[11px] text-muted-foreground mt-0.5 line-clamp-2">
-												{msg.body}
-											</p>
-										</div>
-									</div>
-									<div className="flex items-center gap-1.5 ml-6">
-										<Button
-											size="sm"
-											variant="outline"
-											className="text-xs h-6 px-2"
-											disabled={loadingItems.has(msg.id)}
-											onClick={() => handleAckReport(msg.id)}
-										>
-											{loadingItems.has(msg.id) ? "…" : "Ack"}
-										</Button>
-										<Link
-											href="/inbox"
-											className="text-[11px] text-muted-foreground hover:text-foreground ml-auto"
-										>
-											Open →
-										</Link>
-									</div>
-								</div>
-							))}
-
-							{/* Unprocessed brain dump entries — Triage link */}
-							{unprocessedEntries.map((entry) => (
-								<div
-									key={entry.id}
-									className="rounded-lg border border-border/50 bg-background/60 p-3 space-y-2"
-								>
-									<div className="flex items-start gap-2">
-										<span className="text-base leading-none mt-0.5">🟡</span>
-										<div className="flex-1 min-w-0">
-											<p className="text-[11px] text-muted-foreground font-medium">
-												Brain dump
-											</p>
-											<p className="text-xs text-foreground leading-snug line-clamp-2 mt-0.5">
-												{entry.content}
-											</p>
-										</div>
-									</div>
-									<div className="flex items-center gap-1.5 ml-6">
-										<Link href="/brain-dump">
+									icon="🟡"
+									actions={
+										<>
 											<Button
 												size="sm"
 												variant="outline"
 												className="text-xs h-6 px-2"
+												disabled={loadingItems.has(msg.id)}
+												onClick={() => handleAckReport(msg.id)}
 											>
-												Triage
+												{loadingItems.has(msg.id) ? "…" : "Ack"}
 											</Button>
-										</Link>
-									</div>
-								</div>
+											<Link
+												href="/inbox"
+												className="text-[11px] text-muted-foreground hover:text-foreground ml-auto"
+											>
+												Open →
+											</Link>
+										</>
+									}
+								>
+									<p className="text-xs font-medium text-foreground leading-snug">
+										{msg.subject}
+									</p>
+									<p className="text-[11px] text-muted-foreground mt-0.5 line-clamp-2">
+										{msg.body}
+									</p>
+								</AttentionRow>
 							))}
 
-							{/* DO-quadrant tasks — link only */}
+							{unprocessedEntries.map((entry) => (
+								<AttentionRow
+									key={entry.id}
+									icon="🟡"
+									actions={
+										<Button
+											asChild
+											size="sm"
+											variant="outline"
+											className="text-xs h-6 px-2"
+										>
+											<Link href="/brain-dump">Triage</Link>
+										</Button>
+									}
+								>
+									<p className="text-[11px] text-muted-foreground font-medium">
+										Brain dump
+									</p>
+									<p className="text-xs text-foreground leading-snug line-clamp-2 mt-0.5">
+										{entry.content}
+									</p>
+								</AttentionRow>
+							))}
+
 							{doQuadrantMyTasks.length > 0 && (
 								<Link href="/priority-matrix">
 									<div className="flex items-center gap-2 rounded-lg px-3 py-2 hover:bg-accent/50 transition-colors">
@@ -642,7 +648,6 @@ export default function CommandCenterPage() {
 								</Link>
 							)}
 
-							{/* Recent completions to review — link only */}
 							{recentCompletions.length > 0 && (
 								<Link href="/priority-matrix">
 									<div className="flex items-center gap-2 rounded-lg px-3 py-2 hover:bg-accent/50 transition-colors">
@@ -659,7 +664,6 @@ export default function CommandCenterPage() {
 				</CardContent>
 			</Card>
 
-			{/* Crew Status — exceptions only */}
 			<Card className="bg-card/50">
 				<CardHeader className="pb-2">
 					<CardTitle className="text-sm flex items-center gap-2">
@@ -764,7 +768,6 @@ export default function CommandCenterPage() {
 				</CardContent>
 			</Card>
 
-			{/* Projects Section */}
 			<section aria-label="Projects">
 				<div className="flex items-center justify-between mb-3">
 					<h2 className="text-lg font-semibold flex items-center gap-2">
@@ -824,7 +827,6 @@ export default function CommandCenterPage() {
 				</div>
 			</section>
 
-			{/* Dialogs */}
 			<CreateTaskDialog
 				open={showCreateTask}
 				onOpenChange={setShowCreateTask}
