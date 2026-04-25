@@ -16,7 +16,7 @@
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "fs";
 import path from "path";
 import { createLogger } from "../../src/lib/logger";
-import { ActiveRunEntry, readActiveRuns, writeActiveRuns } from "./active-runs";
+import { readActiveRuns, writeActiveRuns } from "./active-runs";
 import { logger } from "./logger";
 import { AgentRunner, parseClaudeOutput } from "./runner";
 import { enforcePromptLimit, fenceTaskData } from "./security";
