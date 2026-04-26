@@ -131,7 +131,7 @@ export function TaskCard({
 						suppressNextClick.current = true;
 					}}
 					className={cn(
-						"cursor-grab select-none transition-all shadow-e-3 hover:shadow-e-4 hover:border-primary/20 animate-fade-in-up rounded-sm",
+						"cursor-grab select-none border border-transparent transition-all shadow-e-3 hover:shadow-e-4 hover:border-primary/20 animate-fade-in-up rounded-sm",
 						isDragging && "opacity-50 shadow-e-4 rotate-1",
 						onClick && "cursor-pointer",
 						isBlocked && "opacity-60 border-destructive/30",
