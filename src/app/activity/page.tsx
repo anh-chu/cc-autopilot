@@ -43,47 +43,47 @@ type EventMetaMap = Record<string, EventMeta>;
 const EVENT_META: EventMetaMap = {
 	task_created: {
 		label: "Task Created",
-		color: "bg-blue-500/10 text-blue-400 border-blue-500/20",
+		color: "bg-sunshine-500/10 text-sunshine-700 border-sunshine-500/20",
 	},
 	task_updated: {
 		label: "Task Updated",
-		color: "bg-purple-500/10 text-purple-400 border-purple-500/20",
+		color: "bg-sunshine-700/10 text-sunshine-700 border-sunshine-700/20",
 	},
 	task_completed: {
 		label: "Task Completed",
-		color: "bg-green-500/10 text-green-400 border-green-500/20",
+		color: "bg-success-soft text-success border-success/20",
 	},
 	task_delegated: {
 		label: "Task Delegated",
-		color: "bg-orange-500/10 text-orange-400 border-orange-500/20",
+		color: "bg-warning-soft text-warning border-warning/20",
 	},
 	task_failed: {
 		label: "Task Failed",
-		color: "bg-red-500/10 text-red-400 border-red-500/20",
+		color: "bg-destructive-soft text-destructive border-destructive/20",
 	},
 	message_sent: {
 		label: "Message Sent",
-		color: "bg-cyan-500/10 text-cyan-400 border-cyan-500/20",
+		color: "bg-sunshine-700/10 text-sunshine-700 border-sunshine-700/20",
 	},
 	decision_requested: {
 		label: "Decision Requested",
-		color: "bg-yellow-500/10 text-yellow-400 border-yellow-500/20",
+		color: "bg-sunshine-700/10 text-sunshine-700 border-sunshine-700/20",
 	},
 	decision_answered: {
 		label: "Decision Answered",
-		color: "bg-emerald-500/10 text-emerald-400 border-emerald-500/20",
+		color: "bg-success-soft text-success border-success/20",
 	},
 	brain_dump_triaged: {
 		label: "Quick Capture Processed",
-		color: "bg-pink-500/10 text-pink-400 border-pink-500/20",
+		color: "bg-sunshine-700/10 text-sunshine-700 border-sunshine-700/20",
 	},
 	milestone_completed: {
 		label: "Milestone Completed",
-		color: "bg-green-500/10 text-green-400 border-green-500/20",
+		color: "bg-success-soft text-success border-success/20",
 	},
 	agent_checkin: {
 		label: "Agent Check-in",
-		color: "bg-indigo-500/10 text-indigo-400 border-indigo-500/20",
+		color: "bg-sunshine-500/10 text-sunshine-700 border-sunshine-500/20",
 	},
 } as const;
 
@@ -237,7 +237,7 @@ function EventRow({
 			: null;
 
 	return (
-		<div className="flex gap-3 py-2.5 px-3 rounded-lg hover:bg-accent/30 transition-colors">
+		<div className="flex gap-3 py-2.5 px-3 rounded-sm hover:bg-accent/30 transition-colors">
 			<div className="mt-0.5 shrink-0">
 				<div className="h-7 w-7 rounded-full bg-muted flex items-center justify-center">
 					<Icon className="h-3.5 w-3.5 text-muted-foreground" />
@@ -245,7 +245,7 @@ function EventRow({
 			</div>
 			<div className="flex-1 min-w-0 space-y-1">
 				<div className="flex items-center gap-2 flex-wrap">
-					<span className="text-xs font-medium text-foreground">
+					<span className="text-xs font-normal text-foreground">
 						{ACTOR_LABELS[event.actor] ?? event.actor}
 					</span>
 					{meta && (
@@ -359,7 +359,7 @@ export default function ActivityPage() {
 					<select
 						value={actorFilter}
 						onChange={(e) => setActorFilter(e.target.value as Actor | "all")}
-						className="h-8 rounded-md border border-input bg-background px-2 text-xs text-foreground focus:outline-none focus:ring-1 focus:ring-ring"
+						className="h-8 rounded-sm border border-input bg-background px-2 text-xs text-foreground focus:outline-none focus:ring-1 focus:ring-ring"
 					>
 						<option value="all">All actors</option>
 						{actors.map((a) => (
@@ -371,7 +371,7 @@ export default function ActivityPage() {
 					<select
 						value={typeFilter}
 						onChange={(e) => setTypeFilter(e.target.value as EventType | "all")}
-						className="h-8 rounded-md border border-input bg-background px-2 text-xs text-foreground focus:outline-none focus:ring-1 focus:ring-ring"
+						className="h-8 rounded-sm border border-input bg-background px-2 text-xs text-foreground focus:outline-none focus:ring-1 focus:ring-ring"
 					>
 						<option value="all">All types</option>
 						{ALL_TYPES.map((t) => (
@@ -421,7 +421,7 @@ export default function ActivityPage() {
 					{Array.from(grouped.entries()).map(([key, dayEvents]) => (
 						<div key={key}>
 							<div className="flex items-center gap-2 mb-1 px-1">
-								<span className="text-xs font-semibold text-muted-foreground">
+								<span className="text-xs font-normal text-muted-foreground">
 									{dayLabel(key)}
 								</span>
 								<div className="flex-1 h-px bg-border/50" />

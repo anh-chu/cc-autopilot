@@ -26,12 +26,12 @@ function CopyButton({ text }: { text: string }) {
 		<Button
 			variant="ghost"
 			size="icon"
-			className="h-6 w-6 shrink-0"
+			className="size-4 shrink-0"
 			onClick={handleCopy}
 			aria-label="Copy to clipboard"
 		>
 			{copied ? (
-				<Check className="h-3 w-3 text-green-500" />
+				<Check className="h-3 w-3 text-success" />
 			) : (
 				<Copy className="h-3 w-3" />
 			)}
@@ -48,10 +48,10 @@ function SkillCard({
 }) {
 	return (
 		<Link href={`/skills/${skill.id}`}>
-			<div className="group rounded-xl border bg-card p-5 transition-all hover:shadow-md hover:border-primary/30">
+			<div className="group rounded-sm border bg-card p-5 transition-all hover:shadow-e-2 hover:border-primary/30">
 				<div className="flex items-start justify-between">
 					<div>
-						<h3 className="font-semibold text-sm group-hover:text-primary transition-colors">
+						<h3 className="font-normal text-sm group-hover:text-primary transition-colors">
 							{skill.name}
 						</h3>
 						<p className="text-xs text-muted-foreground mt-0.5 line-clamp-2">
@@ -122,8 +122,8 @@ export default function SkillsPage() {
 						<CardSkeleton
 							className="p-5 space-y-3"
 							footer={[
-								{ key: "tag-1", className: "h-4 w-14 rounded-full" },
-								{ key: "tag-2", className: "h-4 w-18 rounded-full" },
+								{ key: "tag-1", className: "h-4 w-14 rounded-sm" },
+								{ key: "tag-2", className: "h-4 w-18 rounded-sm" },
 							]}
 							footerClassName="flex gap-1"
 						>
@@ -157,7 +157,7 @@ export default function SkillsPage() {
 
 			<div className="flex items-center justify-between">
 				<div>
-					<h1 className="text-xl font-bold">Skills Library</h1>
+					<h1 className="text-xl font-normal">Skills Library</h1>
 					<p className="text-sm text-muted-foreground mt-0.5">
 						{skills.length} skill{skills.length !== 1 ? "s" : ""} available
 					</p>
@@ -194,13 +194,13 @@ export default function SkillsPage() {
 			)}
 
 			{/* AI Commands (slash commands) */}
-			<div className="rounded-xl border bg-card">
+			<div className="rounded-sm border bg-card">
 				<div className="flex items-center gap-3 border-b px-5 py-4">
-					<div className="h-9 w-9 rounded-full bg-primary/10 flex items-center justify-center">
+					<div className="h-9 w-9 rounded-full bg-primary-soft flex items-center justify-center">
 						<Terminal className="h-4 w-4 text-primary" />
 					</div>
 					<div>
-						<h2 className="text-sm font-semibold">AI Commands</h2>
+						<h2 className="text-sm font-normal">AI Commands</h2>
 						<p className="text-xs text-muted-foreground">
 							Slash commands for Claude Code — type in the CLI to activate
 						</p>
@@ -212,7 +212,7 @@ export default function SkillsPage() {
 							key={skill.command}
 							className="flex items-center gap-3 px-5 py-2.5"
 						>
-							<code className="text-xs font-mono font-medium text-primary min-w-[130px]">
+							<code className="text-xs font-mono font-normal text-primary min-w-[130px]">
 								{skill.command}
 							</code>
 							<span className="text-xs text-muted-foreground flex-1">

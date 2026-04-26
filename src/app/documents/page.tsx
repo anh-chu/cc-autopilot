@@ -22,14 +22,14 @@ import {
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
-import { StreamEntry, prepareConsoleLines } from "@/components/agent-console";
-import type { StreamLine } from "@/hooks/use-agent-stream";
-import { useAgents } from "@/hooks/use-data";
+import { prepareConsoleLines, StreamEntry } from "@/components/agent-console";
 import { BreadcrumbNav } from "@/components/breadcrumb-nav";
 import { ConfirmDialog } from "@/components/confirm-dialog";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
+import type { StreamLine } from "@/hooks/use-agent-stream";
+import { useAgents } from "@/hooks/use-data";
 import { cn } from "@/lib/utils";
 
 interface TreeNode {
@@ -674,11 +674,11 @@ export default function DocumentsPage() {
 							: e.preventDefault()
 					}
 					className={cn(
-						"flex items-center gap-1.5 rounded-md px-2 py-1 text-sm cursor-pointer group transition-colors select-none",
+						"flex items-center gap-1.5 rounded-sm px-2 py-1 text-sm cursor-pointer group transition-colors select-none",
 						openFile?.path === node.path
 							? "bg-accent text-accent-foreground"
 							: "hover:bg-accent/50",
-						dragOverPath === node.path && "ring-2 ring-primary bg-primary/10",
+						dragOverPath === node.path && "ring-2 ring-primary bg-primary-soft",
 					)}
 					style={{ paddingLeft: `${depth * 14 + 8}px` }}
 					onClick={() => {
@@ -700,14 +700,14 @@ export default function DocumentsPage() {
 
 					{node.type === "dir" ? (
 						node.expanded ? (
-							<FolderOpen className="h-4 w-4 shrink-0 text-amber-500" />
+							<FolderOpen className="h-4 w-4 shrink-0 text-warning" />
 						) : (
-							<Folder className="h-4 w-4 shrink-0 text-amber-500" />
+							<Folder className="h-4 w-4 shrink-0 text-warning" />
 						)
 					) : isImage(node.name) ? (
-						<ImageIcon className="h-4 w-4 shrink-0 text-green-500" />
+						<ImageIcon className="h-4 w-4 shrink-0 text-sunshine-700" />
 					) : isText(node.name) ? (
-						<FileText className="h-4 w-4 shrink-0 text-blue-500" />
+						<FileText className="h-4 w-4 shrink-0 text-accent" />
 					) : (
 						<File className="h-4 w-4 shrink-0 text-muted-foreground" />
 					)}
@@ -765,7 +765,7 @@ export default function DocumentsPage() {
 						style={{ paddingLeft: `${(depth + 1) * 14 + 8}px` }}
 					>
 						<span className="w-3.5 shrink-0" />
-						<Folder className="h-4 w-4 shrink-0 text-amber-400" />
+						<Folder className="h-4 w-4 shrink-0 text-warning" />
 						<input
 							autoFocus
 							className="flex-1 bg-transparent text-sm outline-none border-b border-border min-w-0"
@@ -830,7 +830,7 @@ export default function DocumentsPage() {
 		<div className="flex h-[calc(100vh-8rem)] gap-4 min-h-0">
 			{/* Tree panel */}
 			<Card className="flex flex-col w-72 shrink-0 overflow-hidden">
-				<div className="flex items-center justify-between px-3 py-2 border-b bg-muted/20 shrink-0">
+				<div className="flex items-center justify-between px-3 py-2 border-b bg-muted shrink-0">
 					<BreadcrumbNav items={[{ label: "Documents" }]} />
 					<div className="flex gap-1">
 						<Button
@@ -864,7 +864,7 @@ export default function DocumentsPage() {
 				</div>
 
 				{uploadError && (
-					<div className="flex items-center gap-1.5 px-3 py-1.5 text-xs text-destructive bg-destructive/10 shrink-0">
+					<div className="flex items-center gap-1.5 px-3 py-1.5 text-xs text-destructive bg-destructive-soft shrink-0">
 						<AlertCircle className="h-3.5 w-3.5 shrink-0" />
 						{uploadError}
 					</div>
@@ -872,7 +872,7 @@ export default function DocumentsPage() {
 
 				{newFolderParent === "" && (
 					<div className="flex items-center gap-1.5 px-2 py-1 border-b shrink-0">
-						<Folder className="h-4 w-4 shrink-0 text-amber-400" />
+						<Folder className="h-4 w-4 shrink-0 text-warning" />
 						<input
 							autoFocus
 							className="flex-1 bg-transparent text-sm outline-none border-b border-border min-w-0"
@@ -916,7 +916,7 @@ export default function DocumentsPage() {
 					className={cn(
 						"flex-1 overflow-auto py-1",
 						dragOverPath === "" &&
-							"ring-2 ring-inset ring-primary bg-primary/5",
+							"ring-2 ring-inset ring-primary bg-primary-soft",
 					)}
 					onDragOver={(e) => handleDragOver(e, "", "root")}
 					onDragLeave={(e) => {
@@ -941,9 +941,9 @@ export default function DocumentsPage() {
 
 			{/* Wiki generation */}
 			<Card className="flex flex-col w-96 shrink-0 overflow-hidden">
-				<div className="flex items-center justify-between px-3 py-2 border-b bg-muted/20 shrink-0">
+				<div className="flex items-center justify-between px-3 py-2 border-b bg-muted shrink-0">
 					<div>
-						<p className="text-sm font-medium">Generate Wiki</p>
+						<p className="text-sm font-normal">Generate Wiki</p>
 						<p className="text-xs text-muted-foreground">
 							{promptIsDefault
 								? "Default prompt loaded"
@@ -954,7 +954,6 @@ export default function DocumentsPage() {
 						<Button
 							size="sm"
 							variant="outline"
-							className="h-7"
 							onClick={handleInitWiki}
 							disabled={initingWiki || running || promptLoading}
 						>
@@ -979,7 +978,7 @@ export default function DocumentsPage() {
 						</Button>
 						<Button
 							size="sm"
-							className="h-7 gap-1"
+							className="gap-1"
 							onClick={handleGenerate}
 							disabled={running || promptLoading || promptSaving}
 						>
@@ -999,24 +998,24 @@ export default function DocumentsPage() {
 						scaffold. Run processes docs and updates pages.
 					</p>
 					{promptError && (
-						<div className="rounded-md border border-destructive/30 bg-destructive/10 px-3 py-2 text-xs text-destructive">
+						<div className="rounded-sm border border-destructive/30 bg-destructive-soft px-3 py-2 text-xs text-destructive">
 							{promptError}
 						</div>
 					)}
 					{runError && (
-						<div className="rounded-md border border-destructive/30 bg-destructive/10 px-3 py-2 text-xs text-destructive">
+						<div className="rounded-sm border border-destructive/30 bg-destructive-soft px-3 py-2 text-xs text-destructive">
 							{runError}
 						</div>
 					)}
 					{runMessage && (
-						<div className="rounded-md border border-primary/30 bg-primary/10 px-3 py-2 text-xs text-primary">
+						<div className="rounded-sm border border-primary/30 bg-primary-soft px-3 py-2 text-xs text-primary">
 							{runMessage}
 						</div>
 					)}
 
 					<div className="space-y-2">
 						<div className="flex items-center justify-between">
-							<p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+							<p className="text-xs font-normal uppercase tracking-wide text-muted-foreground">
 								Prompt
 							</p>
 							<span className="text-[11px] text-muted-foreground">
@@ -1037,7 +1036,6 @@ export default function DocumentsPage() {
 							<Button
 								size="sm"
 								variant="ghost"
-								className="h-7"
 								onClick={() => void loadPrompt()}
 								disabled={promptLoading}
 							>
@@ -1045,7 +1043,6 @@ export default function DocumentsPage() {
 							</Button>
 							<Button
 								size="sm"
-								className="h-7"
 								onClick={() => void savePrompt()}
 								disabled={promptSaving || promptLoading}
 							>
@@ -1058,7 +1055,7 @@ export default function DocumentsPage() {
 					</div>
 
 					<div className="space-y-2">
-						<p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+						<p className="text-xs font-normal uppercase tracking-wide text-muted-foreground">
 							Additional instructions
 						</p>
 						<Textarea
@@ -1073,11 +1070,11 @@ export default function DocumentsPage() {
 					</div>
 
 					<div className="space-y-2">
-						<p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+						<p className="text-xs font-normal uppercase tracking-wide text-muted-foreground">
 							Agent
 						</p>
 						<select
-							className="w-full h-8 rounded-md border bg-background px-2 text-xs"
+							className="w-full h-8 rounded-sm border bg-background px-2 text-xs"
 							value={selectedAgentId}
 							onChange={(e) => setSelectedAgentId(e.target.value)}
 						>
@@ -1096,11 +1093,11 @@ export default function DocumentsPage() {
 					</div>
 
 					<div className="space-y-2">
-						<p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+						<p className="text-xs font-normal uppercase tracking-wide text-muted-foreground">
 							Model
 						</p>
 						<select
-							className="w-full h-8 rounded-md border bg-background px-2 text-xs"
+							className="w-full h-8 rounded-sm border bg-background px-2 text-xs"
 							value={selectedModel}
 							onChange={(e) => setSelectedModel(e.target.value)}
 						>
@@ -1115,7 +1112,7 @@ export default function DocumentsPage() {
 
 					<div className="space-y-2">
 						<div className="flex items-center justify-between">
-							<p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+							<p className="text-xs font-normal uppercase tracking-wide text-muted-foreground">
 								Recent runs
 							</p>
 							<span className="text-[11px] text-muted-foreground">
@@ -1129,10 +1126,10 @@ export default function DocumentsPage() {
 								wikiRuns.slice(0, 5).map((run) => (
 									<div
 										key={run.id}
-										className="rounded-md border bg-background px-3 py-2 text-xs space-y-1"
+										className="rounded-sm border bg-background px-3 py-2 text-xs space-y-1"
 									>
 										<div className="flex items-center justify-between gap-2">
-											<span className="font-medium truncate" title={run.id}>
+											<span className="font-normal truncate" title={run.id}>
 												{run.id}
 											</span>
 											<span className="uppercase text-[10px] text-muted-foreground">
@@ -1162,9 +1159,9 @@ export default function DocumentsPage() {
 			{/* File viewer / editor */}
 			{streamRunId ? (
 				<Card className="flex-1 flex flex-col overflow-hidden min-w-0">
-					<div className="flex items-center justify-between px-4 py-2 border-b bg-muted/20 shrink-0">
+					<div className="flex items-center justify-between px-4 py-2 border-b bg-muted shrink-0">
 						<div className="min-w-0">
-							<p className="text-sm font-medium">Claude Run Stream</p>
+							<p className="text-sm font-normal">Claude Run Stream</p>
 							<p
 								className="text-xs text-muted-foreground truncate"
 								title={streamRunId}
@@ -1175,7 +1172,6 @@ export default function DocumentsPage() {
 						<Button
 							size="sm"
 							variant="ghost"
-							className="h-7"
 							onClick={() => setStreamRunId(null)}
 						>
 							Close
@@ -1197,17 +1193,17 @@ export default function DocumentsPage() {
 				</Card>
 			) : openFile ? (
 				<Card className="flex-1 flex flex-col overflow-hidden min-w-0">
-					<div className="flex items-center justify-between px-4 py-2 border-b bg-muted/20 shrink-0">
+					<div className="flex items-center justify-between px-4 py-2 border-b bg-muted shrink-0">
 						<div className="flex items-center gap-2 min-w-0">
 							{isImage(openFile.name) ? (
-								<ImageIcon className="h-4 w-4 shrink-0 text-green-500" />
+								<ImageIcon className="h-4 w-4 shrink-0 text-sunshine-700" />
 							) : isText(openFile.name) ? (
-								<FileText className="h-4 w-4 shrink-0 text-blue-500" />
+								<FileText className="h-4 w-4 shrink-0 text-accent" />
 							) : (
 								<File className="h-4 w-4 shrink-0 text-muted-foreground" />
 							)}
 							<span
-								className="text-sm font-medium truncate"
+								className="text-sm font-normal truncate"
 								title={openFile.path}
 							>
 								{openFile.path}
@@ -1253,7 +1249,7 @@ export default function DocumentsPage() {
 							<img
 								src={`/api/wiki/file?path=${encodeURIComponent(openFile.path)}`}
 								alt={openFile.name}
-								className="max-w-full max-h-full object-contain rounded"
+								className="max-w-full max-h-full object-contain rounded-sm"
 							/>
 						) : editing ? (
 							<Textarea
@@ -1268,22 +1264,22 @@ export default function DocumentsPage() {
 									remarkPlugins={[remarkGfm]}
 									components={{
 										h1: ({ children }) => (
-											<h1 className="text-2xl font-bold mt-6 mb-3 pb-1 border-b">
+											<h1 className="text-2xl font-normal mt-6 mb-3 pb-1 border-b">
 												{children}
 											</h1>
 										),
 										h2: ({ children }) => (
-											<h2 className="text-xl font-semibold mt-5 mb-2 pb-1 border-b">
+											<h2 className="text-xl font-normal mt-5 mb-2 pb-1 border-b">
 												{children}
 											</h2>
 										),
 										h3: ({ children }) => (
-											<h3 className="text-lg font-semibold mt-4 mb-2">
+											<h3 className="text-lg font-normal mt-4 mb-2">
 												{children}
 											</h3>
 										),
 										h4: ({ children }) => (
-											<h4 className="text-base font-semibold mt-3 mb-1">
+											<h4 className="text-base font-normal mt-3 mb-1">
 												{children}
 											</h4>
 										),
@@ -1312,14 +1308,14 @@ export default function DocumentsPage() {
 											const isBlock = className?.includes("language-");
 											return isBlock ? (
 												<code
-													className={`block bg-muted rounded px-3 py-2 text-xs font-mono overflow-x-auto my-3 ${className ?? ""}`}
+													className={`block bg-muted rounded-sm px-3 py-2 text-xs font-mono overflow-x-auto my-3 ${className ?? ""}`}
 													{...props}
 												>
 													{children}
 												</code>
 											) : (
 												<code
-													className="bg-muted rounded px-1 py-0.5 text-xs font-mono"
+													className="bg-muted rounded-sm px-1 py-0.5 text-xs font-mono"
 													{...props}
 												>
 													{children}
@@ -1340,7 +1336,7 @@ export default function DocumentsPage() {
 											</a>
 										),
 										strong: ({ children }) => (
-											<strong className="font-semibold">{children}</strong>
+											<strong className="font-normal">{children}</strong>
 										),
 										em: ({ children }) => (
 											<em className="italic">{children}</em>
@@ -1354,7 +1350,7 @@ export default function DocumentsPage() {
 											</div>
 										),
 										th: ({ children }) => (
-											<th className="border border-border px-3 py-1.5 bg-muted font-semibold text-left">
+											<th className="border border-border px-3 py-1.5 bg-muted font-normal text-left">
 												{children}
 											</th>
 										),
@@ -1384,7 +1380,7 @@ export default function DocumentsPage() {
 					</div>
 
 					{editing && (
-						<div className="border-t px-4 py-2 flex items-center justify-end gap-2 bg-muted/10 shrink-0">
+						<div className="border-t px-4 py-2 flex items-center justify-end gap-2 bg-muted shrink-0">
 							{saveError && (
 								<span className="text-xs text-destructive mr-auto">
 									{saveError}
@@ -1393,7 +1389,6 @@ export default function DocumentsPage() {
 							<Button
 								size="sm"
 								variant="ghost"
-								className="h-7"
 								onClick={() => {
 									setEditing(false);
 									setSaveError(null);
@@ -1403,7 +1398,7 @@ export default function DocumentsPage() {
 							</Button>
 							<Button
 								size="sm"
-								className="h-7 gap-1"
+								className="gap-1"
 								onClick={handleSave}
 								disabled={saving}
 							>

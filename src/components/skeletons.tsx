@@ -65,7 +65,7 @@ export function CardSkeleton({
 	childrenPosition = "beforeLines",
 }: CardSkeletonProps) {
 	return (
-		<div className={cn("rounded-xl border bg-card p-4 space-y-3", className)}>
+		<div className={cn("rounded-sm border bg-card p-4 space-y-3", className)}>
 			{childrenPosition === "beforeLines" && children}
 			{lines.map(renderSkeleton)}
 			{childrenPosition === "afterLines" && children}

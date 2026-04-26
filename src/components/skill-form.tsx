@@ -146,7 +146,7 @@ export function SkillForm({ mode, initialData, onDelete }: SkillFormProps) {
 				>
 					<ArrowLeft className="h-4 w-4" />
 				</Button>
-				<h1 className="text-xl font-bold flex-1">{pageTitle}</h1>
+				<h1 className="text-xl font-normal flex-1">{pageTitle}</h1>
 				{!isCreate && onDelete && (
 					<Button
 						variant="destructive"
@@ -160,7 +160,7 @@ export function SkillForm({ mode, initialData, onDelete }: SkillFormProps) {
 			</div>
 
 			{error && (
-				<div className="rounded-lg border border-destructive bg-destructive/10 px-4 py-3 text-sm text-destructive">
+				<div className="rounded-sm border border-destructive bg-destructive-soft px-4 py-3 text-sm text-destructive">
 					{error}
 				</div>
 			)}
@@ -276,14 +276,14 @@ export function SkillForm({ mode, initialData, onDelete }: SkillFormProps) {
 										type="button"
 										key={agent.id}
 										onClick={() => toggleAgent(agent.id)}
-										className={`flex items-center gap-2 rounded-lg border p-2.5 text-left transition-colors ${
+										className={`flex items-center gap-2 rounded-sm border p-2.5 text-left transition-colors ${
 											isAssigned
-												? "border-primary bg-primary/5"
+												? "border-primary bg-primary-soft"
 												: "hover:bg-muted"
 										}`}
 									>
 										<div
-											className={`h-4 w-4 rounded border flex items-center justify-center ${
+											className={`h-4 w-4 rounded-sm border flex items-center justify-center ${
 												isAssigned
 													? "bg-primary border-primary text-primary-foreground"
 													: ""
@@ -292,7 +292,7 @@ export function SkillForm({ mode, initialData, onDelete }: SkillFormProps) {
 											{isAssigned && <span className="text-xs">&#10003;</span>}
 										</div>
 										<div>
-											<p className="text-sm font-medium">{agent.name}</p>
+											<p className="text-sm font-normal">{agent.name}</p>
 											<p className="text-xs text-muted-foreground">
 												{agent.description}
 											</p>
@@ -320,7 +320,7 @@ export function SkillForm({ mode, initialData, onDelete }: SkillFormProps) {
 						Cancel
 					</Button>
 					{mode === "edit" && dirty && (
-						<p className="text-xs text-amber-500 self-center">
+						<p className="text-xs text-warning self-center">
 							Unsaved changes
 						</p>
 					)}

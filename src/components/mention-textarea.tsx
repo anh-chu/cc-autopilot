@@ -1,11 +1,11 @@
 "use client";
 
-import { useState, useRef, useEffect, useCallback } from "react";
-import { Textarea } from "@/components/ui/textarea";
-import type { AgentDefinition } from "@/lib/types";
-import { getAgentIcon } from "@/lib/agent-icons";
-import { cn } from "@/lib/utils";
 import { Paperclip, X } from "lucide-react";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { Textarea } from "@/components/ui/textarea";
+import { getAgentIcon } from "@/lib/agent-icons";
+import type { AgentDefinition } from "@/lib/types";
+import { cn } from "@/lib/utils";
 
 interface MentionTextareaProps {
 	value: string;
@@ -187,7 +187,7 @@ export function MentionTextarea({
 					{showDropdown && filteredAgents.length > 0 && (
 						<div
 							ref={dropdownRef}
-							className="absolute bottom-full left-0 mb-1 w-56 max-h-48 overflow-y-auto rounded-lg border bg-popover shadow-lg z-50"
+							className="absolute bottom-full left-0 mb-1 w-56 max-h-48 overflow-y-auto rounded-sm border bg-popover shadow-golden z-50"
 						>
 							{filteredAgents.map((agent, idx) => {
 								const Icon = getAgentIcon(agent.id, agent.icon);
@@ -209,7 +209,7 @@ export function MentionTextarea({
 											<Icon className="h-3 w-3 text-muted-foreground" />
 										</div>
 										<div className="flex-1 min-w-0">
-											<span className="font-medium">{agent.name}</span>
+											<span className="font-normal">{agent.name}</span>
 											<span className="text-muted-foreground ml-1">
 												@{agent.id}
 											</span>
@@ -224,7 +224,7 @@ export function MentionTextarea({
 				<button
 					type="button"
 					onClick={() => fileInputRef.current?.click()}
-					className="shrink-0 h-8 w-8 rounded flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
+					className="shrink-0 h-8 w-8 rounded-sm flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
 					title="Attach file"
 				>
 					<Paperclip className="h-4 w-4" />
@@ -244,7 +244,7 @@ export function MentionTextarea({
 					{stagedFiles.map((file, idx) => (
 						<div
 							key={idx}
-							className="flex items-center gap-1 bg-muted rounded px-2 py-0.5 text-xs text-muted-foreground"
+							className="flex items-center gap-1 bg-muted rounded-sm px-2 py-0.5 text-xs text-muted-foreground"
 						>
 							<span className="max-w-[120px] truncate">{file.name}</span>
 							<button

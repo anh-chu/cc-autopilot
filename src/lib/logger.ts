@@ -3,8 +3,8 @@ import {
 	mkdirSync,
 	renameSync,
 	statSync,
-	writeFileSync,
 	type WriteStream,
+	writeFileSync,
 } from "fs";
 import path from "path";
 import { DATA_DIR } from "./paths";

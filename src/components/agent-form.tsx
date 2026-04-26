@@ -217,7 +217,7 @@ export function AgentForm({
 					<Button variant="ghost" size="icon" onClick={onCancel}>
 						<ArrowLeft className="h-4 w-4" />
 					</Button>
-					<h1 className="text-xl font-bold">
+					<h1 className="text-xl font-normal">
 						{mode === "create" ? "Create New Agent" : "Edit Agent"}
 					</h1>
 				</div>
@@ -240,7 +240,7 @@ export function AgentForm({
 			</div>
 
 			{error && (
-				<div className="rounded-lg border border-destructive bg-destructive/10 px-4 py-3 text-sm text-destructive">
+				<div className="rounded-sm border border-destructive bg-destructive-soft px-4 py-3 text-sm text-destructive">
 					{error}
 				</div>
 			)}
@@ -307,7 +307,7 @@ export function AgentForm({
 								type="button"
 								onClick={() => setForm((prev) => ({ ...prev, icon: name }))}
 								className={cn(
-									"h-9 w-9 rounded-lg border flex items-center justify-center transition-colors",
+									"h-9 w-9 rounded-sm border flex items-center justify-center transition-colors",
 									form.icon === name
 										? "bg-primary text-primary-foreground border-primary"
 										: "bg-muted hover:bg-accent",
@@ -478,7 +478,7 @@ export function AgentForm({
 				</div>
 
 				{/* Status */}
-				<div className="flex items-center justify-between rounded-lg border p-4">
+				<div className="flex items-center justify-between rounded-sm border p-4">
 					<div>
 						<Label>Status</Label>
 						<p className="text-xs text-muted-foreground mt-0.5">
@@ -502,18 +502,16 @@ export function AgentForm({
 				</div>
 
 				{/* Preview */}
-				<div className="rounded-lg border bg-muted/50 p-4">
-					<p className="text-xs font-semibold text-muted-foreground mb-2">
+				<div className="rounded-sm border bg-muted p-4">
+					<p className="text-xs font-normal text-muted-foreground mb-2">
 						Preview
 					</p>
 					<div className="flex items-center gap-3">
-						<div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
+						<div className="h-10 w-10 rounded-full bg-primary-soft flex items-center justify-center">
 							<SelectedIcon className="h-5 w-5 text-primary" />
 						</div>
 						<div>
-							<p className="font-semibold text-sm">
-								{form.name || "Agent Name"}
-							</p>
+							<p className="font-normal text-sm">{form.name || "Agent Name"}</p>
 							<p className="text-xs text-muted-foreground">
 								{form.description || "No description"}
 							</p>

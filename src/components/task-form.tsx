@@ -278,7 +278,7 @@ export function TaskForm({
 						<button
 							type="button"
 							title="Attach file"
-							className="h-5 w-5 flex items-center justify-center rounded text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
+							className="h-5 w-5 flex items-center justify-center rounded-sm text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
 							onClick={() => descFileInputRef.current?.click()}
 						>
 							<Paperclip className="h-3 w-3" />
@@ -319,7 +319,7 @@ export function TaskForm({
 				) : (
 					<button
 						type="button"
-						className="cursor-text hover:bg-muted/40 rounded p-2 -mx-1 transition-colors min-h-[60px] border border-transparent hover:border-border/40 w-full text-left appearance-none bg-transparent"
+						className="cursor-text hover:bg-muted/40 rounded-sm p-2 -mx-1 transition-colors min-h-[60px] border border-transparent hover:border-border/40 w-full text-left appearance-none bg-transparent"
 						onClick={() => setEditingDesc(true)}
 						title="Click to edit"
 					>
@@ -492,7 +492,7 @@ export function TaskForm({
 													collaborators: [...form.collaborators, agent.id],
 												})
 											}
-											className="flex items-center gap-1 rounded-md border border-dashed px-2 py-1 text-xs text-muted-foreground hover:bg-accent hover:text-foreground transition-colors"
+											className="flex items-center gap-1 rounded-sm border border-dashed px-2 py-1 text-xs text-muted-foreground hover:bg-accent hover:text-foreground transition-colors"
 										>
 											<AgentIcon className="h-3 w-3" />
 											<Plus className="h-2.5 w-2.5" />
@@ -590,7 +590,7 @@ export function TaskForm({
 
 				{/* Subtask list */}
 				{form.subtasks.length > 0 && (
-					<div className="space-y-1 rounded-lg border bg-muted/30 p-2">
+					<div className="space-y-1 rounded-sm border bg-muted p-2">
 						{form.subtasks.map((sub) => (
 							<div key={sub.id} className="flex items-center gap-2 group">
 								<button
@@ -664,12 +664,12 @@ export function TaskForm({
 					<button
 						type="button"
 						onClick={() => setShowDeps(!showDeps)}
-						className="flex items-center gap-1.5 text-sm font-medium"
+						className="flex items-center gap-1.5 text-sm font-normal"
 					>
 						<Link2 className="h-3.5 w-3.5" />
 						Dependencies
 						{form.blockedBy.length > 0 && (
-							<span className="text-xs text-yellow-500 ml-1 tabular-nums">
+							<span className="text-xs text-sunshine-700 ml-1 tabular-nums">
 								{form.blockedBy.length} selected
 							</span>
 						)}
@@ -679,7 +679,7 @@ export function TaskForm({
 					</button>
 
 					{showDeps && (
-						<div className="rounded-lg border bg-muted/30 p-2 space-y-1.5">
+						<div className="rounded-sm border bg-muted p-2 space-y-1.5">
 							<Input
 								value={depSearch}
 								onChange={(e) => setDepSearch(e.target.value)}
@@ -695,8 +695,8 @@ export function TaskForm({
 											type="button"
 											onClick={() => toggleDependency(t.id)}
 											className={cn(
-												"flex items-center gap-2 w-full text-left px-2 py-1 rounded text-xs hover:bg-accent/50 transition-colors",
-												checked && "bg-accent/30",
+												"flex items-center gap-2 w-full text-left px-2 py-1 rounded-sm text-xs hover:bg-accent/50 transition-colors",
+												checked && "bg-accent-soft",
 											)}
 										>
 											{checked ? (

@@ -25,14 +25,14 @@ import { getAgentIcon } from "@/lib/agent-icons";
 import type { AgentDefinition, Project, ProjectStatus } from "@/lib/types";
 
 const PROJECT_COLORS = [
-	"#6366f1",
-	"#8b5cf6",
-	"#ec4899",
-	"#f43f5e",
-	"#f97316",
-	"#eab308",
-	"#22c55e",
-	"#06b6d4",
+	"#fa520f",
+	"#fb6424",
+	"#ff8105",
+	"#ffa110",
+	"#ffb83e",
+	"#ffd06a",
+	"#ffd900",
+	"#1f1f1f",
 ];
 
 interface ProjectDialogProps {
@@ -276,7 +276,7 @@ export function ProjectDialog({
 												key={agent.id}
 												type="button"
 												onClick={() => toggleTeamMember(agent.id)}
-												className="flex items-center gap-1 rounded-md border border-dashed px-2 py-1 text-xs text-muted-foreground hover:bg-accent hover:text-foreground transition-colors"
+												className="flex items-center gap-1 rounded-sm border border-dashed px-2 py-1 text-xs text-muted-foreground hover:bg-accent hover:text-foreground transition-colors"
 											>
 												<AgentIcon className="h-3 w-3" />
 												{agent.name}

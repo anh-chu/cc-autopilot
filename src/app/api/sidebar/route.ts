@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { getTasks, getInbox, getDecisions, getAgents } from "@/lib/data";
+import { getAgents, getDecisions, getInbox, getTasks } from "@/lib/data";
 import { applyWorkspaceContext } from "@/lib/workspace-context";
 
 export const dynamic = "force-dynamic";

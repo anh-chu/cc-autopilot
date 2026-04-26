@@ -1,11 +1,26 @@
 "use client";
 
-import { useState, useMemo } from "react";
-import { useDaemon } from "@/hooks/use-daemon";
-import { useActiveRunsContext as useActiveRuns } from "@/providers/active-runs-provider";
+import {
+	CheckCircle2,
+	Clock,
+	Pencil,
+	Plus,
+	RefreshCw,
+	Rocket,
+	Save,
+	Square,
+	Timer,
+	Trash2,
+	X,
+	XCircle,
+	Zap,
+} from "lucide-react";
+import { useMemo, useState } from "react";
 import { AgentConsole } from "@/components/agent-console";
 import { BreadcrumbNav } from "@/components/breadcrumb-nav";
 import { ErrorState } from "@/components/error-state";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import {
 	Card,
 	CardContent,
@@ -13,16 +28,7 @@ import {
 	CardHeader,
 	CardTitle,
 } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Skeleton } from "@/components/ui/skeleton";
-import {
-	Tooltip,
-	TooltipContent,
-	TooltipTrigger,
-} from "@/components/ui/tooltip";
-import { Tip } from "@/components/ui/tip";
 import {
 	Select,
 	SelectContent,
@@ -30,21 +36,15 @@ import {
 	SelectTrigger,
 	SelectValue,
 } from "@/components/ui/select";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Tip } from "@/components/ui/tip";
 import {
-	Rocket,
-	Square,
-	Clock,
-	CheckCircle2,
-	XCircle,
-	Timer,
-	RefreshCw,
-	Zap,
-	Pencil,
-	Save,
-	X,
-	Plus,
-	Trash2,
-} from "lucide-react";
+	Tooltip,
+	TooltipContent,
+	TooltipTrigger,
+} from "@/components/ui/tooltip";
+import { useDaemon } from "@/hooks/use-daemon";
+import { useActiveRunsContext as useActiveRuns } from "@/providers/active-runs-provider";
 
 function formatDuration(minutes: number): string {
 	if (minutes < 1) return "< 1m";
@@ -255,11 +255,11 @@ export default function AutopilotPage() {
 			{/* Status Bar */}
 			<div className="flex items-center justify-between">
 				<div className="flex items-center gap-3">
-					<Rocket className="h-6 w-6" />
-					<h2 className="text-2xl font-bold">Automation</h2>
+					<Rocket className="h-5 w-5" />
+					<h1 className="text-xl font-normal">Automation</h1>
 					<Badge
 						variant={isRunning ? "default" : "secondary"}
-						className={isRunning ? "bg-green-600" : ""}
+						className={isRunning ? "bg-sunshine-700" : ""}
 					>
 						{isRunning ? "Running" : "Stopped"}
 					</Badge>
@@ -303,7 +303,7 @@ export default function AutopilotPage() {
 						<CardDescription>Uptime</CardDescription>
 					</CardHeader>
 					<CardContent>
-						<div className="text-2xl font-bold">
+						<div className="text-2xl font-normal">
 							{isRunning
 								? formatDuration(status.stats.uptimeMinutes)
 								: "\u2014"}
@@ -322,7 +322,7 @@ export default function AutopilotPage() {
 					</CardHeader>
 					<CardContent>
 						<div className="flex items-baseline gap-2">
-							<span className="text-2xl font-bold">
+							<span className="text-2xl font-normal">
 								{status.stats.tasksCompleted}
 							</span>
 							<span className="text-sm text-muted-foreground">
@@ -341,7 +341,7 @@ export default function AutopilotPage() {
 					</CardHeader>
 					<CardContent>
 						<div className="flex items-baseline gap-2">
-							<span className="text-2xl font-bold">
+							<span className="text-2xl font-normal">
 								{status.activeSessions.length}
 							</span>
 							<span className="text-sm text-muted-foreground">
@@ -356,7 +356,9 @@ export default function AutopilotPage() {
 						<CardDescription>Failures</CardDescription>
 					</CardHeader>
 					<CardContent>
-						<div className="text-2xl font-bold">{status.stats.tasksFailed}</div>
+						<div className="text-2xl font-normal">
+							{status.stats.tasksFailed}
+						</div>
 						{status.lastPollAt && (
 							<p className="text-xs text-muted-foreground mt-1">
 								Last poll: {formatRelativeTime(status.lastPollAt)}
@@ -370,7 +372,7 @@ export default function AutopilotPage() {
 						<CardDescription>Total Spend</CardDescription>
 					</CardHeader>
 					<CardContent>
-						<div className="text-2xl font-bold">
+						<div className="text-2xl font-normal">
 							${status.stats.totalCostUsd?.toFixed(2) ?? "0.00"}
 						</div>
 						{status.stats.tasksCompleted > 0 && (
@@ -402,7 +404,7 @@ export default function AutopilotPage() {
 				<Card>
 					<CardHeader>
 						<CardTitle className="flex items-center gap-2">
-							<Zap className="h-5 w-5 text-yellow-500" />
+							<Zap className="h-5 w-5 text-sunshine-700" />
 							Active Sessions
 						</CardTitle>
 					</CardHeader>
@@ -417,18 +419,18 @@ export default function AutopilotPage() {
 								return (
 									<div
 										key={session.id}
-										className="rounded-lg border overflow-hidden"
+										className="rounded-sm border overflow-hidden"
 									>
 										<div
-											className="flex items-center justify-between p-3 cursor-pointer hover:bg-muted/30 transition-colors"
+											className="flex items-center justify-between p-3 cursor-pointer hover:bg-accent-soft transition-colors"
 											onClick={() =>
 												setExpandedSessionId(isExpanded ? null : session.id)
 											}
 										>
 											<div className="flex items-center gap-3">
-												<div className="h-2 w-2 rounded-full bg-green-500 animate-pulse" />
+												<div className="h-2 w-2 rounded-full bg-sunshine-700 animate-pulse" />
 												<div>
-													<p className="font-medium">
+													<p className="font-normal">
 														{session.command === "task"
 															? `Task: ${session.taskId}`
 															: `/${session.command}`}
@@ -442,7 +444,7 @@ export default function AutopilotPage() {
 												{runId && (
 													<Badge
 														variant="outline"
-														className="text-[10px] text-green-500 border-green-500/30"
+														className="text-[10px] bg-accent-soft text-accent border-accent/40"
 													>
 														Live
 													</Badge>
@@ -513,7 +515,7 @@ export default function AutopilotPage() {
 					) : (
 						<div className="space-y-2">
 							{Object.entries(config.schedule).map(([name, schedule]) => (
-								<div key={name} className="rounded-lg border p-3">
+								<div key={name} className="rounded-sm border p-3">
 									{editingSchedule === name ? (
 										/* Edit mode */
 										<div className="space-y-3">
@@ -603,7 +605,7 @@ export default function AutopilotPage() {
 													</Badge>
 												</button>
 												<div>
-													<p className="font-medium">/{schedule.command}</p>
+													<p className="font-normal">/{schedule.command}</p>
 													<p className="text-xs text-muted-foreground">
 														{cronToHuman(schedule.cron)}
 													</p>
@@ -632,7 +634,7 @@ export default function AutopilotPage() {
 													<Button
 														variant="ghost"
 														size="icon"
-														className="h-7 w-7 text-muted-foreground hover:text-red-500"
+														className="h-7 w-7 text-muted-foreground hover:text-destructive"
 														onClick={() => removeScheduleEntry(name)}
 													>
 														<Trash2 className="h-3.5 w-3.5" />
@@ -765,29 +767,29 @@ export default function AutopilotPage() {
 						<div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
 							<div>
 								<p className="text-muted-foreground">Max Parallel Agents</p>
-								<p className="font-bold">
+								<p className="font-normal">
 									{config.concurrency.maxParallelAgents}
 								</p>
 							</div>
 							<div>
 								<p className="text-muted-foreground">Max Turns per Task</p>
-								<p className="font-bold">{config.execution.maxTurns}</p>
+								<p className="font-normal">{config.execution.maxTurns}</p>
 							</div>
 							<div>
 								<p className="text-muted-foreground">Timeout</p>
-								<p className="font-bold">
+								<p className="font-normal">
 									{config.execution.timeoutMinutes} min
 								</p>
 							</div>
 							<div>
 								<p className="text-muted-foreground">Retries</p>
-								<p className="font-bold">{config.execution.retries}</p>
+								<p className="font-normal">{config.execution.retries}</p>
 							</div>
 						</div>
 					)}
 					{config.execution.allowedTools.length > 0 && (
-						<div className="mt-4 flex items-center gap-2 rounded-lg border border-blue-500/30 bg-blue-500/10 p-3 text-sm">
-							<Zap className="h-4 w-4 text-blue-500 shrink-0" />
+						<div className="mt-4 flex items-center gap-2 rounded-sm border border-sunshine-500/30 bg-sunshine-500/10 p-3 text-sm">
+							<Zap className="h-4 w-4 text-sunshine-700 shrink-0" />
 							<span>
 								<strong>Allowed tools:</strong>{" "}
 								{config.execution.allowedTools.map((tool) => (
@@ -832,18 +834,18 @@ export default function AutopilotPage() {
 							{status.history.slice(0, 20).map((entry) => (
 								<div
 									key={entry.id}
-									className="flex items-center justify-between rounded-lg border p-3"
+									className="flex items-center justify-between rounded-sm border p-3"
 								>
 									<div className="flex items-center gap-3">
 										{entry.status === "completed" ? (
-											<CheckCircle2 className="h-4 w-4 text-green-500" />
+											<CheckCircle2 className="h-4 w-4 text-success" />
 										) : entry.status === "timeout" ? (
-											<Clock className="h-4 w-4 text-yellow-500" />
+											<Clock className="h-4 w-4 text-sunshine-700" />
 										) : (
-											<XCircle className="h-4 w-4 text-red-500" />
+											<XCircle className="h-4 w-4 text-destructive" />
 										)}
 										<div>
-											<p className="font-medium text-sm">
+											<p className="font-normal text-sm">
 												{entry.command === "task"
 													? `Task: ${entry.taskId}`
 													: `/${entry.command}`}

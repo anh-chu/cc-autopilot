@@ -1,12 +1,12 @@
-import { NextRequest, NextResponse } from "next/server";
-import {
-	getWorkspaces,
-	mutateWorkspaces,
-	ensureWorkspaceDir,
-} from "@/lib/data";
 import { rm } from "fs/promises";
+import { type NextRequest, NextResponse } from "next/server";
 import path from "path";
 import { z } from "zod";
+import {
+	ensureWorkspaceDir,
+	getWorkspaces,
+	mutateWorkspaces,
+} from "@/lib/data";
 import { DATA_DIR } from "@/lib/paths";
 import type { Workspace } from "@/lib/types";
 
@@ -16,7 +16,7 @@ const CreateWorkspaceSchema = z.object({
 	color: z
 		.string()
 		.regex(/^#[0-9a-fA-F]{6}$/)
-		.default("#6366f1"),
+		.default("#fa520f"),
 });
 
 export async function GET() {

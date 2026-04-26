@@ -29,7 +29,7 @@ export function EmptyState({
 				className,
 			)}
 		>
-			<div className="rounded-full bg-muted p-3 mb-3">
+			<div className="rounded-sm bg-muted p-3 mb-3">
 				<Icon
 					className={cn(
 						"text-muted-foreground",
@@ -39,7 +39,7 @@ export function EmptyState({
 			</div>
 			<h3
 				className={cn(
-					"font-medium text-foreground",
+					"font-normal text-foreground",
 					compact ? "text-sm" : "text-base",
 				)}
 			>

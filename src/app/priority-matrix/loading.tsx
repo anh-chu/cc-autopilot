@@ -9,7 +9,7 @@ export default function PriorityMatrixLoading() {
 				className="grid grid-cols-1 sm:grid-cols-2 gap-3"
 				count={4}
 				renderItem={() => (
-					<CardSkeleton className="bg-card/50 p-4 min-h-[200px] space-y-2">
+					<CardSkeleton className="bg-card p-4 min-h-[200px] space-y-2">
 						<Skeleton className="h-5 w-24" />
 						<Skeleton className="h-3 w-32" />
 						<GridSkeleton
@@ -23,8 +23,8 @@ export default function PriorityMatrixLoading() {
 										{ key: "line-2", className: "h-3 w-2/3" },
 									]}
 									footer={[
-										{ key: "tag-1", className: "h-4 w-16 rounded-full" },
-										{ key: "tag-2", className: "h-4 w-14 rounded-full" },
+										{ key: "tag-1", className: "h-4 w-16 rounded-sm" },
+										{ key: "tag-2", className: "h-4 w-14 rounded-sm" },
 									]}
 								>
 									<div className="flex items-start justify-between gap-2">

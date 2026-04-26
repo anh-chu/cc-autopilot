@@ -1,21 +1,21 @@
 "use client";
 
+import { Ban, CalendarDays, Clock, Link2, ListChecks } from "lucide-react";
 import { useRef } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { cn } from "@/lib/utils";
-import type { Task, KanbanStatus, Project, AgentDefinition } from "@/lib/types";
-import { Link2, ListChecks, CalendarDays, Clock, Ban } from "lucide-react";
-import { getAgentIcon } from "@/lib/agent-icons";
-import { RunButton } from "@/components/run-button";
-import { ContextMenu, ContextMenuTrigger } from "@/components/ui/context-menu";
 import { TaskContextMenuContent } from "@/components/context-menus/task-context-menu";
+import { RunButton } from "@/components/run-button";
+import { Badge } from "@/components/ui/badge";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { ContextMenu, ContextMenuTrigger } from "@/components/ui/context-menu";
+import { getAgentIcon } from "@/lib/agent-icons";
+import type { AgentDefinition, KanbanStatus, Project, Task } from "@/lib/types";
+import { cn } from "@/lib/utils";
 
 const kanbanDot: Record<KanbanStatus, string> = {
 	"not-started": "bg-status-not-started",
 	"in-progress": "bg-status-in-progress",
 	done: "bg-status-done",
-	"awaiting-decision": "bg-amber-500",
+	"awaiting-decision": "bg-warning",
 };
 
 const kanbanLabels: Record<KanbanStatus, string> = {
@@ -131,17 +131,19 @@ export function TaskCard({
 						suppressNextClick.current = true;
 					}}
 					className={cn(
-						"cursor-grab select-none transition-all hover:shadow-md hover:border-primary/20 animate-fade-in-up",
-						isDragging && "opacity-50 shadow-lg rotate-1",
+						"cursor-grab select-none border border-transparent transition-all shadow-e-3 hover:shadow-e-4 hover:border-primary/20 animate-fade-in-up rounded-sm",
+						isDragging && "opacity-50 shadow-e-4 rotate-1",
 						onClick && "cursor-pointer",
-						isBlocked && "opacity-60 border-red-500/30",
-						!isBlocked && hasDependencies && "opacity-75 border-blue-500/30",
+						isBlocked && "opacity-60 border-destructive/30",
+						!isBlocked &&
+							hasDependencies &&
+							"opacity-75 border-primary/30",
 						!isBlocked &&
 							hasAwaitingDecision &&
-							"opacity-75 border-amber-500/30",
-						isOverdue && "border-red-500/30",
+							"opacity-75 border-warning/30",
+						isOverdue && "border-destructive/30",
 						isRunning &&
-							"ring-2 ring-green-500/50 border-green-500/30 shadow-green-500/10 shadow-md",
+							"ring-2 ring-sunshine-700/50 border-sunshine-700/30 shadow-sunshine-700/10 shadow-e-2",
 						className,
 					)}
 					onClick={() => {
@@ -152,19 +154,19 @@ export function TaskCard({
 					<CardHeader
 						className={cn(
 							"p-3 pb-1",
-							isRunning && "bg-green-500/5 rounded-t-lg",
+							isRunning && "bg-sunshine-700/5 rounded-t-sm",
 						)}
 					>
 						<div className="flex items-start justify-between gap-2">
-							<CardTitle className="text-sm font-semibold leading-tight flex-1">
+							<CardTitle className="text-sm font-normal leading-tight flex-1">
 								{isBlocked && (
-									<Ban className="h-3 w-3 inline mr-1 text-red-500" />
+									<Ban className="h-3 w-3 inline mr-1 text-destructive" />
 								)}
 								{!isBlocked && hasDependencies && (
-									<Link2 className="h-3 w-3 inline mr-1 text-blue-500" />
+									<Link2 className="h-3 w-3 inline mr-1 text-accent" />
 								)}
 								{!isBlocked && !hasDependencies && hasAwaitingDecision && (
-									<Clock className="h-3 w-3 inline mr-1 text-amber-500" />
+									<Clock className="h-3 w-3 inline mr-1 text-warning" />
 								)}
 								{task.title}
 							</CardTitle>
@@ -210,19 +212,19 @@ export function TaskCard({
 						{subtaskCount > 0 && (
 							<div className="flex items-center gap-2">
 								<ListChecks
-									className={`h-3 w-3 shrink-0 ${isRunning && subtaskDone < subtaskCount ? "text-green-500" : "text-muted-foreground"}`}
+									className={`h-3 w-3 shrink-0 ${isRunning && subtaskDone < subtaskCount ? "text-sunshine-700" : "text-muted-foreground"}`}
 								/>
 								<div className="relative flex-1 h-1.5 bg-muted rounded-full overflow-hidden">
 									<div
-										className={`h-full rounded-full transition-all duration-700 ${isRunning && subtaskDone < subtaskCount ? "bg-green-500/70" : "bg-primary/60"}`}
+										className={`h-full rounded-full transition-all duration-700 ${isRunning && subtaskDone < subtaskCount ? "bg-sunshine-700" : "bg-primary/60"}`}
 										style={{ width: `${subtaskPercent}%` }}
 									/>
 									{isRunning && subtaskDone < subtaskCount && (
-										<div className="absolute inset-0 animate-shimmer rounded-full bg-gradient-to-r from-transparent via-green-500/20 to-transparent" />
+										<div className="absolute inset-0 animate-shimmer rounded-full bg-gradient-to-r from-transparent via-sunshine-700/20 to-transparent" />
 									)}
 								</div>
 								<span
-									className={`text-xs tabular-nums ${isRunning && subtaskDone < subtaskCount ? "text-green-500 font-medium" : "text-muted-foreground"}`}
+									className={`text-xs tabular-nums ${isRunning && subtaskDone < subtaskCount ? "text-sunshine-700 font-normal" : "text-muted-foreground"}`}
 								>
 									{subtaskDone}/{subtaskCount}
 								</span>
@@ -243,8 +245,8 @@ export function TaskCard({
 							{/* Assignee badge */}
 							{task.assignedTo && AssigneeIcon && (
 								<Badge
-									variant="secondary"
-									className="text-xs px-1.5 py-0 gap-1"
+									variant="outline"
+									className="text-xs px-1.5 py-0 gap-1 text-muted-foreground border-border"
 								>
 									<AssigneeIcon className="h-2.5 w-2.5" />
 									{assigneeLabel}
@@ -268,7 +270,7 @@ export function TaskCard({
 									})}
 									{overflowCount > 0 && (
 										<div className="h-5 w-5 rounded-full border-2 border-card bg-muted flex items-center justify-center">
-											<span className="text-[9px] text-muted-foreground font-medium">
+											<span className="text-[9px] text-muted-foreground font-normal">
 												+{overflowCount}
 											</span>
 										</div>
@@ -279,7 +281,7 @@ export function TaskCard({
 							{isBlocked && (
 								<Badge
 									variant="outline"
-									className="text-xs px-1.5 py-0 border-red-500/50 text-red-500"
+									className="text-xs px-1.5 py-0 border-destructive/50 text-destructive"
 								>
 									Blocked
 								</Badge>
@@ -287,7 +289,7 @@ export function TaskCard({
 							{!isBlocked && hasDependencies && (
 								<Badge
 									variant="outline"
-									className="text-xs px-1.5 py-0 border-blue-500/50 text-blue-500"
+									className="text-xs px-1.5 py-0 bg-accent-soft text-accent border-accent/40"
 								>
 									Dependencies
 								</Badge>
@@ -295,7 +297,7 @@ export function TaskCard({
 							{!isBlocked && hasAwaitingDecision && (
 								<Badge
 									variant="outline"
-									className="text-xs px-1.5 py-0 border-amber-500/50 text-amber-500"
+									className="text-xs px-1.5 py-0 border-warning/50 text-warning"
 								>
 									Awaiting Decision
 								</Badge>
@@ -304,8 +306,8 @@ export function TaskCard({
 							{task.tags.slice(0, 2).map((tag) => (
 								<Badge
 									key={tag}
-									variant="secondary"
-									className="text-xs px-1.5 py-0 bg-muted/50"
+									variant="outline"
+									className="text-xs px-1.5 py-0 text-muted-foreground border-border"
 								>
 									{tag}
 								</Badge>
@@ -322,11 +324,11 @@ export function TaskCard({
 									className={cn(
 										"text-xs px-1.5 py-0 gap-1",
 										isOverdue
-											? "text-red-500 border-red-500/50"
+											? "text-destructive border-destructive/50"
 											: isDueToday
-												? "text-orange-500 border-orange-500/50"
+												? "text-warning border-warning/50"
 												: isDueSoon
-													? "text-yellow-500 border-yellow-500/50"
+													? "text-sunshine-700 border-sunshine-700/50"
 													: "text-muted-foreground",
 									)}
 								>

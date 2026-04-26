@@ -122,6 +122,17 @@ export function CommandBar({
 
 	return (
 		<header className="sticky top-0 z-40 flex h-14 items-center gap-3 border-b bg-background/80 backdrop-blur-md px-4">
+			<div
+				aria-hidden
+				className="pointer-events-none absolute inset-x-0 top-0 flex h-0.5"
+			>
+				<div className="flex-1 bg-[#ffd900]" />
+				<div className="flex-1 bg-[#ffe295]" />
+				<div className="flex-1 bg-[#ffa110]" />
+				<div className="flex-1 bg-[#ff8105]" />
+				<div className="flex-1 bg-[#fb6424]" />
+				<div className="flex-1 bg-[#fa520f]" />
+			</div>
 			<Tip content="Toggle sidebar">
 				<Button
 					variant="ghost"
@@ -142,7 +153,7 @@ export function CommandBar({
 
 			<div
 				className={cn(
-					"relative flex flex-1 items-center gap-2 rounded-lg border bg-card px-3 transition-all",
+					"relative flex flex-1 items-center gap-2 rounded-sm border bg-card px-3 transition-all",
 					focused ? "border-primary ring-1 ring-primary/30" : "border-border",
 				)}
 			>
@@ -150,7 +161,7 @@ export function CommandBar({
 					<button
 						type="button"
 						onClick={() => inputRef.current?.focus()}
-						className="shrink-0 text-muted-foreground hover:text-amber-500 transition-colors"
+						className="shrink-0 text-muted-foreground hover:text-accent transition-colors"
 					>
 						<Lightbulb className="h-4 w-4" />
 					</button>
@@ -175,7 +186,7 @@ export function CommandBar({
 					<Button
 						size="sm"
 						onClick={handleSubmit}
-						className="h-7 gap-1.5 px-2.5 text-xs"
+						className="gap-1.5 px-2.5"
 					>
 						<Zap className="h-3 w-3" />
 						Capture
@@ -185,7 +196,7 @@ export function CommandBar({
 					<Tip content="Search everything (Ctrl+K)">
 						<button
 							type="button"
-							className="hidden sm:inline-flex h-7 items-center gap-1.5 rounded-md border bg-muted px-2 text-xs text-muted-foreground cursor-pointer hover:bg-accent/50 transition-colors"
+							className="hidden sm:inline-flex h-7 items-center gap-1.5 rounded-sm border bg-muted px-2 text-xs text-muted-foreground cursor-pointer hover:bg-accent/50 transition-colors"
 							onClick={() => {
 								document.dispatchEvent(
 									new KeyboardEvent("keydown", {
@@ -203,7 +214,7 @@ export function CommandBar({
 				)}
 
 				{showSuggestions && (
-					<div className="absolute top-full left-0 right-0 mt-1 rounded-lg border bg-popover shadow-lg z-50">
+					<div className="absolute top-full left-0 right-0 mt-1 rounded-sm border bg-popover shadow-golden z-50">
 						<p className="px-3 py-1.5 text-xs text-muted-foreground border-b">
 							AI Skills — run in Claude Code or Cowork
 						</p>
@@ -229,7 +240,7 @@ export function CommandBar({
 				)}
 
 				{showTaskResults && (
-					<div className="absolute top-full left-0 right-0 mt-1 rounded-lg border bg-popover shadow-lg z-50">
+					<div className="absolute top-full left-0 right-0 mt-1 rounded-sm border bg-popover shadow-golden z-50">
 						<p className="px-3 py-1.5 text-xs text-muted-foreground border-b flex items-center gap-1.5">
 							<Search className="h-3 w-3" />
 							Tasks matching &ldquo;
@@ -271,7 +282,7 @@ export function CommandBar({
 
 				{slashNotification && (
 					<div className="absolute top-full left-0 right-0 mt-1 z-50">
-						<div className="flex items-center gap-2 rounded-lg border bg-popover px-3 py-2 shadow-lg">
+						<div className="flex items-center gap-2 rounded-sm border bg-popover px-3 py-2 shadow-golden">
 							<Bot className="h-4 w-4 text-primary shrink-0" />
 							<p className="text-xs text-popover-foreground">
 								<code className="font-mono text-primary">

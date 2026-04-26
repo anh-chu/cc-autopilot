@@ -53,17 +53,17 @@ function AgentCard({
 				<Link href={`/crew/${agent.id}`}>
 					<div
 						className={cn(
-							"group rounded-xl border bg-card p-5 transition-all hover:shadow-md hover:border-primary/30",
+							"group cursor-pointer rounded-sm border border-transparent bg-card p-5 shadow-e-2 transition-all hover:shadow-e-4 hover:border-primary/30 hover:-translate-y-0.5",
 							isInactive && "opacity-60",
 						)}
 					>
 						<div className="flex items-start justify-between">
 							<div className="flex items-center gap-3">
-								<div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
+								<div className="h-10 w-10 rounded-full bg-primary-soft flex items-center justify-center">
 									<Icon className="h-5 w-5 text-primary" />
 								</div>
 								<div>
-									<h3 className="font-semibold text-sm group-hover:text-primary transition-colors">
+									<h3 className="font-normal text-sm group-hover:text-primary transition-colors">
 										{agent.name}
 									</h3>
 									<p className="text-xs text-muted-foreground mt-0.5 line-clamp-1">
@@ -76,7 +76,7 @@ function AgentCard({
 									className={cn(
 										"h-3 w-3",
 										agent.status === "active"
-											? "text-green-500"
+											? "text-sunshine-700"
 											: "text-muted-foreground",
 									)}
 								/>
@@ -116,7 +116,7 @@ function AgentCard({
 											: agent.skipPermissions;
 									if (permField === "on") {
 										return (
-											<span className="flex items-center gap-1 text-[10px] text-amber-500 font-medium">
+											<span className="flex items-center gap-1 text-[10px] text-warning font-normal">
 												<ShieldAlert className="h-3 w-3" />
 												Unrestricted
 											</span>
@@ -230,9 +230,9 @@ export default function CrewPage() {
 								<Skeleton className="h-3 w-3 rounded-full" />
 							</div>
 							<div className="flex gap-1">
-								<Skeleton className="h-4 w-16 rounded-full" />
-								<Skeleton className="h-4 w-20 rounded-full" />
-								<Skeleton className="h-4 w-14 rounded-full" />
+								<Skeleton className="h-4 w-16 rounded-sm" />
+								<Skeleton className="h-4 w-20 rounded-sm" />
+								<Skeleton className="h-4 w-14 rounded-sm" />
 							</div>
 							<div className="flex items-center justify-between pt-3 border-t">
 								<Skeleton className="h-3 w-20" />
@@ -260,7 +260,7 @@ export default function CrewPage() {
 
 			<div className="flex items-center justify-between">
 				<div>
-					<h1 className="text-xl font-bold">Agents</h1>
+					<h1 className="text-xl font-normal">Agents</h1>
 					<p className="text-sm text-muted-foreground mt-0.5">
 						{agents.length} agent{agents.length !== 1 ? "s" : ""} registered
 					</p>
@@ -277,9 +277,9 @@ export default function CrewPage() {
 			</div>
 
 			{/* Global permission default */}
-			<div className="flex items-center justify-between rounded-lg border px-4 py-3 gap-4">
+			<div className="flex items-center justify-between rounded-sm border px-4 py-3 gap-4">
 				<div className="min-w-0">
-					<p className="text-sm font-medium">Global permission default</p>
+					<p className="text-sm font-normal">Global permission default</p>
 					<p className="text-xs text-muted-foreground mt-0.5">
 						Skip all permission prompts for all agents (can be restricted per
 						agent)
@@ -298,7 +298,7 @@ export default function CrewPage() {
 						variant={config.execution.skipPermissions ? "default" : "outline"}
 						className={
 							config.execution.skipPermissions
-								? "bg-amber-500 hover:bg-amber-600 text-white border-amber-500"
+								? "bg-warning hover:bg-warning text-white border-warning"
 								: ""
 						}
 						onClick={() => toggleGlobalPermissions(true)}

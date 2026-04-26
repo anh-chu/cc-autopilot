@@ -123,8 +123,8 @@ export default function AgentPage() {
 								{ key: "line-2", className: "h-3 w-2/3" },
 							]}
 							footer={[
-								{ key: "tag-1", className: "h-4 w-16 rounded-full" },
-								{ key: "tag-2", className: "h-4 w-14 rounded-full" },
+								{ key: "tag-1", className: "h-4 w-16 rounded-sm" },
+								{ key: "tag-2", className: "h-4 w-14 rounded-sm" },
 							]}
 						>
 							<div className="flex items-start justify-between gap-2">
@@ -238,12 +238,12 @@ export default function AgentPage() {
 
 			{/* Agent Profile Header */}
 			<div className="flex items-start gap-4">
-				<div className="h-14 w-14 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
+				<div className="h-14 w-14 rounded-sm bg-primary-soft flex items-center justify-center shrink-0">
 					<Icon className="h-7 w-7 text-primary" />
 				</div>
 				<div className="flex-1 min-w-0">
 					<div className="flex items-center gap-2">
-						<h1 className="text-xl font-bold">{agent.name}</h1>
+						<h1 className="text-xl font-normal">{agent.name}</h1>
 						<Badge
 							variant={agent.status === "active" ? "default" : "secondary"}
 							className="text-xs"
@@ -301,25 +301,25 @@ export default function AgentPage() {
 
 			{/* Stats */}
 			<div className="grid grid-cols-3 gap-4">
-				<Card className="bg-card/50">
-					<CardContent className="p-4 text-center">
-						<p className="text-2xl font-bold tabular-nums">
+				<Card className="bg-card">
+					<CardContent className="text-center pt-6">
+						<p className="text-2xl font-normal tabular-nums">
 							{agentTasks.length}
 						</p>
 						<p className="text-xs text-muted-foreground">Total Tasks</p>
 					</CardContent>
 				</Card>
-				<Card className="bg-card/50">
-					<CardContent className="p-4 text-center">
-						<p className="text-2xl font-bold tabular-nums text-status-in-progress">
+				<Card className="bg-card">
+					<CardContent className="text-center pt-6">
+						<p className="text-2xl font-normal tabular-nums text-status-in-progress">
 							{inProgress.length}
 						</p>
 						<p className="text-xs text-muted-foreground">In Progress</p>
 					</CardContent>
 				</Card>
-				<Card className="bg-card/50">
-					<CardContent className="p-4 text-center">
-						<p className="text-2xl font-bold tabular-nums text-status-done">
+				<Card className="bg-card">
+					<CardContent className="text-center pt-6">
+						<p className="text-2xl font-normal tabular-nums text-status-done">
 							{completed.length}
 						</p>
 						<p className="text-xs text-muted-foreground">Completed</p>
@@ -328,11 +328,9 @@ export default function AgentPage() {
 			</div>
 
 			{/* Instructions Section */}
-			<section className="rounded-xl border bg-card/50 p-4 space-y-3">
+			<section className="rounded-sm border bg-card p-4 space-y-3">
 				<div className="flex items-center justify-between">
-					<h2 className="text-sm font-semibold">
-						Instructions (System Prompt)
-					</h2>
+					<h2 className="text-sm font-normal">Instructions (System Prompt)</h2>
 					{!editingInstructions && (
 						<Button
 							variant="ghost"
@@ -379,7 +377,7 @@ export default function AgentPage() {
 						</div>
 					</div>
 				) : (
-					<pre className="text-xs text-muted-foreground whitespace-pre-wrap font-mono bg-muted rounded-lg p-3 max-h-48 overflow-y-auto">
+					<pre className="text-xs text-muted-foreground whitespace-pre-wrap font-mono bg-muted rounded-sm p-3 max-h-48 overflow-y-auto">
 						{agent.instructions ||
 							"No instructions set. Click Edit to add a system prompt."}
 					</pre>
@@ -387,17 +385,17 @@ export default function AgentPage() {
 			</section>
 
 			{/* Skills Section */}
-			<section className="rounded-xl border bg-card/50 p-4 space-y-3">
-				<h2 className="text-sm font-semibold">Assigned Skills</h2>
+			<section className="rounded-sm border bg-card p-4 space-y-3">
+				<h2 className="text-sm font-normal">Assigned Skills</h2>
 				{linkedSkills.length > 0 ? (
 					<div className="space-y-2">
 						{linkedSkills.map((skill) => (
 							<div
 								key={skill.id}
-								className="flex items-center justify-between rounded-lg border p-2.5"
+								className="flex items-center justify-between rounded-sm border p-2.5"
 							>
 								<div>
-									<p className="text-sm font-medium">{skill.name}</p>
+									<p className="text-sm font-normal">{skill.name}</p>
 									<p className="text-xs text-muted-foreground">
 										{skill.description}
 									</p>
@@ -427,7 +425,7 @@ export default function AgentPage() {
 										type="button"
 										key={skill.id}
 										onClick={() => addSkill(skill.id)}
-										className="inline-flex items-center gap-1 rounded-full border px-2.5 py-0.5 text-xs hover:bg-primary/10 hover:border-primary/30 transition-colors"
+										className="inline-flex items-center gap-1 rounded-sm border px-2.5 py-0.5 text-xs hover:bg-primary/10 hover:border-primary/30 transition-colors"
 									>
 										<Plus className="h-3 w-3" />
 										{skill.name}
@@ -441,7 +439,7 @@ export default function AgentPage() {
 			{/* Task Sections */}
 			{inProgress.length > 0 && (
 				<section className="space-y-3">
-					<h2 className="text-sm font-semibold flex items-center gap-2">
+					<h2 className="text-sm font-normal flex items-center gap-2">
 						<div className="h-2 w-2 rounded-full bg-status-in-progress" />
 						In Progress ({inProgress.length})
 					</h2>
@@ -467,7 +465,7 @@ export default function AgentPage() {
 
 			{todo.length > 0 && (
 				<section className="space-y-3">
-					<h2 className="text-sm font-semibold flex items-center gap-2">
+					<h2 className="text-sm font-normal flex items-center gap-2">
 						<div className="h-2 w-2 rounded-full bg-status-not-started" />
 						To Do ({todo.length})
 					</h2>
@@ -493,7 +491,7 @@ export default function AgentPage() {
 
 			{completed.length > 0 && (
 				<section className="space-y-3">
-					<h2 className="text-sm font-semibold flex items-center gap-2 text-muted-foreground">
+					<h2 className="text-sm font-normal flex items-center gap-2 text-muted-foreground">
 						<div className="h-2 w-2 rounded-full bg-status-done" />
 						Completed ({completed.length})
 					</h2>
@@ -529,13 +527,13 @@ export default function AgentPage() {
 			{/* Recent Messages */}
 			{agentMessages.length > 0 && (
 				<section className="space-y-3">
-					<h2 className="text-sm font-semibold flex items-center gap-2">
+					<h2 className="text-sm font-normal flex items-center gap-2">
 						<Send className="h-3.5 w-3.5" />
 						Recent Messages
 					</h2>
 					<div className="space-y-2">
 						{agentMessages.map((msg) => (
-							<Card key={msg.id} className="bg-card/50">
+							<Card key={msg.id} className="bg-card">
 								<CardContent className="p-3 flex items-center gap-3">
 									<Badge
 										variant={msg.status === "unread" ? "default" : "secondary"}
@@ -544,7 +542,7 @@ export default function AgentPage() {
 										{msg.type}
 									</Badge>
 									<div className="flex-1 min-w-0">
-										<p className="text-xs font-medium truncate">
+										<p className="text-xs font-normal truncate">
 											{msg.subject}
 										</p>
 										<p className="text-xs text-muted-foreground">
@@ -564,14 +562,14 @@ export default function AgentPage() {
 			{/* Recent Activity */}
 			{agentEvents.length > 0 && (
 				<section className="space-y-3">
-					<h2 className="text-sm font-semibold flex items-center gap-2">
+					<h2 className="text-sm font-normal flex items-center gap-2">
 						Recent Activity
 					</h2>
 					<div className="space-y-1">
 						{agentEvents.map((evt) => (
 							<div
 								key={evt.id}
-								className="flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs text-muted-foreground"
+								className="flex items-center gap-2 px-3 py-1.5 rounded-sm text-xs text-muted-foreground"
 							>
 								<div className="h-1.5 w-1.5 rounded-full bg-primary/50 shrink-0" />
 								<span className="flex-1">{evt.summary}</span>

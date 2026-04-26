@@ -1,7 +1,7 @@
 import { existsSync } from "fs";
 import { readFile } from "fs/promises";
-import path from "path";
 import { NextResponse } from "next/server";
+import path from "path";
 import { getWikiDir } from "@/lib/paths";
 import { applyWorkspaceContext } from "@/lib/workspace-context";
 import type { WikiRunRecord } from "../../../../../scripts/daemon/run-wiki-generate";

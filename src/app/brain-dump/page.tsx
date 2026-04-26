@@ -157,16 +157,16 @@ export default function BrainDumpPage() {
 					count={3}
 					renderItem={() => (
 						<RowSkeleton
-							className="rounded-xl border bg-card/50 p-3 items-start justify-between"
+							className="rounded-sm border bg-card p-3 items-start justify-between"
 							lines={[
 								{ key: "title", className: "h-4 w-4/5" },
 								{ key: "meta", className: "h-3 w-24" },
 							]}
 							linesClassName="flex-1 space-y-2"
 							trailing={[
-								{ key: "primary-action", className: "h-7 w-14 rounded-md" },
-								{ key: "secondary-action", className: "h-7 w-7 rounded-md" },
-								{ key: "tertiary-action", className: "h-7 w-7 rounded-md" },
+								{ key: "primary-action", className: "h-7 w-14 rounded-sm" },
+								{ key: "secondary-action", className: "h-7 w-7 rounded-sm" },
+								{ key: "tertiary-action", className: "h-7 w-7 rounded-sm" },
 							]}
 						/>
 					)}
@@ -188,7 +188,7 @@ export default function BrainDumpPage() {
 		<div className="space-y-6">
 			<BreadcrumbNav items={[{ label: "Quick Capture" }]} />
 			<div className="flex items-center justify-between">
-				<h1 className="text-xl font-bold flex items-center gap-2">
+				<h1 className="text-xl font-normal flex items-center gap-2">
 					<Lightbulb className="h-5 w-5 text-primary" />
 					Quick Capture
 				</h1>
@@ -216,31 +216,36 @@ export default function BrainDumpPage() {
 
 			{/* Quick Capture */}
 			<Card>
-				<CardContent className="p-4">
-					<div className="flex gap-3">
+				<CardContent className="pt-6">
+					<div className="flex flex-col gap-3">
 						<Textarea
 							placeholder="What's on your mind? Press Enter to capture..."
 							value={newContent}
 							onChange={(e) => setNewContent(e.target.value)}
 							onKeyDown={handleKeyDown}
-							className="min-h-[60px] flex-1 resize-none"
+							className="min-h-[96px] resize-none"
 						/>
-						<Tip content="Save quick capture entry">
-							<Button
-								onClick={handleAdd}
-								className="self-end"
-								disabled={!newContent.trim()}
-							>
-								Capture
-							</Button>
-						</Tip>
+						<div className="flex items-center justify-between">
+							<p className="text-xs text-muted-foreground">
+								Press <kbd className="rounded-sm border bg-muted px-1.5 py-0.5 text-[10px] font-mono">⌘ Enter</kbd> to capture
+							</p>
+							<Tip content="Save quick capture entry">
+								<Button
+									size="sm"
+									onClick={handleAdd}
+									disabled={!newContent.trim()}
+								>
+									Capture
+								</Button>
+							</Tip>
+						</div>
 					</div>
 				</CardContent>
 			</Card>
 
 			{/* Unprocessed */}
 			<section>
-				<h2 className="text-sm font-semibold mb-2 text-muted-foreground">
+				<h2 className="text-sm font-normal mb-2 text-muted-foreground">
 					To Process ({unprocessed.length})
 				</h2>
 				{unprocessed.length === 0 ? (
@@ -255,7 +260,7 @@ export default function BrainDumpPage() {
 						{unprocessed.map((entry) => (
 							<Card
 								key={entry.id}
-								className={`bg-card/50 ${processing.isProcessing(entry.id) ? "animate-pulse border-primary/30 bg-primary/5" : ""}`}
+								className={`bg-card ${processing.isProcessing(entry.id) ? "animate-pulse border-primary/30 bg-primary-soft" : ""}`}
 							>
 								<CardContent className="p-3 flex items-start justify-between gap-3">
 									{editingEntryId === entry.id ? (
@@ -278,7 +283,7 @@ export default function BrainDumpPage() {
 													size="sm"
 													onClick={handleSaveEdit}
 													disabled={!editContent.trim()}
-													className="h-7 text-xs"
+
 												>
 													Save
 												</Button>
@@ -286,7 +291,7 @@ export default function BrainDumpPage() {
 													size="sm"
 													variant="ghost"
 													onClick={cancelEditing}
-													className="h-7 text-xs"
+
 												>
 													Cancel
 												</Button>
@@ -344,7 +349,7 @@ export default function BrainDumpPage() {
 														size="sm"
 														variant="outline"
 														onClick={() => setConvertingEntry(entry)}
-														className="h-7 gap-1 px-2 text-xs"
+														className="gap-1 px-2"
 													>
 														<ArrowRight className="h-3 w-3" /> Task
 													</Button>
@@ -386,12 +391,12 @@ export default function BrainDumpPage() {
 			{/* Archived */}
 			{processed.length > 0 && (
 				<section>
-					<h2 className="text-sm font-semibold mb-2 text-muted-foreground/60">
+					<h2 className="text-sm font-normal mb-2 text-muted-foreground/60">
 						Archived ({processed.length})
 					</h2>
 					<div className="space-y-1.5">
 						{processed.map((entry) => (
-							<Card key={entry.id} className="bg-card/30 opacity-60">
+							<Card key={entry.id} className="bg-card opacity-60">
 								<CardContent className="p-2.5 flex items-center justify-between">
 									<div>
 										<p className="text-xs line-through">{entry.content}</p>

@@ -62,10 +62,10 @@ export function ProjectRunProgress({
 	const isActive = status === "running" || status === "stalled";
 
 	const statusColor = {
-		running: "bg-emerald-500",
-		completed: "bg-blue-500",
-		stopped: "bg-orange-500",
-		stalled: "bg-amber-500",
+		running: "bg-accent",
+		completed: "bg-accent",
+		stopped: "bg-warning",
+		stalled: "bg-sunshine-700",
 	}[status];
 
 	const statusLabel = {
@@ -82,7 +82,7 @@ export function ProjectRunProgress({
 				<div className="flex items-center justify-between">
 					<div className="flex items-center gap-2">
 						<Activity className="h-4 w-4 text-primary" />
-						<span className="text-sm font-semibold">Run Progress</span>
+						<span className="text-sm font-normal">Run Progress</span>
 						<Badge variant="outline" className="gap-1 text-[10px] px-1.5 py-0">
 							<div
 								className={`h-1.5 w-1.5 rounded-full ${statusColor} ${status === "running" ? "animate-pulse" : ""}`}
@@ -114,16 +114,16 @@ export function ProjectRunProgress({
 
 				{/* Progress bar */}
 				<div className="space-y-1">
-					<div className="h-2 rounded-full bg-muted overflow-hidden">
+					<div className="h-2 rounded-sm bg-muted overflow-hidden">
 						<div
-							className="h-full rounded-full bg-primary transition-all duration-500 ease-out"
+							className="h-full rounded-sm bg-primary transition-all duration-500 ease-out"
 							style={{ width: `${progress}%` }}
 						/>
 					</div>
 					<div className="flex items-center justify-between text-[11px] text-muted-foreground">
 						<div className="flex items-center gap-3">
 							<span className="flex items-center gap-1">
-								<CheckCircle2 className="h-3 w-3 text-emerald-500" />
+								<CheckCircle2 className="h-3 w-3 text-success" />
 								{completedTasks} done
 							</span>
 							{failedTasks > 0 && (
@@ -134,7 +134,7 @@ export function ProjectRunProgress({
 							)}
 							{skippedTasks > 0 && (
 								<span className="flex items-center gap-1">
-									<AlertTriangle className="h-3 w-3 text-amber-500" />
+									<AlertTriangle className="h-3 w-3 text-warning" />
 									{skippedTasks} blocked
 								</span>
 							)}
@@ -148,7 +148,7 @@ export function ProjectRunProgress({
 				{/* Running agents */}
 				{runningTasks.length > 0 && (
 					<div className="space-y-1.5">
-						<span className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider">
+						<span className="text-[11px] font-normal text-muted-foreground uppercase tracking-wider">
 							Running now
 						</span>
 						<div className="flex flex-wrap gap-1.5">
@@ -168,9 +168,9 @@ export function ProjectRunProgress({
 
 				{/* Stalled warning */}
 				{status === "stalled" && (
-					<div className="flex items-start gap-2 rounded-md border border-amber-500/20 bg-amber-500/5 px-3 py-2">
-						<AlertTriangle className="h-4 w-4 text-amber-500 mt-0.5 shrink-0" />
-						<p className="text-xs text-amber-700 dark:text-amber-400">
+					<div className="flex items-start gap-2 rounded-sm border border-warning/20 bg-warning-soft px-3 py-2">
+						<AlertTriangle className="h-4 w-4 text-warning mt-0.5 shrink-0" />
+						<p className="text-xs text-warning">
 							Run stalled — remaining tasks are blocked by dependencies, pending
 							decisions, or repeated failures. Review blocked tasks for items
 							that need your input.

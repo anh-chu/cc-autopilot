@@ -1,5 +1,5 @@
+import { mkdir, readFile, writeFile } from "fs/promises";
 import { NextResponse } from "next/server";
-import { readFile, writeFile, mkdir } from "fs/promises";
 import path from "path";
 import { getWikiDir } from "@/lib/paths";
 import { applyWorkspaceContext } from "@/lib/workspace-context";

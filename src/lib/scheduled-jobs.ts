@@ -2,18 +2,20 @@
  * Server-side background jobs registered via instrumentation.ts.
  * All jobs run in the Node.js process for the lifetime of the server.
  */
-import cron from "node-cron";
+
+import { spawn } from "child_process";
 import {
 	existsSync,
-	readFileSync,
 	readdirSync,
+	readFileSync,
 	statSync,
 	unlinkSync,
 } from "fs";
 import { readdir, stat, unlink } from "fs/promises";
-import { spawn } from "child_process";
+import cron from "node-cron";
 import path from "path";
 import { DATA_DIR } from "./paths";
+
 const GRACE_MS = 60 * 60 * 1000; // 1 hour
 const LOG_RETENTION_MS = 7 * 24 * 60 * 60 * 1000; // 7 days
 const UPLOAD_RE = /\/uploads\/[^"'\s)\]]+/g;

@@ -1,9 +1,9 @@
 import { NextResponse } from "next/server";
 import {
 	getTasksArchive,
+	mutateActivityLog,
 	mutateTasks,
 	mutateTasksArchive,
-	mutateActivityLog,
 } from "@/lib/data";
 import type { ActivityEvent } from "@/lib/types";
 import { generateId } from "@/lib/utils";

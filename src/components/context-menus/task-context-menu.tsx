@@ -8,7 +8,7 @@ import {
 	ContextMenuSubContent,
 	ContextMenuSubTrigger,
 } from "@/components/ui/context-menu";
-import type { Task, KanbanStatus } from "@/lib/types";
+import type { KanbanStatus, Task } from "@/lib/types";
 
 interface TaskContextMenuContentProps {
 	task: Task;

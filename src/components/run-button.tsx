@@ -1,6 +1,6 @@
 "use client";
 
-import { Rocket, Loader2, Square } from "lucide-react";
+import { Loader2, Rocket, Square } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Tip } from "@/components/ui/tip";
 import { cn } from "@/lib/utils";
@@ -41,7 +41,7 @@ export function RunButton({
 					className={cn(
 						btnSize,
 						"shrink-0 rounded-full transition-colors",
-						"text-red-500 hover:text-red-600 hover:bg-red-500/10",
+						"text-destructive hover:text-destructive hover:bg-destructive/10",
 					)}
 					title={title ?? "Stop run"}
 					onPointerDown={(e) => e.stopPropagation()}
@@ -66,8 +66,8 @@ export function RunButton({
 					btnSize,
 					"shrink-0 rounded-full transition-colors",
 					isRunning
-						? "text-green-500 cursor-default"
-						: "text-muted-foreground hover:text-green-500 hover:bg-green-500/10",
+						? "text-accent cursor-default"
+						: "text-muted-foreground hover:text-accent hover:bg-accent/10",
 				)}
 				disabled={disabled || isRunning}
 				title={title ?? (isRunning ? "Running..." : "Launch task")}

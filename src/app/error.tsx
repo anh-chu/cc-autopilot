@@ -1,15 +1,15 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import {
 	AlertTriangle,
-	RotateCcw,
-	Home,
 	ChevronDown,
 	ChevronUp,
+	Home,
+	RotateCcw,
 } from "lucide-react";
-import { Button } from "@/components/ui/button";
 import Link from "next/link";
+import { useEffect, useState } from "react";
+import { Button } from "@/components/ui/button";
 
 const AUTO_RETRY_DELAY = 3000; // 3 seconds
 
@@ -51,10 +51,10 @@ export default function Error({
 
 	return (
 		<div className="flex flex-col items-center justify-center py-20 px-6 text-center">
-			<div className="rounded-full bg-destructive/10 p-3 mb-4">
-				<AlertTriangle className="h-6 w-6 text-destructive" />
+			<div className="rounded-sm bg-destructive-soft p-3 mb-4">
+				<AlertTriangle className="size-5 text-destructive" />
 			</div>
-			<h2 className="text-lg font-semibold">Something went wrong</h2>
+			<h2 className="text-lg font-normal">Something went wrong</h2>
 			<p className="text-sm text-muted-foreground mt-1 max-w-[360px]">
 				{error.message || "An unexpected error occurred. Please try again."}
 			</p>
@@ -92,7 +92,7 @@ export default function Error({
 			</button>
 
 			{showDetails && (
-				<div className="mt-2 max-w-[480px] w-full text-left rounded-md border bg-muted/50 p-3">
+				<div className="mt-2 max-w-[480px] w-full text-left rounded-sm border bg-muted p-3">
 					<p className="text-xs font-mono text-muted-foreground break-all whitespace-pre-wrap">
 						{error.stack || error.message || "No additional details available."}
 					</p>

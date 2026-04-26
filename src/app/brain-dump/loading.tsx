@@ -10,16 +10,16 @@ export default function BrainDumpLoading() {
 				count={4}
 				renderItem={() => (
 					<RowSkeleton
-						className="rounded-xl border bg-card/50 p-3 items-start justify-between"
+						className="rounded-sm border bg-card p-3 items-start justify-between"
 						lines={[
 							{ key: "title", className: "h-4 w-4/5" },
 							{ key: "meta", className: "h-3 w-24" },
 						]}
 						linesClassName="flex-1 space-y-2"
 						trailing={[
-							{ key: "primary-action", className: "h-7 w-14 rounded-md" },
-							{ key: "secondary-action", className: "h-7 w-7 rounded-md" },
-							{ key: "tertiary-action", className: "h-7 w-7 rounded-md" },
+							{ key: "primary-action", className: "h-7 w-14 rounded-sm" },
+							{ key: "secondary-action", className: "h-7 w-7 rounded-sm" },
+							{ key: "tertiary-action", className: "h-7 w-7 rounded-sm" },
 						]}
 					/>
 				)}

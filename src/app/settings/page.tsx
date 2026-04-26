@@ -20,16 +20,14 @@ import { useDaemon } from "@/hooks/use-daemon";
 import { useWorkspace } from "@/hooks/use-workspace";
 
 const COLORS = [
-	"#6366f1",
-	"#8b5cf6",
-	"#ec4899",
-	"#ef4444",
-	"#f97316",
-	"#eab308",
-	"#22c55e",
-	"#14b8a6",
-	"#3b82f6",
-	"#06b6d4",
+	"#fa520f",
+	"#fb6424",
+	"#ff8105",
+	"#ffa110",
+	"#ffb83e",
+	"#ffd06a",
+	"#ffd900",
+	"#1f1f1f",
 ];
 
 export default function SettingsPage() {
@@ -44,7 +42,7 @@ export default function SettingsPage() {
 	} = useDaemon();
 
 	const [name, setName] = useState("");
-	const [color, setColor] = useState("#6366f1");
+	const [color, setColor] = useState("#fa520f");
 	const [saving, setSaving] = useState(false);
 	const [saved, setSaved] = useState(false);
 	const [showDeleteDialog, setShowDeleteDialog] = useState(false);
@@ -197,7 +195,7 @@ export default function SettingsPage() {
 							</div>
 						</div>
 
-						<Button onClick={handleSave} disabled={saving}>
+						<Button size="sm" onClick={handleSave} disabled={saving}>
 							{saved ? "Saved" : saving ? "Saving..." : "Save changes"}
 						</Button>
 					</CardContent>
@@ -269,7 +267,7 @@ export default function SettingsPage() {
 							<Button
 								size="sm"
 								variant="outline"
-								className="gap-1.5 h-7 text-xs"
+								className="gap-1.5"
 								onClick={() =>
 									setEnvVars([
 										...envVars,
@@ -277,7 +275,7 @@ export default function SettingsPage() {
 									])
 								}
 							>
-								<Plus className="h-3 w-3" /> Add variable
+								<Plus className="h-3.5 w-3.5" /> Add variable
 							</Button>
 							<Button
 								size="sm"
@@ -303,7 +301,7 @@ export default function SettingsPage() {
 							{daemonLoading ? (
 								<Badge variant="secondary">Checking...</Badge>
 							) : isRunning ? (
-								<Badge className="bg-emerald-500/15 text-emerald-600 border-emerald-500/30">
+								<Badge className="bg-sunshine-700/15 text-sunshine-700 border-sunshine-700/30">
 									Running
 								</Badge>
 							) : (
@@ -313,25 +311,25 @@ export default function SettingsPage() {
 								<Button
 									size="sm"
 									variant="outline"
-									className="h-7 gap-1.5"
+									className="gap-1.5"
 									onClick={() => void stop()}
 								>
-									<Square className="h-3 w-3" /> Stop
+									<Square className="h-3.5 w-3.5" /> Stop
 								</Button>
 							) : (
 								<Button
 									size="sm"
-									className="h-7 gap-1.5"
+									className="gap-1.5"
 									onClick={() => void start()}
 								>
-									<Rocket className="h-3 w-3" /> Start
+									<Rocket className="h-3.5 w-3.5" /> Start
 								</Button>
 							)}
 						</div>
 
 						<div className="flex items-center justify-between">
 							<div>
-								<p className="text-sm font-medium">Polling</p>
+								<p className="text-sm font-normal">Polling</p>
 								<p className="text-xs text-muted-foreground">
 									Automatically pick up new tasks
 								</p>
@@ -361,6 +359,7 @@ export default function SettingsPage() {
 
 						<div className="flex items-center gap-3">
 							<Button
+								size="sm"
 								onClick={() => void handleDaemonSave()}
 								disabled={daemonSaving}
 							>
@@ -380,7 +379,7 @@ export default function SettingsPage() {
 					<CardContent>
 						<div className="flex items-center justify-between">
 							<div>
-								<p className="text-sm font-medium">Delete workspace</p>
+								<p className="text-sm font-normal">Delete workspace</p>
 								<p className="text-xs text-muted-foreground mt-0.5">
 									{currentWorkspace?.isDefault
 										? "The default workspace cannot be deleted."
@@ -388,6 +387,7 @@ export default function SettingsPage() {
 								</p>
 							</div>
 							<Button
+								size="sm"
 								variant="destructive"
 								disabled={currentWorkspace?.isDefault}
 								onClick={() => setShowDeleteDialog(true)}

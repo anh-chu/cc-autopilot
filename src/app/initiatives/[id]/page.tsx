@@ -44,13 +44,13 @@ function kanbanBadge(kanban: Task["kanban"]) {
 	switch (kanban) {
 		case "done":
 			return (
-				<Badge className="bg-green-500/20 text-green-400 border-green-500/30 text-[10px]">
+				<Badge className="bg-success-soft text-success border-success/30 text-[10px]">
 					Done
 				</Badge>
 			);
 		case "in-progress":
 			return (
-				<Badge className="bg-blue-500/20 text-blue-400 border-blue-500/30 text-[10px]">
+				<Badge className="bg-sunshine-500/20 text-sunshine-700 border-sunshine-500/30 text-[10px]">
 					In Progress
 				</Badge>
 			);
@@ -256,7 +256,7 @@ export default function InitiativeDetailPage() {
 				/>
 				<Card>
 					<CardContent className="py-12 text-center">
-						<h2 className="text-lg font-medium">Initiative not found</h2>
+						<h2 className="text-lg font-normal">Initiative not found</h2>
 						<p className="text-sm text-muted-foreground mt-1">
 							This initiative may have been deleted.
 						</p>
@@ -291,7 +291,7 @@ export default function InitiativeDetailPage() {
 						{editingTitle ? (
 							<input
 								autoFocus
-								className="w-full text-2xl font-bold bg-transparent border-b border-primary outline-none"
+								className="w-full text-2xl font-normal bg-transparent border-b border-primary outline-none"
 								value={titleDraft}
 								onChange={(e) => setTitleDraft(e.target.value)}
 								onBlur={handleSaveTitle}
@@ -302,7 +302,7 @@ export default function InitiativeDetailPage() {
 							/>
 						) : (
 							<h1
-								className="text-2xl font-bold cursor-text hover:opacity-80 transition-opacity"
+								className="text-2xl font-normal cursor-text hover:opacity-80 transition-opacity"
 								onClick={() => {
 									setTitleDraft(initiative.title);
 									setEditingTitle(true);
@@ -368,15 +368,15 @@ export default function InitiativeDetailPage() {
 							key={s}
 							type="button"
 							onClick={() => handleStatusChange(s)}
-							className={`text-xs px-2.5 py-1 rounded-full border transition-all capitalize ${
+							className={`text-xs px-2.5 py-1 rounded-sm border transition-all capitalize ${
 								initiative.status === s
 									? s === "active"
-										? "bg-blue-500/20 text-blue-400 border-blue-500/40"
+										? "bg-sunshine-500/20 text-sunshine-700 border-sunshine-500/40"
 										: s === "paused"
-											? "bg-zinc-500/20 text-zinc-400 border-zinc-500/40"
+											? "bg-muted text-muted-foreground border-border"
 											: s === "completed"
-												? "bg-green-500/20 text-green-400 border-green-500/40"
-												: "bg-zinc-700/40 text-zinc-500 border-zinc-700/40"
+												? "bg-success-soft text-success border-success/40"
+												: "bg-muted text-muted-foreground border-border"
 									: "bg-transparent text-muted-foreground border-border hover:border-muted-foreground/50"
 							}`}
 						>
@@ -443,7 +443,7 @@ export default function InitiativeDetailPage() {
 					</TabsList>
 					{!loadingTasks && totalCount > 0 && (
 						<div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-							<CheckCircle2 className="h-3.5 w-3.5 text-green-400" />
+							<CheckCircle2 className="h-3.5 w-3.5 text-success" />
 							<span>
 								{doneCount} of {totalCount} done
 							</span>
@@ -487,7 +487,7 @@ export default function InitiativeDetailPage() {
 										>
 											<div className="flex items-center gap-2 min-w-0 flex-1">
 												{task.kanban === "done" ? (
-													<Check className="h-3.5 w-3.5 text-green-400 shrink-0" />
+													<Check className="h-3.5 w-3.5 text-success shrink-0" />
 												) : (
 													<div className="h-3.5 w-3.5 rounded-full border border-muted-foreground/40 shrink-0" />
 												)}

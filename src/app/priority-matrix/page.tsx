@@ -219,7 +219,7 @@ export default function TasksPage() {
 						className="grid grid-cols-1 sm:grid-cols-2 gap-3"
 						count={4}
 						renderItem={() => (
-							<CardSkeleton className="bg-card/50 p-4 min-h-[200px] space-y-2">
+							<CardSkeleton className="bg-card p-4 min-h-[200px] space-y-2">
 								<Skeleton className="h-5 w-24" />
 								<Skeleton className="h-3 w-32" />
 								<GridSkeleton
@@ -233,8 +233,8 @@ export default function TasksPage() {
 												{ key: "line-2", className: "h-3 w-2/3" },
 											]}
 											footer={[
-												{ key: "tag-1", className: "h-4 w-16 rounded-full" },
-												{ key: "tag-2", className: "h-4 w-14 rounded-full" },
+												{ key: "tag-1", className: "h-4 w-16 rounded-sm" },
+												{ key: "tag-2", className: "h-4 w-14 rounded-sm" },
 											]}
 										>
 											<div className="flex items-start justify-between gap-2">
@@ -252,7 +252,7 @@ export default function TasksPage() {
 						className="grid grid-cols-1 sm:grid-cols-3 gap-3"
 						count={3}
 						renderItem={(index) => (
-							<CardSkeleton className="bg-card/50 p-4 min-h-[300px] space-y-2">
+							<CardSkeleton className="bg-card p-4 min-h-[300px] space-y-2">
 								<Skeleton className="h-5 w-24" />
 								<GridSkeleton
 									className="space-y-2 pt-2"
@@ -265,8 +265,8 @@ export default function TasksPage() {
 												{ key: "line-2", className: "h-3 w-2/3" },
 											]}
 											footer={[
-												{ key: "tag-1", className: "h-4 w-16 rounded-full" },
-												{ key: "tag-2", className: "h-4 w-14 rounded-full" },
+												{ key: "tag-1", className: "h-4 w-16 rounded-sm" },
+												{ key: "tag-2", className: "h-4 w-14 rounded-sm" },
 											]}
 										>
 											<div className="flex items-start justify-between gap-2">
@@ -298,18 +298,18 @@ export default function TasksPage() {
 			<BreadcrumbNav items={[{ label: "Tasks" }]} />
 
 			<div className="flex items-center justify-between flex-wrap gap-2">
-				<h1 className="text-xl font-bold">Tasks</h1>
+				<h1 className="text-xl font-normal">Tasks</h1>
 				<div className="flex items-center gap-2">
 					{/* View toggle */}
-					<div className="flex items-center rounded-md border bg-muted/30 p-0.5">
+					<div className="flex items-center rounded-sm border bg-muted p-0.5">
 						<Tip content="Priority Matrix">
 							<button
 								type="button"
 								onClick={() => setViewMode("matrix")}
 								className={cn(
-									"flex items-center justify-center rounded px-2 py-1 transition-colors",
+									"flex items-center justify-center rounded-sm px-2 py-1 transition-colors",
 									viewMode === "matrix"
-										? "bg-background shadow-sm text-foreground"
+										? "bg-background shadow-e-1 text-foreground"
 										: "text-muted-foreground hover:text-foreground",
 								)}
 								aria-label="Priority Matrix view"
@@ -322,9 +322,9 @@ export default function TasksPage() {
 								type="button"
 								onClick={() => setViewMode("board")}
 								className={cn(
-									"flex items-center justify-center rounded px-2 py-1 transition-colors",
+									"flex items-center justify-center rounded-sm px-2 py-1 transition-colors",
 									viewMode === "board"
-										? "bg-background shadow-sm text-foreground"
+										? "bg-background shadow-e-1 text-foreground"
 										: "text-muted-foreground hover:text-foreground",
 								)}
 								aria-label="Status Board view"

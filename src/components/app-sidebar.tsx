@@ -43,12 +43,11 @@ const workbenchLinks = [
 	{ href: "/documents", label: "Documents", icon: FileText },
 ];
 
-const opsLinks = [
+const utilityLinks = [
+	{ href: "/settings", label: "Settings", icon: User },
 	{ href: "/logs", label: "Debug Logs", icon: Terminal },
 	{ href: "/activity", label: "Activity", icon: Activity },
 ];
-
-const utilityLinks = [{ href: "/settings", label: "Settings", icon: User }];
 
 interface NavLinkProps {
 	href: string;
@@ -83,8 +82,8 @@ function NavLink({
 			href={href}
 			onClick={onClick}
 			className={cn(
-				"flex items-center gap-3 rounded-lg transition-colors",
-				isSmall ? "px-3 py-1.5 text-sm" : "px-3 py-2 text-sm font-medium",
+				"flex items-center gap-3 rounded-sm transition-colors",
+				isSmall ? "px-3 py-1.5 text-sm" : "px-3 py-2 text-sm font-normal",
 				collapsed && "justify-center px-2",
 				isActive
 					? "bg-sidebar-accent text-sidebar-accent-foreground"
@@ -153,21 +152,31 @@ export function AppSidebar({
 			<TooltipProvider delayDuration={0}>
 				<aside
 					className={cn(
-						"fixed left-0 top-0 z-50 flex h-full w-72 flex-col bg-sidebar-background shadow-2xl transition-transform duration-200",
+						"fixed left-0 top-0 z-50 flex h-full w-72 flex-col bg-sidebar-background shadow-golden transition-transform duration-200",
 						collapsed ? "-translate-x-full" : "translate-x-0",
 					)}
 				>
-					<div className="flex h-14 items-center justify-between border-b px-4">
-						<span className="text-sm font-semibold">Task Control</span>
-						<Button
-							variant="ghost"
-							size="icon"
-							onClick={onClose}
-							className="shrink-0"
-							aria-label="Close sidebar"
-						>
-							<X className="h-5 w-5" />
-						</Button>
+					<div className="flex h-14 flex-col border-b">
+						<div className="flex h-14 items-center justify-between px-4">
+							<span className="text-sm font-normal">Task Control</span>
+							<Button
+								variant="ghost"
+								size="icon"
+								onClick={onClose}
+								className="shrink-0"
+								aria-label="Close sidebar"
+							>
+								<X className="h-5 w-5" />
+							</Button>
+						</div>
+						<div className="flex h-1.5 w-full">
+							<div className="flex-1 bg-[#ffd900]" />
+							<div className="flex-1 bg-[#ffe295]" />
+							<div className="flex-1 bg-[#ffa110]" />
+							<div className="flex-1 bg-[#ff8105]" />
+							<div className="flex-1 bg-[#fb6424]" />
+							<div className="flex-1 bg-[#fa520f]" />
+						</div>
 					</div>
 
 					<ScrollArea className="flex-1">
@@ -185,7 +194,7 @@ export function AppSidebar({
 										href={href}
 										onClick={onClose}
 										className={cn(
-											"flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors",
+											"flex items-center gap-3 rounded-sm px-3 py-2 text-sm font-normal transition-colors",
 											isActive
 												? "bg-sidebar-accent text-sidebar-accent-foreground"
 												: "text-sidebar-foreground hover:bg-sidebar-accent/50 hover:text-sidebar-accent-foreground",
@@ -200,7 +209,7 @@ export function AppSidebar({
 
 						<Separator className="mx-2 my-2" />
 						<div className="px-3 pb-1">
-							<p className="text-xs font-semibold uppercase tracking-wider text-sidebar-foreground/50">
+							<p className="text-xs font-normal uppercase tracking-wider text-sidebar-foreground/50">
 								Workbench
 							</p>
 							<p className="text-[10px] text-sidebar-foreground/30 mt-0.5">
@@ -217,7 +226,7 @@ export function AppSidebar({
 										href={href}
 										onClick={onClose}
 										className={cn(
-											"flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors",
+											"flex items-center gap-3 rounded-sm px-3 py-2 text-sm font-normal transition-colors",
 											isActive
 												? "bg-sidebar-accent text-sidebar-accent-foreground"
 												: "text-sidebar-foreground hover:bg-sidebar-accent/50 hover:text-sidebar-accent-foreground",
@@ -232,36 +241,7 @@ export function AppSidebar({
 
 						<Separator className="mx-2 my-2" />
 						<div className="px-3 pb-1">
-							<p className="text-xs font-semibold uppercase tracking-wider text-sidebar-foreground/50">
-								Ops
-							</p>
-						</div>
-						<nav className="space-y-0.5 px-2">
-							{opsLinks.map(({ href, label, icon: Icon }) => {
-								const isActive =
-									pathname === href || pathname.startsWith(`${href}/`);
-								return (
-									<Link
-										key={href}
-										href={href}
-										onClick={onClose}
-										className={cn(
-											"flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors",
-											isActive
-												? "bg-sidebar-accent text-sidebar-accent-foreground"
-												: "text-sidebar-foreground hover:bg-sidebar-accent/50 hover:text-sidebar-accent-foreground",
-										)}
-									>
-										<Icon className="h-4 w-4 shrink-0" />
-										<span>{label}</span>
-									</Link>
-								);
-							})}
-						</nav>
-
-						<Separator className="mx-2 my-2" />
-						<div className="px-3 pb-1">
-							<p className="text-xs font-semibold uppercase tracking-wider text-sidebar-foreground/50">
+							<p className="text-xs font-normal uppercase tracking-wider text-sidebar-foreground/50">
 								Utilities
 							</p>
 						</div>
@@ -275,7 +255,7 @@ export function AppSidebar({
 										href={href}
 										onClick={onClose}
 										className={cn(
-											"flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors",
+											"flex items-center gap-3 rounded-sm px-3 py-2 text-sm font-normal transition-colors",
 											isActive
 												? "bg-sidebar-accent text-sidebar-accent-foreground"
 												: "text-sidebar-foreground hover:bg-sidebar-accent/50 hover:text-sidebar-accent-foreground",
@@ -326,7 +306,7 @@ export function AppSidebar({
 					<Separator className="mx-2 my-2" />
 					{!collapsed && (
 						<div className="px-3 pb-1">
-							<p className="text-xs font-semibold uppercase tracking-wider text-sidebar-foreground/50">
+							<p className="text-xs font-normal uppercase tracking-wider text-sidebar-foreground/50">
 								Workbench
 							</p>
 							<p className="text-[10px] text-sidebar-foreground/30 mt-0.5">
@@ -350,28 +330,7 @@ export function AppSidebar({
 					<Separator className="mx-2 my-2" />
 					{!collapsed && (
 						<div className="px-3 pb-1">
-							<p className="text-xs font-semibold uppercase tracking-wider text-sidebar-foreground/50">
-								Ops
-							</p>
-						</div>
-					)}
-					<nav className="space-y-0.5 px-2">
-						{opsLinks.map(({ href, label, icon }) => (
-							<NavLink
-								key={href}
-								href={href}
-								label={label}
-								icon={icon}
-								isActive={pathname === href || pathname.startsWith(`${href}/`)}
-								collapsed={collapsed}
-							/>
-						))}
-					</nav>
-
-					<Separator className="mx-2 my-2" />
-					{!collapsed && (
-						<div className="px-3 pb-1">
-							<p className="text-xs font-semibold uppercase tracking-wider text-sidebar-foreground/50">
+							<p className="text-xs font-normal uppercase tracking-wider text-sidebar-foreground/50">
 								Utilities
 							</p>
 						</div>

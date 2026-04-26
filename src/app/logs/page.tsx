@@ -52,13 +52,13 @@ function formatRelativeTime(isoString: string): string {
 function getStatusBadgeClass(status: string): string {
 	switch (status) {
 		case "running":
-			return "bg-green-600 text-white";
+			return "bg-sunshine-700 text-white";
 		case "completed":
-			return "bg-blue-600 text-white";
+			return "bg-success text-white";
 		case "failed":
-			return "bg-red-600 text-white";
+			return "bg-destructive text-white";
 		case "timeout":
-			return "bg-amber-500 text-black";
+			return "bg-warning text-black";
 		default:
 			return "";
 	}
@@ -108,13 +108,13 @@ function LogTailCard({
 				{isLoading ? (
 					<p className="text-sm text-muted-foreground">Loading log...</p>
 				) : error ? (
-					<p className="text-sm text-red-500">{error}</p>
+					<p className="text-sm text-destructive">{error}</p>
 				) : allLines.length === 0 ? (
 					<p className="text-sm text-muted-foreground">{emptyMessage}</p>
 				) : (
 					<pre
 						ref={preRef}
-						className="max-h-[420px] overflow-auto rounded-lg border bg-muted/30 p-4 font-mono text-xs leading-relaxed whitespace-pre-wrap break-words"
+						className="max-h-[420px] overflow-auto rounded-sm border bg-muted p-4 font-mono text-xs leading-relaxed whitespace-pre-wrap break-words"
 					>
 						{allLines.join("\n")}
 					</pre>
@@ -276,7 +276,7 @@ export default function LogsPage() {
 
 			<div className="flex items-center justify-between gap-4">
 				<div>
-					<h1 className="text-2xl font-bold tracking-tight">Ops / Debug</h1>
+					<h1 className="text-xl font-normal">Ops / Debug</h1>
 					<p className="text-sm text-muted-foreground">
 						Daemon output, active runs, and per-run consoles.
 					</p>
@@ -384,11 +384,11 @@ export default function LogsPage() {
 									{filteredRuns.map((run) => (
 										<div
 											key={run.id}
-											className="flex flex-col gap-3 rounded-lg border p-4 md:flex-row md:items-start md:justify-between"
+											className="flex flex-col gap-3 rounded-sm border p-4 md:flex-row md:items-start md:justify-between"
 										>
 											<div className="space-y-1">
 												<div className="flex flex-wrap items-center gap-2">
-													<p className="font-medium text-sm">{run.agentId}</p>
+													<p className="font-normal text-sm">{run.agentId}</p>
 													<Badge
 														variant="secondary"
 														className={getStatusBadgeClass(run.status)}
@@ -450,10 +450,10 @@ export default function LogsPage() {
 									{failedRuns.map((run) => (
 										<div
 											key={run.id}
-											className="rounded-lg border border-red-500/20 bg-red-500/5 p-4"
+											className="rounded-sm border border-destructive/20 bg-destructive-soft p-4"
 										>
 											<div className="mb-2 flex flex-wrap items-center gap-2">
-												<p className="font-medium text-sm">{run.agentId}</p>
+												<p className="font-normal text-sm">{run.agentId}</p>
 												<Badge variant="destructive" className="capitalize">
 													{run.status}
 												</Badge>
@@ -470,7 +470,7 @@ export default function LogsPage() {
 												{run.taskId ? `Task ${run.taskId}` : "Unlinked run"} ·
 												Started {formatRelativeTime(run.startedAt)}
 											</p>
-											<pre className="whitespace-pre-wrap break-words font-mono text-xs leading-relaxed text-red-950 dark:text-red-100">
+											<pre className="whitespace-pre-wrap break-words font-mono text-xs leading-relaxed text-destructive dark:text-destructive-foreground">
 												{getErrorExcerpt(run.error)}
 											</pre>
 										</div>
