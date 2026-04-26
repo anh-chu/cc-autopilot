@@ -56,10 +56,10 @@
 	--info: #fa520f;
 
 	/* Elevation backing — light mode warm golden */
-	--shadow-golden-card: 0 4px 12px -2px rgba(127, 99, 21, 0.10);
-	--shadow-golden-pop: 0 8px 24px -4px rgba(127, 99, 21, 0.15);
-	--shadow-golden-dialog: 0 16px 48px -8px rgba(127, 99, 21, 0.20);
-	--shadow-golden-toast: 0 24px 64px -12px rgba(127, 99, 21, 0.25);
+	--shadow-golden-card: 0 4px 12px -2px rgba(127, 99, 21, 0.10), inset 0 1px 0 rgba(127, 99, 21, 0.18);
+	--shadow-golden-pop: 0 8px 24px -4px rgba(127, 99, 21, 0.15), inset 0 1px 0 rgba(127, 99, 21, 0.20);
+	--shadow-golden-dialog: 0 16px 48px -8px rgba(127, 99, 21, 0.20), inset 0 1px 0 rgba(127, 99, 21, 0.22);
+	--shadow-golden-toast: 0 24px 64px -12px rgba(127, 99, 21, 0.25), inset 0 1px 0 rgba(127, 99, 21, 0.24);
 
 	/* === State tokens === */
 	--state-disabled-opacity: 0.5;
