@@ -25,6 +25,16 @@ Complete commitment to warm temperature. Gradient system: yellow (`#ffd900`) to 
 | Accent | `--accent` | `#fa520f` | `#fa520f` | Brand focus / active states |
 | Destructive | `--destructive` | `#dc2626` | `#ef4444` | Danger actions |
 
+#### Soft Semantic Tokens
+Pre-mixed solid tints for state highlights, icon halos, status blocks, drag-over indicators. **Always solid hex values — never opacity-derived.** Use these instead of `bg-{color}/N`.
+
+| Role | Variable | Tailwind | Light Value | Dark Value | Use For |
+|---|---|---|---|---|---|
+| Accent Soft | `--accent-soft` | `bg-accent-soft` | `#fde9d4` | `#3a2818` | Active state, icon halos, daemon-running highlights |
+| Primary Soft | `--primary-soft` | `bg-primary-soft` | `#ececec` | `#3a2818` | Drag-over zones, board drop targets, primary halos |
+| Destructive Soft| `--destructive-soft`| `bg-destructive-soft`| `#fbe7e7` | `#3a2424` | Error blocks, error message boxes, DO status pills |
+| Warning Soft | `--warning-soft` | `bg-warning-soft` | `#fff3d6` | `#3d3320` | Warning panels, scheduled-status indicators |
+
 ### Typography
 - **Family**: `Arial, ui-sans-serif, system-ui`
 - **Weight**: `400` globally. Hierarchy from size, not weight.
@@ -166,3 +176,7 @@ No arbitrary values.
 - **NO** `bg-white` or `bg-black`. Use `bg-background` or `bg-primary`.
 - **NO** hardcoded arbitrary margins like `-mx-2` to cheat alignment. Fix padding root cause.
 - **NO** form inputs floating with `shadow-md`. Inputs use `shadow-sm` and `border-input`.
+- **NO** static opacity on container backgrounds. Cards, panels, boxes, pills, halos must be **solid**. No `bg-card/50`, `bg-muted/30`, `bg-accent/10` on rectangles.
+  - Translucent surface = drop-shadow bleed-through bug + ambiguous tonal hierarchy.
+  - Use solid `bg-card`, `bg-muted`, or the `-soft` semantic tokens (`bg-accent-soft`, `bg-destructive-soft`, etc.) for state tints.
+  - **Allowed translucency**: `hover:bg-*` overlays, `bg-background/80 backdrop-blur` sticky headers, modal backdrop (`bg-black/50`), 1–2px decorative dots/dividers, progress-bar fills.
