@@ -90,7 +90,7 @@ function ResponseTextEntry({ text }: { text: string }) {
 			<MessageSquare className="h-3.5 w-3.5 mt-0.5 shrink-0 text-accent" />
 			<MarkdownContent
 				content={text}
-				className="min-w-0 flex-1 text-sm text-foreground/90"
+				className="min-w-0 flex-1 text-xs text-foreground/90"
 			/>
 		</div>
 	);
@@ -207,17 +207,28 @@ export function prepareConsoleLines(
 					type: "merged_thinking",
 					thinking,
 				};
-				const resultIndex = rendered.findIndex(
-					(line) => line.type === "result",
-				);
-				if (resultIndex === -1) {
+				// Insert thinking before the last assistant text turn so it renders
+				// above the final response, not below it.
+				let insertAt = -1;
+				for (let i = rendered.length - 1; i >= 0; i--) {
+					const l = rendered[i];
+					if (l.type === "assistant") {
+						const blocks =
+							(l.message as { content?: ContentBlock[] } | undefined)
+								?.content ?? [];
+						if (blocks.some((b) => b.type === "text")) {
+							insertAt = i;
+							break;
+						}
+					}
+				}
+				if (insertAt === -1) {
 					return [...rendered, thinkingLine];
 				}
-
 				return [
-					...rendered.slice(0, resultIndex),
+					...rendered.slice(0, insertAt),
 					thinkingLine,
-					...rendered.slice(resultIndex),
+					...rendered.slice(insertAt),
 				];
 			})();
 
@@ -260,6 +271,11 @@ export function prepareConsoleLines(
 			const onlyText =
 				blocks.length > 0 && blocks.every((block) => block.type === "text");
 			if (onlyText) {
+				// flush buffered tool calls before new text — preserves timeline order
+				if (pendingToolEntries.length > 0) {
+					flushText();
+					flushToolUses();
+				}
 				pendingText += (blocks as TextBlock[])
 					.map((block) => block.text)
 					.join("");
@@ -348,12 +364,12 @@ function ToolUseGroupEntry({
 				<span className="text-xs font-mono text-warning-ink">{label}</span>
 			</CollapsibleTrigger>
 			<CollapsibleContent className="space-y-0.5">
-				{entries.map((entry, index) =>
+				{entries.map((entry) =>
 					entry.type === "tool_use" ? (
 						<ToolUseEntry key={entry.block.id} block={entry.block} />
 					) : (
 						<ToolResultEntry
-							key={`${entry.block.tool_use_id}_${index}`}
+							key={entry.block.tool_use_id}
 							block={entry.block}
 						/>
 					),
@@ -380,7 +396,7 @@ function ToolUseEntry({ block }: { block: ToolUseBlock }) {
 			{input && (
 				<CollapsibleContent>
 					<pre className="text-[10px] text-muted-foreground font-mono px-7 py-1 overflow-x-auto max-h-40">
-						{input.length > 2000 ? input.slice(0, 2000) + "\n..." : input}
+						{input.length > 2000 ? `${input.slice(0, 2000)}\n...` : input}
 					</pre>
 				</CollapsibleContent>
 			)}
@@ -399,7 +415,7 @@ function ToolResultEntry({ block }: { block: ToolResultBlock }) {
 		if (trimmed.startsWith("{") || trimmed.startsWith("["))
 			return `(${raw.length} bytes JSON)`;
 		const first = trimmed.split("\n")[0] ?? "";
-		return first.length > 60 ? first.slice(0, 60) + "…" : first;
+		return first.length > 60 ? `${first.slice(0, 60)}…` : first;
 	})();
 	return (
 		<Collapsible open={open} onOpenChange={setOpen}>
@@ -420,7 +436,7 @@ function ToolResultEntry({ block }: { block: ToolResultBlock }) {
 			{raw && (
 				<CollapsibleContent>
 					<pre className="text-[10px] text-muted-foreground font-mono px-7 py-1 overflow-x-auto max-h-40">
-						{raw.length > 2000 ? raw.slice(0, 2000) + "\n..." : raw}
+						{raw.length > 2000 ? `${raw.slice(0, 2000)}\n...` : raw}
 					</pre>
 				</CollapsibleContent>
 			)}
@@ -455,10 +471,12 @@ export function StreamEntry({ line }: { line: StreamLine }) {
 			if (block.type === "text") {
 				const text = (block as TextBlock).text;
 				if (!text?.trim()) return [];
-				return [<ResponseTextEntry key={i} text={text} />];
+				// biome-ignore lint/suspicious/noArrayIndexKey: stream blocks are append-only, order is stable
+				return [<ResponseTextEntry key={`text_${i}`} text={text} />];
 			}
 			if (block.type === "tool_use") {
-				return [<ToolUseEntry key={i} block={block as ToolUseBlock} />];
+				const tb = block as ToolUseBlock;
+				return [<ToolUseEntry key={tb.id} block={tb} />];
 			}
 			return [];
 		});
@@ -469,9 +487,10 @@ export function StreamEntry({ line }: { line: StreamLine }) {
 	if (line.type === "user") {
 		const blocks =
 			(line.message as { content?: ContentBlock[] })?.content ?? [];
-		const rendered = blocks.flatMap((block, i) => {
+		const rendered = blocks.flatMap((block) => {
 			if (block.type === "tool_result") {
-				return [<ToolResultEntry key={i} block={block as ToolResultBlock} />];
+				const rb = block as ToolResultBlock;
+				return [<ToolResultEntry key={rb.tool_use_id} block={rb} />];
 			}
 			return [];
 		});
@@ -516,7 +535,7 @@ export function StreamEntry({ line }: { line: StreamLine }) {
 			const val = line[key];
 			if (typeof val === "string" && val.trim()) {
 				const s = val.trim().split("\n")[0] ?? "";
-				return s.length > 80 ? s.slice(0, 80) + "…" : s;
+				return s.length > 80 ? `${s.slice(0, 80)}…` : s;
 			}
 		}
 		return null;
@@ -542,7 +561,7 @@ export function StreamEntry({ line }: { line: StreamLine }) {
 			<CollapsibleContent>
 				<pre className="text-[10px] text-muted-foreground font-mono px-7 py-1 overflow-x-auto max-h-40">
 					{unknownContent.length > 2000
-						? unknownContent.slice(0, 2000) + "\n..."
+						? `${unknownContent.slice(0, 2000)}\n...`
 						: unknownContent}
 				</pre>
 			</CollapsibleContent>
@@ -562,7 +581,7 @@ export function AgentConsole({ runId, onStop }: AgentConsoleProps) {
 			const el = scrollRef.current;
 			el.scrollTop = el.scrollHeight;
 		}
-	}, [lines.length, autoScroll]);
+	}, [autoScroll]);
 
 	// Detect manual scroll-up to disable auto-scroll
 	const handleScroll = () => {
@@ -627,9 +646,10 @@ export function AgentConsole({ runId, onStop }: AgentConsoleProps) {
 						No output captured
 					</div>
 				)}
-				{displayLines.map((line, i) => (
-					<StreamEntry key={i} line={line} />
-				))}
+				{displayLines.map((line, i) => {
+					// biome-ignore lint/suspicious/noArrayIndexKey: stream lines are append-only, order is stable
+					return <StreamEntry key={`line_${i}_${line.type}`} line={line} />;
+				})}
 			</div>
 		</div>
 	);

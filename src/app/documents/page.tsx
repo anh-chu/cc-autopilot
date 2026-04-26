@@ -30,6 +30,7 @@ import { Card } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
 import type { StreamLine } from "@/hooks/use-agent-stream";
 import { useAgents } from "@/hooks/use-data";
+import { SKILLS } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
 interface TreeNode {
@@ -110,6 +111,7 @@ export default function DocumentsPage() {
 	const [roots, setRoots] = useState<TreeNode[]>([]);
 	const [rootLoaded, setRootLoaded] = useState(false);
 	const [rootLoading, setRootLoading] = useState(false);
+	const rootLoadingRef = useRef(false);
 
 	const [uploading, setUploading] = useState(false);
 	const [uploadError, setUploadError] = useState<string | null>(null);
@@ -160,6 +162,17 @@ export default function DocumentsPage() {
 	);
 	const [selectedModel, setSelectedModel] = useState("sonnet");
 	const [streamCursor, setStreamCursor] = useState(0);
+	const [chatInput, setChatInput] = useState("");
+	const [chatSending, setChatSending] = useState(false);
+	const [slashMenuOpen, setSlashMenuOpen] = useState(false);
+	const [slashQuery, setSlashQuery] = useState("");
+	const matchingSkills = useMemo(() => {
+		if (!slashMenuOpen) return [];
+		const q = slashQuery.toLowerCase();
+		return SKILLS.filter(
+			(s) => s.command.includes(q) || s.label.toLowerCase().includes(q),
+		);
+	}, [slashMenuOpen, slashQuery]);
 	const displayStreamEvents = useMemo(
 		() => prepareConsoleLines(streamEvents),
 		[streamEvents],
@@ -192,25 +205,23 @@ export default function DocumentsPage() {
 	}
 
 	useEffect(() => {
-		if (rootLoaded || rootLoading) return;
+		if (rootLoaded || rootLoadingRef.current) return;
+		rootLoadingRef.current = true;
+		setRootLoading(true);
 
-		let cancelled = false;
-
-		(async () => {
-			setRootLoading(true);
-			const nodes = await fetchDir("");
-			if (cancelled) return;
-			setRoots(nodes);
-			setRootLoaded(true);
-			setRootLoading(false);
-		})().catch(() => {
-			if (!cancelled) setRootLoading(false);
-		});
-
-		return () => {
-			cancelled = true;
-		};
-	}, [rootLoaded, rootLoading]);
+		fetchDir("")
+			.then((nodes) => {
+				setRoots(nodes);
+				setRootLoaded(true);
+			})
+			.catch(() => {
+				// fetch failed — allow retry on next mount
+				rootLoadingRef.current = false;
+			})
+			.finally(() => {
+				setRootLoading(false);
+			});
+	}, [rootLoaded]); // eslint-disable-line react-hooks/exhaustive-deps
 
 	async function reloadDir(dir: string) {
 		const fresh = await fetchDir(dir);
@@ -416,7 +427,7 @@ export default function DocumentsPage() {
 		if (!runAgents.some((a) => a.id === selectedAgentId)) {
 			setSelectedAgentId(DOC_MAINTAINER_AGENT_ID);
 		}
-	}, [hasDocMaintainer, runAgents, selectedAgentId]);
+	}, [runAgents, selectedAgentId]);
 
 	useEffect(() => {
 		if (!activeRunId) return;
@@ -450,7 +461,9 @@ export default function DocumentsPage() {
 
 	useEffect(() => {
 		if (!streamRunId) return;
+		let done = false;
 		const id = setInterval(async () => {
+			if (done) return;
 			try {
 				const res = await fetch(
 					`/api/wiki/run-stream?runId=${encodeURIComponent(streamRunId)}&since=${streamCursor}`,
@@ -459,6 +472,7 @@ export default function DocumentsPage() {
 				const data: { events: StreamLine[]; next: number } = await res.json();
 				if (data.events.length > 0) {
 					setStreamEvents((prev) => [...prev, ...data.events]);
+					if (data.events.some((e) => e.type === "result")) done = true;
 				}
 				if (typeof data.next === "number") {
 					setStreamCursor(data.next);
@@ -469,6 +483,46 @@ export default function DocumentsPage() {
 		}, 600);
 		return () => clearInterval(id);
 	}, [streamRunId, streamCursor]);
+
+	const handleChatSend = useCallback(async () => {
+		const msg = chatInput.trim();
+		if (!msg || chatSending) return;
+		setChatSending(true);
+		setChatInput("");
+		try {
+			// Expand slash command to its full description
+			const skill = SKILLS.find(
+				(s) => msg === s.command || msg.startsWith(`${s.command} `),
+			);
+			const extra = skill ? msg.slice(skill.command.length).trim() : "";
+			const expandedMsg = skill
+				? `${skill.longDescription}${extra ? `\n\n${extra}` : ""}`
+				: msg;
+			const res = await fetch("/api/wiki/generate", {
+				method: "POST",
+				headers: { "Content-Type": "application/json" },
+				body: JSON.stringify({
+					agentId: selectedAgentId,
+					model: selectedModel,
+					promptOverride: expandedMsg,
+				}),
+			});
+			if (!res.ok) {
+				const e = (await res.json()) as { error?: string };
+				throw new Error(e.error ?? "Failed to start run");
+			}
+			const data = (await res.json()) as { runId: string };
+			setStreamEvents([]);
+			setStreamCursor(0);
+			setStreamRunId(data.runId);
+			setActiveRunId(data.runId);
+			await loadRuns();
+		} catch {
+			setChatInput(msg);
+		} finally {
+			setChatSending(false);
+		}
+	}, [chatInput, chatSending, selectedAgentId, selectedModel, loadRuns]);
 
 	const handleInitWiki = useCallback(async () => {
 		setInitingWiki(true);
@@ -513,7 +567,8 @@ export default function DocumentsPage() {
 		} finally {
 			setInitingWiki(false);
 		}
-	}, [loadPrompt, loadRuns]);
+		// biome-ignore lint/correctness/useExhaustiveDependencies: reloadDir is stable within session
+	}, [loadPrompt, loadRuns, reloadDir]);
 
 	const doUpload = useCallback(
 		async (files: FileList | File[], dir: string) => {
@@ -545,7 +600,8 @@ export default function DocumentsPage() {
 			}
 			// eslint-disable-next-line react-hooks/exhaustive-deps
 		},
-		[],
+		// biome-ignore lint/correctness/useExhaustiveDependencies: reloadDir is stable within session
+		[reloadDir],
 	);
 
 	function triggerUpload(dir: string) {
@@ -587,7 +643,7 @@ export default function DocumentsPage() {
 		});
 		if (
 			openFile?.path === deletingPath ||
-			openFile?.path.startsWith(deletingPath + "/")
+			openFile?.path.startsWith(`${deletingPath}/`)
 		) {
 			setOpenFile(null);
 			setFileContent(null);
@@ -615,7 +671,7 @@ export default function DocumentsPage() {
 		// Can't drop onto itself or a descendant
 		if (
 			dragging.path === targetPath ||
-			targetPath.startsWith(dragging.path + "/")
+			targetPath.startsWith(`${dragging.path}/`)
 		)
 			return;
 		e.dataTransfer.dropEffect = "move";
@@ -631,7 +687,7 @@ export default function DocumentsPage() {
 		if (!node) return;
 		if (
 			node.path === targetDirPath ||
-			targetDirPath.startsWith(node.path + "/")
+			targetDirPath.startsWith(`${node.path}/`)
 		)
 			return;
 
@@ -660,7 +716,16 @@ export default function DocumentsPage() {
 		return nodes.map((node) => (
 			<div key={node.path}>
 				<div
+					role="treeitem"
+					tabIndex={0}
 					draggable
+					onKeyDown={(e) => {
+						if (e.key === "Enter" || e.key === " ") {
+							e.preventDefault();
+							if (node.type === "dir") toggleFolder(node);
+							else openViewer(node);
+						}
+					}}
 					onDragStart={(e) => handleDragStart(e, node)}
 					onDragOver={(e) =>
 						node.type === "dir"
@@ -714,9 +779,11 @@ export default function DocumentsPage() {
 
 					<span className="flex-1 truncate">{node.name}</span>
 
+					{/* biome-ignore lint/a11y/noStaticElementInteractions: stopPropagation container, no interactive role needed */}
 					<div
 						className="flex items-center gap-0.5 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity"
 						onClick={(e) => e.stopPropagation()}
+						onKeyDown={(e) => e.stopPropagation()}
 					>
 						{node.type === "dir" && (
 							<>
@@ -767,7 +834,6 @@ export default function DocumentsPage() {
 						<span className="w-3.5 shrink-0" />
 						<Folder className="h-4 w-4 shrink-0 text-warning" />
 						<input
-							autoFocus
 							className="flex-1 bg-transparent text-sm outline-none border-b border-border min-w-0"
 							placeholder="Folder name"
 							value={newFolderName}
@@ -874,7 +940,6 @@ export default function DocumentsPage() {
 					<div className="flex items-center gap-1.5 px-2 py-1 border-b shrink-0">
 						<Folder className="h-4 w-4 shrink-0 text-warning" />
 						<input
-							autoFocus
 							className="flex-1 bg-transparent text-sm outline-none border-b border-border min-w-0"
 							placeholder="Folder name"
 							value={newFolderName}
@@ -912,6 +977,7 @@ export default function DocumentsPage() {
 					</div>
 				)}
 
+				{/* biome-ignore lint/a11y/noStaticElementInteractions: drop zone, keyboard handled via draggable items */}
 				<div
 					className={cn(
 						"flex-1 overflow-auto py-1",
@@ -1124,9 +1190,15 @@ export default function DocumentsPage() {
 								<p className="text-xs text-muted-foreground">No runs yet.</p>
 							) : (
 								wikiRuns.slice(0, 5).map((run) => (
-									<div
+									<button
 										key={run.id}
-										className="rounded-sm border bg-background px-3 py-2 text-xs space-y-1"
+										type="button"
+										className="w-full text-left rounded-sm border bg-background px-3 py-2 text-xs space-y-1 cursor-pointer hover:bg-muted/50 transition-colors"
+										onClick={() => {
+											setStreamEvents([]);
+											setStreamCursor(0);
+											setStreamRunId(run.id);
+										}}
 									>
 										<div className="flex items-center justify-between gap-2">
 											<span className="font-normal truncate" title={run.id}>
@@ -1148,7 +1220,7 @@ export default function DocumentsPage() {
 											{run.hasOverride ? "Override: yes" : "Override: no"} ·
 											Exit: {run.exitCode ?? "-"}
 										</p>
-									</div>
+									</button>
 								))
 							)}
 						</div>
@@ -1184,11 +1256,90 @@ export default function DocumentsPage() {
 							</p>
 						) : (
 							<div className="space-y-1">
-								{displayStreamEvents.map((line, i) => (
-									<StreamEntry key={i} line={line} />
+								{displayStreamEvents.map((line, i) => {
+									return (
+										// biome-ignore lint/suspicious/noArrayIndexKey: stream events are append-only
+										<StreamEntry key={`evt_${i}_${line.type}`} line={line} />
+									);
+								})}
+							</div>
+						)}
+					</div>
+					{/* Chat input */}
+					<div className="border-t shrink-0">
+						{/* Slash command menu */}
+						{slashMenuOpen && matchingSkills.length > 0 && (
+							<div className="border-b bg-popover max-h-48 overflow-y-auto">
+								<p className="px-3 py-1.5 text-[10px] uppercase tracking-wide text-muted-foreground border-b">
+									AI Skills
+								</p>
+								{matchingSkills.map((skill) => (
+									<button
+										key={skill.command}
+										type="button"
+										className="flex items-center gap-2 w-full px-3 py-2 text-left hover:bg-accent/50 transition-colors"
+										onMouseDown={(e) => {
+											e.preventDefault();
+											// Replace the last "/" line with the command
+											const lines = chatInput.split("\n");
+											lines[lines.length - 1] = skill.command;
+											setChatInput(lines.join("\n"));
+											setSlashMenuOpen(false);
+											setSlashQuery("");
+										}}
+									>
+										<code className="text-xs font-mono text-primary shrink-0">
+											{skill.command}
+										</code>
+										<span className="text-xs text-muted-foreground truncate">
+											{skill.description}
+										</span>
+									</button>
 								))}
 							</div>
 						)}
+						<div className="p-3 flex gap-2">
+							<textarea
+								className="flex-1 resize-none rounded-sm border bg-background px-3 py-2 text-xs placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring min-h-[60px]"
+								placeholder="Follow-up instructions... (Ctrl+Enter to send)"
+								value={chatInput}
+								onChange={(e) => {
+									const val = e.target.value;
+									setChatInput(val);
+									// Open slash menu when typing "/" at start or after newline
+									const lastLine = val.split("\n").pop() ?? "";
+									if (lastLine.startsWith("/")) {
+										setSlashMenuOpen(true);
+										setSlashQuery(lastLine.slice(1));
+									} else {
+										setSlashMenuOpen(false);
+										setSlashQuery("");
+									}
+								}}
+								onKeyDown={(e) => {
+									if (slashMenuOpen && e.key === "Escape") {
+										e.preventDefault();
+										setSlashMenuOpen(false);
+										return;
+									}
+									if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) {
+										e.preventDefault();
+										setSlashMenuOpen(false);
+										void handleChatSend();
+									}
+								}}
+								disabled={chatSending}
+							/>
+							<Button
+								size="sm"
+								variant="default"
+								onClick={() => void handleChatSend()}
+								disabled={!chatInput.trim() || chatSending}
+								className="self-end"
+							>
+								{chatSending ? "Sending..." : "Send"}
+							</Button>
+						</div>
 					</div>
 				</Card>
 			) : openFile ? (
@@ -1246,6 +1397,7 @@ export default function DocumentsPage() {
 							</div>
 						) : isImage(openFile.name) ? (
 							// eslint-disable-next-line @next/next/no-img-element
+							// biome-ignore lint/performance/noImgElement: dynamic API URL
 							<img
 								src={`/api/wiki/file?path=${encodeURIComponent(openFile.path)}`}
 								alt={openFile.name}

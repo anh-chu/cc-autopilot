@@ -325,7 +325,9 @@ export default function CommandCenterPage() {
 							<Rocket className="h-8 w-8 text-primary" />
 						</div>
 						<div>
-							<h1 className="text-section font-normal">Welcome to Task Control</h1>
+							<h1 className="text-section font-normal">
+								Welcome to Task Control
+							</h1>
 							<p className="text-muted-foreground mt-2">
 								Your hub for orchestrating AI agents. Create projects, delegate
 								tasks, and let your agents handle the rest.
@@ -425,9 +427,7 @@ export default function CommandCenterPage() {
 									<Rocket
 										className={cn(
 											"h-4 w-4",
-											daemonRunning
-												? "text-accent"
-												: "text-muted-foreground",
+											daemonRunning ? "text-accent" : "text-muted-foreground",
 										)}
 									/>
 								</div>
@@ -438,7 +438,7 @@ export default function CommandCenterPage() {
 												"h-2 w-2 rounded-full shrink-0",
 												daemonRunning
 													? "bg-sunshine-700 animate-pulse"
-													: "bg-muted-foreground/40",
+													: "bg-muted-foreground",
 											)}
 										/>
 										<p className="text-sm font-normal">Automation</p>
@@ -516,48 +516,44 @@ export default function CommandCenterPage() {
 									key={decision.id}
 									icon="🔴"
 									actions={
-										<>
-											{decision.options.length > 0 ? (
-												decision.options.slice(0, 4).map((opt) => (
-													<Button
-														key={opt}
-														size="sm"
-														variant="outline"
-														className="text-xs h-6 px-2"
-														disabled={loadingItems.has(decision.id)}
-														onClick={() =>
-															handleDecisionAnswer(decision.id, opt)
-														}
-													>
-														{loadingItems.has(decision.id) ? "…" : opt}
-													</Button>
-												))
-											) : (
-												<>
-													<Button
-														size="sm"
-														className="text-xs h-6 px-2"
-														disabled={loadingItems.has(decision.id)}
-														onClick={() =>
-															handleDecisionAnswer(decision.id, "approved")
-														}
-													>
-														{loadingItems.has(decision.id) ? "…" : "Approve"}
-													</Button>
-													<Button
-														size="sm"
-														variant="outline"
-														className="text-xs h-6 px-2 text-destructive border-destructive/30 hover:bg-destructive/10"
-														disabled={loadingItems.has(decision.id)}
-														onClick={() =>
-															handleDecisionAnswer(decision.id, "rejected")
-														}
-													>
-														{loadingItems.has(decision.id) ? "…" : "Reject"}
-													</Button>
-												</>
-											)}
-										</>
+										decision.options.length > 0 ? (
+											decision.options.slice(0, 4).map((opt) => (
+												<Button
+													key={opt}
+													size="sm"
+													variant="outline"
+													className="text-xs h-6 px-2"
+													disabled={loadingItems.has(decision.id)}
+													onClick={() => handleDecisionAnswer(decision.id, opt)}
+												>
+													{loadingItems.has(decision.id) ? "…" : opt}
+												</Button>
+											))
+										) : (
+											<>
+												<Button
+													size="sm"
+													className="text-xs h-6 px-2"
+													disabled={loadingItems.has(decision.id)}
+													onClick={() =>
+														handleDecisionAnswer(decision.id, "approved")
+													}
+												>
+													{loadingItems.has(decision.id) ? "…" : "Approve"}
+												</Button>
+												<Button
+													size="sm"
+													variant="outline"
+													className="text-xs h-6 px-2 text-destructive border-destructive/30 hover:bg-destructive/10"
+													disabled={loadingItems.has(decision.id)}
+													onClick={() =>
+														handleDecisionAnswer(decision.id, "rejected")
+													}
+												>
+													{loadingItems.has(decision.id) ? "…" : "Reject"}
+												</Button>
+											</>
+										)
 									}
 								>
 									<p className="text-xs font-normal text-foreground leading-snug">
@@ -576,17 +572,15 @@ export default function CommandCenterPage() {
 									key={msg.id}
 									icon="🟡"
 									actions={
-										<>
-											<Button
-												size="sm"
-												variant="outline"
-												className="text-xs h-6 px-2"
-												disabled={loadingItems.has(msg.id)}
-												onClick={() => handleAckReport(msg.id)}
-											>
-												{loadingItems.has(msg.id) ? "…" : "Ack"}
-											</Button>
-										</>
+										<Button
+											size="sm"
+											variant="outline"
+											className="text-xs h-6 px-2"
+											disabled={loadingItems.has(msg.id)}
+											onClick={() => handleAckReport(msg.id)}
+										>
+											{loadingItems.has(msg.id) ? "…" : "Ack"}
+										</Button>
 									}
 								>
 									<p className="text-xs font-normal text-foreground leading-snug">

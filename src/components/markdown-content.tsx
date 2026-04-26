@@ -18,10 +18,12 @@ export function MarkdownContent({ content, className }: MarkdownContentProps) {
 	return (
 		<div
 			className={cn(
-				"text-xs text-muted-foreground leading-relaxed whitespace-pre-wrap",
+				"text-xs text-muted-foreground leading-relaxed",
 				"prose prose-sm prose-invert max-w-none",
 				"[&>p]:my-1 [&>ul]:my-1 [&>ol]:my-1 [&>ul]:pl-4 [&>ol]:pl-4",
-				"[&>h1]:text-sm [&>h2]:text-sm [&>h3]:text-xs",
+				"[&>h1]:text-base [&>h1]:font-semibold [&>h1]:mt-3 [&>h1]:mb-1.5",
+				"[&>h2]:text-sm [&>h2]:font-semibold [&>h2]:mt-2.5 [&>h2]:mb-1 [&>h2]:text-foreground/80",
+				"[&>h3]:text-xs [&>h3]:font-semibold [&>h3]:mt-2 [&>h3]:mb-0.5 [&>h3]:uppercase [&>h3]:tracking-wide [&>h3]:text-muted-foreground",
 				"[&>pre]:bg-muted [&>pre]:rounded-sm [&>pre]:p-2 [&>pre]:overflow-x-auto",
 				"[&>blockquote]:border-l-2 [&>blockquote]:border-muted-foreground/40 [&>blockquote]:pl-3 [&>blockquote]:italic",
 				"[&_a]:text-accent [&_a]:underline [&_a:hover]:text-accent/80",
@@ -62,15 +64,16 @@ function highlightMentions(children: React.ReactNode): React.ReactNode {
 	if (typeof children === "string") {
 		const parts = children.split(/(@[a-z0-9-]+)/g);
 		if (parts.length === 1) return children;
-		return parts.map((part, i) =>
-			/^@[a-z0-9-]+$/.test(part) ? (
-				<span key={i} className="text-accent font-normal">
-					{part}
-				</span>
-			) : (
-				part
-			),
-		);
+		return parts.map((part, i) => {
+			if (/^@[a-z0-9-]+$/.test(part))
+				return (
+					// biome-ignore lint/suspicious/noArrayIndexKey: split parts are positional, order is stable
+					<span key={`${part}_${i}`} className="text-accent font-normal">
+						{part}
+					</span>
+				);
+			return part;
+		});
 	}
 	if (Array.isArray(children)) {
 		return children.map((child) =>
