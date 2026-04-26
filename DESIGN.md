@@ -78,8 +78,8 @@ Map shadow + border + ring to semantic tiers. Use `shadow-e-{n}` utilities, neve
 |---|---|---|---|
 | `e-0` | Flat | `shadow-none` | Standard blocks, table rows |
 | `e-1` | Input | `shadow-e-1` | Inputs, textareas, selects, switches |
-| `e-2` | Card | `shadow-e-2` | Cards (default in `Card` primitive), task cards, panels |
-| `e-3` | Pop | `shadow-e-3` | Hover-lifted cards, focused emphasis |
+| `e-2` | Card | `shadow-e-2` | Default in `Card` primitive — standalone cards on bg/muted surfaces |
+| `e-3` | Pop | `shadow-e-3` | Hover-lifted cards, focused emphasis, task cards inside card-tier columns |
 | `e-4` | Dialog | `shadow-e-4` | Dialogs, modals |
 | `e-5` | Toast | `shadow-e-5` | High-priority alerts, toasts |
 | `golden` | Dramatic | `shadow-golden` | Opt-in only — sidebar, dropdown, command, drag preview, hero project cards on hover |
@@ -104,6 +104,12 @@ Sidebar (`#f4db9a` light / `#251c12` dark) sits *parallel* to this stack as warm
 - Never use `bg-white` or `bg-black` directly. Use `bg-popover` for the apex surface.
 - `bg-card` and `bg-background` are *different* elevation tiers — never use them interchangeably.
 - Soft semantic tokens (`bg-accent-soft`, `bg-warning-soft`, etc.) are tuned to sit *below* `--card` (L ≈ 83–88) so tinted halos remain visible against the new card surface.
+
+**Card-on-card elevation**
+When a card sits inside another card-tier surface (e.g. task cards inside a kanban column), the default `shadow-e-2` collapses against the matching warm-cream backdrop. Opt the inner card up one tier: `shadow-e-3` default, `shadow-e-4` on hover and while dragging.
+
+**Metadata chips**
+Small in-card metadata (assignee, tags, project labels) uses `Badge variant="outline"` with `text-muted-foreground` and `border-border`, not the filled secondary variant. Filled chips read as chunky UI buttons against the lifted card surface; outline chips read as thin typographic labels and avoid the contrast war between chip fill and card fill.
 
 ### Motion
 Semantic states tied to durations. All `ease-out`.
