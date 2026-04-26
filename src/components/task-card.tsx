@@ -131,8 +131,8 @@ export function TaskCard({
 						suppressNextClick.current = true;
 					}}
 					className={cn(
-						"cursor-grab select-none transition-all hover:shadow-md hover:border-primary/20 animate-fade-in-up rounded-sm",
-						isDragging && "opacity-50 shadow-lg rotate-1",
+						"cursor-grab select-none transition-all hover:shadow-e-2 hover:border-primary/20 animate-fade-in-up rounded-sm",
+						isDragging && "opacity-50 shadow-e-3 rotate-1",
 						onClick && "cursor-pointer",
 						isBlocked && "opacity-60 border-destructive/30",
 						!isBlocked &&
@@ -143,7 +143,7 @@ export function TaskCard({
 							"opacity-75 border-warning/30",
 						isOverdue && "border-destructive/30",
 						isRunning &&
-							"ring-2 ring-sunshine-700/50 border-sunshine-700/30 shadow-sunshine-700/10 shadow-md",
+							"ring-2 ring-sunshine-700/50 border-sunshine-700/30 shadow-sunshine-700/10 shadow-e-2",
 						className,
 					)}
 					onClick={() => {

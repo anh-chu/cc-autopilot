@@ -54,7 +54,7 @@ export function EisenhowerSummary({ tasks }: EisenhowerSummaryProps) {
 
 	return (
 		<Link href="/priority-matrix">
-			<Card className="cursor-pointer transition-all hover:shadow-lg hover:border-primary/30">
+			<Card className="cursor-pointer transition-all hover:shadow-e-3 hover:border-primary/30">
 				<CardHeader className="pb-2">
 					<CardTitle className="text-sm">Eisenhower Matrix</CardTitle>
 				</CardHeader>

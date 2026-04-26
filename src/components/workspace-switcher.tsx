@@ -195,9 +195,9 @@ export function WorkspaceSwitcher({
 										title={swatch.label}
 										onClick={() => setNewColor(swatch.value)}
 										className={cn(
-											"h-6 w-6 rounded-full transition-all ring-offset-background",
+											"h-6 w-6 rounded-full transition-all",
 											newColor === swatch.value
-												? "ring-2 ring-ring ring-offset-2"
+												? "ring-2 ring-ring"
 												: "hover:scale-110",
 										)}
 										style={{ backgroundColor: swatch.value }}

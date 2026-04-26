@@ -409,7 +409,7 @@ export default function CommandCenterPage() {
 			<Link href="/autopilot">
 				<Card
 					className={cn(
-						"cursor-pointer transition-all hover:shadow-lg hover:border-primary/30",
+						"cursor-pointer transition-all hover:shadow-e-3 hover:border-primary/30",
 						daemonRunning && "border-sunshine-700/20 bg-accent-soft",
 					)}
 				>
