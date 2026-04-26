@@ -63,7 +63,7 @@ export function EisenhowerSummary({ tasks }: EisenhowerSummaryProps) {
 						{quadrants.map(({ key, label, sublabel, color, textColor }) => (
 							<div
 								key={key}
-								className="rounded-sm border bg-muted/30 p-2.5 space-y-1"
+								className="rounded-sm border bg-muted p-2.5 space-y-1"
 							>
 								<div className="flex items-center justify-between">
 									<div className="flex items-center gap-1.5">

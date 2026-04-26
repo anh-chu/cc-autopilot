@@ -502,7 +502,7 @@ export function AgentForm({
 				</div>
 
 				{/* Preview */}
-				<div className="rounded-sm border bg-muted/50 p-4">
+				<div className="rounded-sm border bg-muted p-4">
 					<p className="text-xs font-normal text-muted-foreground mb-2">
 						Preview
 					</p>

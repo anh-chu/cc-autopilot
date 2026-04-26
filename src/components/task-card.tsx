@@ -307,7 +307,7 @@ export function TaskCard({
 								<Badge
 									key={tag}
 									variant="secondary"
-									className="text-xs px-1.5 py-0 bg-muted/50"
+									className="text-xs px-1.5 py-0 bg-muted"
 								>
 									{tag}
 								</Badge>

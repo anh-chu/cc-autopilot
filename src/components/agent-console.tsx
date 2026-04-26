@@ -491,7 +491,7 @@ export function StreamEntry({ line }: { line: StreamLine }) {
 				: null;
 		const turns = typeof line.num_turns === "number" ? line.num_turns : null;
 		return (
-			<div className="flex items-center gap-2 py-1.5 px-2 bg-muted/30 rounded-sm">
+			<div className="flex items-center gap-2 py-1.5 px-2 bg-muted rounded-sm">
 				<CheckCircle2 className="h-3.5 w-3.5 shrink-0 text-success" />
 				<span className="text-xs text-muted-foreground">
 					Session complete
@@ -577,7 +577,7 @@ export function AgentConsole({ runId, onStop }: AgentConsoleProps) {
 	return (
 		<div className="border rounded-sm bg-background overflow-hidden">
 			{/* Header */}
-			<div className="flex items-center justify-between px-3 py-2 border-b bg-muted/30">
+			<div className="flex items-center justify-between px-3 py-2 border-b bg-muted">
 				<div className="flex items-center gap-2">
 					<Terminal className="h-3.5 w-3.5 text-muted-foreground" />
 					<span className="text-xs font-normal">Live Console</span>

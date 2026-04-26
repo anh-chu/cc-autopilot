@@ -85,7 +85,7 @@ function AttentionRow({
 	actions?: ReactNode;
 }) {
 	return (
-		<div className="rounded-sm border border-border/50 bg-background/60 p-3 space-y-2">
+		<div className="rounded-sm border border-border/50 bg-background p-3 space-y-2">
 			<div className="flex items-start gap-2">
 				<span className="text-base leading-none mt-0.5">{icon}</span>
 				<div className="flex-1 min-w-0">{children}</div>
@@ -367,7 +367,7 @@ export default function CommandCenterPage() {
 								</CardContent>
 							</Card>
 
-							<Card className="sm:col-span-2 bg-muted/30">
+							<Card className="sm:col-span-2 bg-muted">
 								<CardContent className="p-4 flex items-start gap-3">
 									<div className="h-9 w-9 rounded-sm bg-accent/10 flex items-center justify-center shrink-0">
 										<Users className="h-4 w-4 text-sunshine-700" />

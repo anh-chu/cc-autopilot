@@ -92,7 +92,7 @@ export default function Error({
 			</button>
 
 			{showDetails && (
-				<div className="mt-2 max-w-[480px] w-full text-left rounded-sm border bg-muted/50 p-3">
+				<div className="mt-2 max-w-[480px] w-full text-left rounded-sm border bg-muted p-3">
 					<p className="text-xs font-mono text-muted-foreground break-all whitespace-pre-wrap">
 						{error.stack || error.message || "No additional details available."}
 					</p>

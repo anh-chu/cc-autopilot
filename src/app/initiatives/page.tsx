@@ -77,7 +77,7 @@ function statusBadge(status: InitiativeStatus) {
 			);
 		case "archived":
 			return (
-				<Badge className="bg-muted/60 text-muted-foreground border-muted text-[10px]">
+				<Badge className="bg-muted text-muted-foreground border-muted text-[10px]">
 					Archived
 				</Badge>
 			);

@@ -114,7 +114,7 @@ export function SidebarFooter({ collapsed }: SidebarFooterProps) {
 							className={cn(
 								isPm2
 									? "bg-accent/15 text-accent border-accent/25"
-									: "bg-muted/50 text-muted-foreground border-muted",
+									: "bg-muted text-muted-foreground border-muted",
 							)}
 						>
 							{isPm2 ? "Always-on (PM2)" : "Terminal"}

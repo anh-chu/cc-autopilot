@@ -376,7 +376,7 @@ export default function InitiativeDetailPage() {
 											? "bg-muted text-muted-foreground border-border"
 											: s === "completed"
 												? "bg-success/20 text-success border-success/40"
-												: "bg-muted/40 text-muted-foreground border-border"
+												: "bg-muted text-muted-foreground border-border"
 									: "bg-transparent text-muted-foreground border-border hover:border-muted-foreground/50"
 							}`}
 						>

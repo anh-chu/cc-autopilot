@@ -830,7 +830,7 @@ export default function DocumentsPage() {
 		<div className="flex h-[calc(100vh-8rem)] gap-4 min-h-0">
 			{/* Tree panel */}
 			<Card className="flex flex-col w-72 shrink-0 overflow-hidden">
-				<div className="flex items-center justify-between px-3 py-2 border-b bg-muted/20 shrink-0">
+				<div className="flex items-center justify-between px-3 py-2 border-b bg-muted shrink-0">
 					<BreadcrumbNav items={[{ label: "Documents" }]} />
 					<div className="flex gap-1">
 						<Button
@@ -941,7 +941,7 @@ export default function DocumentsPage() {
 
 			{/* Wiki generation */}
 			<Card className="flex flex-col w-96 shrink-0 overflow-hidden">
-				<div className="flex items-center justify-between px-3 py-2 border-b bg-muted/20 shrink-0">
+				<div className="flex items-center justify-between px-3 py-2 border-b bg-muted shrink-0">
 					<div>
 						<p className="text-sm font-normal">Generate Wiki</p>
 						<p className="text-xs text-muted-foreground">
@@ -1162,7 +1162,7 @@ export default function DocumentsPage() {
 			{/* File viewer / editor */}
 			{streamRunId ? (
 				<Card className="flex-1 flex flex-col overflow-hidden min-w-0">
-					<div className="flex items-center justify-between px-4 py-2 border-b bg-muted/20 shrink-0">
+					<div className="flex items-center justify-between px-4 py-2 border-b bg-muted shrink-0">
 						<div className="min-w-0">
 							<p className="text-sm font-normal">Claude Run Stream</p>
 							<p
@@ -1197,7 +1197,7 @@ export default function DocumentsPage() {
 				</Card>
 			) : openFile ? (
 				<Card className="flex-1 flex flex-col overflow-hidden min-w-0">
-					<div className="flex items-center justify-between px-4 py-2 border-b bg-muted/20 shrink-0">
+					<div className="flex items-center justify-between px-4 py-2 border-b bg-muted shrink-0">
 						<div className="flex items-center gap-2 min-w-0">
 							{isImage(openFile.name) ? (
 								<ImageIcon className="h-4 w-4 shrink-0 text-sunshine-700" />
@@ -1384,7 +1384,7 @@ export default function DocumentsPage() {
 					</div>
 
 					{editing && (
-						<div className="border-t px-4 py-2 flex items-center justify-end gap-2 bg-muted/10 shrink-0">
+						<div className="border-t px-4 py-2 flex items-center justify-end gap-2 bg-muted shrink-0">
 							{saveError && (
 								<span className="text-xs text-destructive mr-auto">
 									{saveError}

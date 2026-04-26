@@ -114,7 +114,7 @@ function LogTailCard({
 				) : (
 					<pre
 						ref={preRef}
-						className="max-h-[420px] overflow-auto rounded-sm border bg-muted/30 p-4 font-mono text-xs leading-relaxed whitespace-pre-wrap break-words"
+						className="max-h-[420px] overflow-auto rounded-sm border bg-muted p-4 font-mono text-xs leading-relaxed whitespace-pre-wrap break-words"
 					>
 						{allLines.join("\n")}
 					</pre>

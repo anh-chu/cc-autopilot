@@ -131,7 +131,7 @@ export function DecisionDialog({
 
 					{/* Context */}
 					{decision.context && (
-						<p className="text-xs text-muted-foreground bg-muted/50 rounded-sm px-3 py-2">
+						<p className="text-xs text-muted-foreground bg-muted rounded-sm px-3 py-2">
 							{decision.context}
 						</p>
 					)}
