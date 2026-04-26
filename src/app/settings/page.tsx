@@ -265,9 +265,8 @@ export default function SettingsPage() {
 						</div>
 						<div className="flex items-center gap-3">
 							<Button
-								size="sm"
 								variant="outline"
-								className="gap-1.5 h-7 text-xs"
+								className="gap-1.5"
 								onClick={() =>
 									setEnvVars([
 										...envVars,
@@ -275,10 +274,9 @@ export default function SettingsPage() {
 									])
 								}
 							>
-								<Plus className="h-3 w-3" /> Add variable
+								<Plus className="h-4 w-4" /> Add variable
 							</Button>
 							<Button
-								size="sm"
 								onClick={() => void handleEnvSave()}
 								disabled={envSaving}
 							>
@@ -311,18 +309,18 @@ export default function SettingsPage() {
 								<Button
 									size="sm"
 									variant="outline"
-									className="h-7 gap-1.5"
+									className="gap-1.5"
 									onClick={() => void stop()}
 								>
-									<Square className="h-3 w-3" /> Stop
+									<Square className="h-3.5 w-3.5" /> Stop
 								</Button>
 							) : (
 								<Button
 									size="sm"
-									className="h-7 gap-1.5"
+									className="gap-1.5"
 									onClick={() => void start()}
 								>
-									<Rocket className="h-3 w-3" /> Start
+									<Rocket className="h-3.5 w-3.5" /> Start
 								</Button>
 							)}
 						</div>
