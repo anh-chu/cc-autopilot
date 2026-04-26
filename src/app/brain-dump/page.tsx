@@ -164,9 +164,9 @@ export default function BrainDumpPage() {
 							]}
 							linesClassName="flex-1 space-y-2"
 							trailing={[
-								{ key: "primary-action", className: "h-7 w-14 rounded-md" },
-								{ key: "secondary-action", className: "h-7 w-7 rounded-md" },
-								{ key: "tertiary-action", className: "h-7 w-7 rounded-md" },
+								{ key: "primary-action", className: "h-7 w-14 rounded-sm" },
+								{ key: "secondary-action", className: "h-7 w-7 rounded-sm" },
+								{ key: "tertiary-action", className: "h-7 w-7 rounded-sm" },
 							]}
 						/>
 					)}
@@ -228,7 +228,7 @@ export default function BrainDumpPage() {
 						<Tip content="Save quick capture entry">
 							<Button
 								onClick={handleAdd}
-								className="self-end bg-mistral-orange text-white hover:bg-mistral-flame"
+								className="self-end bg-primary text-primary-foreground hover:bg-primary/90"
 								disabled={!newContent.trim()}
 							>
 								Capture

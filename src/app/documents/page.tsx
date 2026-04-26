@@ -674,7 +674,7 @@ export default function DocumentsPage() {
 							: e.preventDefault()
 					}
 					className={cn(
-						"flex items-center gap-1.5 rounded-md px-2 py-1 text-sm cursor-pointer group transition-colors select-none",
+						"flex items-center gap-1.5 rounded-sm px-2 py-1 text-sm cursor-pointer group transition-colors select-none",
 						openFile?.path === node.path
 							? "bg-accent text-accent-foreground"
 							: "hover:bg-accent/50",
@@ -700,14 +700,14 @@ export default function DocumentsPage() {
 
 					{node.type === "dir" ? (
 						node.expanded ? (
-							<FolderOpen className="h-4 w-4 shrink-0 text-amber-500" />
+							<FolderOpen className="h-4 w-4 shrink-0 text-warning" />
 						) : (
-							<Folder className="h-4 w-4 shrink-0 text-amber-500" />
+							<Folder className="h-4 w-4 shrink-0 text-warning" />
 						)
 					) : isImage(node.name) ? (
 						<ImageIcon className="h-4 w-4 shrink-0 text-sunshine-700" />
 					) : isText(node.name) ? (
-						<FileText className="h-4 w-4 shrink-0 text-mistral-orange" />
+						<FileText className="h-4 w-4 shrink-0 text-accent" />
 					) : (
 						<File className="h-4 w-4 shrink-0 text-muted-foreground" />
 					)}
@@ -765,7 +765,7 @@ export default function DocumentsPage() {
 						style={{ paddingLeft: `${(depth + 1) * 14 + 8}px` }}
 					>
 						<span className="w-3.5 shrink-0" />
-						<Folder className="h-4 w-4 shrink-0 text-amber-400" />
+						<Folder className="h-4 w-4 shrink-0 text-warning" />
 						<input
 							autoFocus
 							className="flex-1 bg-transparent text-sm outline-none border-b border-border min-w-0"
@@ -872,7 +872,7 @@ export default function DocumentsPage() {
 
 				{newFolderParent === "" && (
 					<div className="flex items-center gap-1.5 px-2 py-1 border-b shrink-0">
-						<Folder className="h-4 w-4 shrink-0 text-amber-400" />
+						<Folder className="h-4 w-4 shrink-0 text-warning" />
 						<input
 							autoFocus
 							className="flex-1 bg-transparent text-sm outline-none border-b border-border min-w-0"
@@ -999,17 +999,17 @@ export default function DocumentsPage() {
 						scaffold. Run processes docs and updates pages.
 					</p>
 					{promptError && (
-						<div className="rounded-md border border-destructive/30 bg-destructive/10 px-3 py-2 text-xs text-destructive">
+						<div className="rounded-sm border border-destructive/30 bg-destructive/10 px-3 py-2 text-xs text-destructive">
 							{promptError}
 						</div>
 					)}
 					{runError && (
-						<div className="rounded-md border border-destructive/30 bg-destructive/10 px-3 py-2 text-xs text-destructive">
+						<div className="rounded-sm border border-destructive/30 bg-destructive/10 px-3 py-2 text-xs text-destructive">
 							{runError}
 						</div>
 					)}
 					{runMessage && (
-						<div className="rounded-md border border-primary/30 bg-primary/10 px-3 py-2 text-xs text-primary">
+						<div className="rounded-sm border border-primary/30 bg-primary/10 px-3 py-2 text-xs text-primary">
 							{runMessage}
 						</div>
 					)}
@@ -1077,7 +1077,7 @@ export default function DocumentsPage() {
 							Agent
 						</p>
 						<select
-							className="w-full h-8 rounded-md border bg-background px-2 text-xs"
+							className="w-full h-8 rounded-sm border bg-background px-2 text-xs"
 							value={selectedAgentId}
 							onChange={(e) => setSelectedAgentId(e.target.value)}
 						>
@@ -1100,7 +1100,7 @@ export default function DocumentsPage() {
 							Model
 						</p>
 						<select
-							className="w-full h-8 rounded-md border bg-background px-2 text-xs"
+							className="w-full h-8 rounded-sm border bg-background px-2 text-xs"
 							value={selectedModel}
 							onChange={(e) => setSelectedModel(e.target.value)}
 						>
@@ -1129,7 +1129,7 @@ export default function DocumentsPage() {
 								wikiRuns.slice(0, 5).map((run) => (
 									<div
 										key={run.id}
-										className="rounded-md border bg-background px-3 py-2 text-xs space-y-1"
+										className="rounded-sm border bg-background px-3 py-2 text-xs space-y-1"
 									>
 										<div className="flex items-center justify-between gap-2">
 											<span className="font-normal truncate" title={run.id}>
@@ -1202,7 +1202,7 @@ export default function DocumentsPage() {
 							{isImage(openFile.name) ? (
 								<ImageIcon className="h-4 w-4 shrink-0 text-sunshine-700" />
 							) : isText(openFile.name) ? (
-								<FileText className="h-4 w-4 shrink-0 text-mistral-orange" />
+								<FileText className="h-4 w-4 shrink-0 text-accent" />
 							) : (
 								<File className="h-4 w-4 shrink-0 text-muted-foreground" />
 							)}

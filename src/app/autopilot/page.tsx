@@ -404,7 +404,7 @@ export default function AutopilotPage() {
 				<Card>
 					<CardHeader>
 						<CardTitle className="flex items-center gap-2">
-							<Zap className="h-5 w-5 text-yellow-500" />
+							<Zap className="h-5 w-5 text-sunshine-700" />
 							Active Sessions
 						</CardTitle>
 					</CardHeader>
@@ -634,7 +634,7 @@ export default function AutopilotPage() {
 													<Button
 														variant="ghost"
 														size="icon"
-														className="h-7 w-7 text-muted-foreground hover:text-red-500"
+														className="h-7 w-7 text-muted-foreground hover:text-destructive"
 														onClick={() => removeScheduleEntry(name)}
 													>
 														<Trash2 className="h-3.5 w-3.5" />
@@ -838,11 +838,11 @@ export default function AutopilotPage() {
 								>
 									<div className="flex items-center gap-3">
 										{entry.status === "completed" ? (
-											<CheckCircle2 className="h-4 w-4 text-green-500" />
+											<CheckCircle2 className="h-4 w-4 text-success" />
 										) : entry.status === "timeout" ? (
-											<Clock className="h-4 w-4 text-yellow-500" />
+											<Clock className="h-4 w-4 text-sunshine-700" />
 										) : (
-											<XCircle className="h-4 w-4 text-red-500" />
+											<XCircle className="h-4 w-4 text-destructive" />
 										)}
 										<div>
 											<p className="font-normal text-sm">

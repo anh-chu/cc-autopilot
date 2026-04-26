@@ -62,10 +62,10 @@ export function ProjectRunProgress({
 	const isActive = status === "running" || status === "stalled";
 
 	const statusColor = {
-		running: "bg-mistral-orange",
-		completed: "bg-mistral-orange",
-		stopped: "bg-orange-500",
-		stalled: "bg-amber-500",
+		running: "bg-accent",
+		completed: "bg-accent",
+		stopped: "bg-warning",
+		stalled: "bg-sunshine-700",
 	}[status];
 
 	const statusLabel = {
@@ -134,7 +134,7 @@ export function ProjectRunProgress({
 							)}
 							{skippedTasks > 0 && (
 								<span className="flex items-center gap-1">
-									<AlertTriangle className="h-3 w-3 text-amber-500" />
+									<AlertTriangle className="h-3 w-3 text-warning" />
 									{skippedTasks} blocked
 								</span>
 							)}
@@ -168,9 +168,9 @@ export function ProjectRunProgress({
 
 				{/* Stalled warning */}
 				{status === "stalled" && (
-					<div className="flex items-start gap-2 rounded-md border border-amber-500/20 bg-amber-500/5 px-3 py-2">
-						<AlertTriangle className="h-4 w-4 text-amber-500 mt-0.5 shrink-0" />
-						<p className="text-xs text-amber-700 dark:text-amber-400">
+					<div className="flex items-start gap-2 rounded-sm border border-warning/20 bg-warning/5 px-3 py-2">
+						<AlertTriangle className="h-4 w-4 text-warning mt-0.5 shrink-0" />
+						<p className="text-xs text-warning">
 							Run stalled — remaining tasks are blocked by dependencies, pending
 							decisions, or repeated failures. Review blocked tasks for items
 							that need your input.

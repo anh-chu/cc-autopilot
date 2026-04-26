@@ -47,19 +47,19 @@ const EVENT_META: EventMetaMap = {
 	},
 	task_updated: {
 		label: "Task Updated",
-		color: "bg-mistral-orange/10 text-mistral-orange border-mistral-orange/20",
+		color: "bg-sunshine-700/10 text-sunshine-700 border-sunshine-700/20",
 	},
 	task_completed: {
 		label: "Task Completed",
-		color: "bg-green-500/10 text-green-400 border-green-500/20",
+		color: "bg-success/10 text-success border-success/20",
 	},
 	task_delegated: {
 		label: "Task Delegated",
-		color: "bg-orange-500/10 text-orange-400 border-orange-500/20",
+		color: "bg-warning/10 text-warning border-warning/20",
 	},
 	task_failed: {
 		label: "Task Failed",
-		color: "bg-red-500/10 text-red-400 border-red-500/20",
+		color: "bg-destructive/10 text-destructive border-destructive/20",
 	},
 	message_sent: {
 		label: "Message Sent",
@@ -67,19 +67,19 @@ const EVENT_META: EventMetaMap = {
 	},
 	decision_requested: {
 		label: "Decision Requested",
-		color: "bg-yellow-500/10 text-yellow-400 border-yellow-500/20",
+		color: "bg-sunshine-700/10 text-sunshine-700 border-sunshine-700/20",
 	},
 	decision_answered: {
 		label: "Decision Answered",
-		color: "bg-emerald-500/10 text-emerald-400 border-emerald-500/20",
+		color: "bg-success/10 text-success border-success/20",
 	},
 	brain_dump_triaged: {
 		label: "Quick Capture Processed",
-		color: "bg-mistral-orange/10 text-mistral-orange border-mistral-orange/20",
+		color: "bg-sunshine-700/10 text-sunshine-700 border-sunshine-700/20",
 	},
 	milestone_completed: {
 		label: "Milestone Completed",
-		color: "bg-green-500/10 text-green-400 border-green-500/20",
+		color: "bg-success/10 text-success border-success/20",
 	},
 	agent_checkin: {
 		label: "Agent Check-in",
@@ -359,7 +359,7 @@ export default function ActivityPage() {
 					<select
 						value={actorFilter}
 						onChange={(e) => setActorFilter(e.target.value as Actor | "all")}
-						className="h-8 rounded-md border border-input bg-background px-2 text-xs text-foreground focus:outline-none focus:ring-1 focus:ring-ring"
+						className="h-8 rounded-sm border border-input bg-background px-2 text-xs text-foreground focus:outline-none focus:ring-1 focus:ring-ring"
 					>
 						<option value="all">All actors</option>
 						{actors.map((a) => (
@@ -371,7 +371,7 @@ export default function ActivityPage() {
 					<select
 						value={typeFilter}
 						onChange={(e) => setTypeFilter(e.target.value as EventType | "all")}
-						className="h-8 rounded-md border border-input bg-background px-2 text-xs text-foreground focus:outline-none focus:ring-1 focus:ring-ring"
+						className="h-8 rounded-sm border border-input bg-background px-2 text-xs text-foreground focus:outline-none focus:ring-1 focus:ring-ring"
 					>
 						<option value="all">All types</option>
 						{ALL_TYPES.map((t) => (

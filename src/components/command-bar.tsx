@@ -161,7 +161,7 @@ export function CommandBar({
 					<button
 						type="button"
 						onClick={() => inputRef.current?.focus()}
-						className="shrink-0 text-muted-foreground hover:text-mistral-orange transition-colors"
+						className="shrink-0 text-muted-foreground hover:text-accent transition-colors"
 					>
 						<Lightbulb className="h-4 w-4" />
 					</button>

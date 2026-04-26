@@ -276,7 +276,7 @@ export function ProjectDialog({
 												key={agent.id}
 												type="button"
 												onClick={() => toggleTeamMember(agent.id)}
-												className="flex items-center gap-1 rounded-md border border-dashed px-2 py-1 text-xs text-muted-foreground hover:bg-accent hover:text-foreground transition-colors"
+												className="flex items-center gap-1 rounded-sm border border-dashed px-2 py-1 text-xs text-muted-foreground hover:bg-accent hover:text-foreground transition-colors"
 											>
 												<AgentIcon className="h-3 w-3" />
 												{agent.name}

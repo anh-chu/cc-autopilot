@@ -301,7 +301,7 @@ export default function TasksPage() {
 				<h1 className="text-xl font-normal">Tasks</h1>
 				<div className="flex items-center gap-2">
 					{/* View toggle */}
-					<div className="flex items-center rounded-md border bg-muted/30 p-0.5">
+					<div className="flex items-center rounded-sm border bg-muted/30 p-0.5">
 						<Tip content="Priority Matrix">
 							<button
 								type="button"

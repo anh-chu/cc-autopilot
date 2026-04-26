@@ -15,7 +15,7 @@ const kanbanDot: Record<KanbanStatus, string> = {
 	"not-started": "bg-status-not-started",
 	"in-progress": "bg-status-in-progress",
 	done: "bg-status-done",
-	"awaiting-decision": "bg-amber-500",
+	"awaiting-decision": "bg-warning",
 };
 
 const kanbanLabels: Record<KanbanStatus, string> = {
@@ -134,14 +134,14 @@ export function TaskCard({
 						"cursor-grab select-none transition-all hover:shadow-md hover:border-primary/20 animate-fade-in-up rounded-sm",
 						isDragging && "opacity-50 shadow-lg rotate-1",
 						onClick && "cursor-pointer",
-						isBlocked && "opacity-60 border-red-500/30",
+						isBlocked && "opacity-60 border-destructive/30",
 						!isBlocked &&
 							hasDependencies &&
-							"opacity-75 border-mistral-orange/30",
+							"opacity-75 border-primary/30",
 						!isBlocked &&
 							hasAwaitingDecision &&
-							"opacity-75 border-amber-500/30",
-						isOverdue && "border-red-500/30",
+							"opacity-75 border-warning/30",
+						isOverdue && "border-destructive/30",
 						isRunning &&
 							"ring-2 ring-sunshine-700/50 border-sunshine-700/30 shadow-sunshine-700/10 shadow-md",
 						className,
@@ -160,13 +160,13 @@ export function TaskCard({
 						<div className="flex items-start justify-between gap-2">
 							<CardTitle className="text-sm font-normal leading-tight flex-1">
 								{isBlocked && (
-									<Ban className="h-3 w-3 inline mr-1 text-red-500" />
+									<Ban className="h-3 w-3 inline mr-1 text-destructive" />
 								)}
 								{!isBlocked && hasDependencies && (
-									<Link2 className="h-3 w-3 inline mr-1 text-mistral-orange" />
+									<Link2 className="h-3 w-3 inline mr-1 text-accent" />
 								)}
 								{!isBlocked && !hasDependencies && hasAwaitingDecision && (
-									<Clock className="h-3 w-3 inline mr-1 text-amber-500" />
+									<Clock className="h-3 w-3 inline mr-1 text-warning" />
 								)}
 								{task.title}
 							</CardTitle>
@@ -281,7 +281,7 @@ export function TaskCard({
 							{isBlocked && (
 								<Badge
 									variant="outline"
-									className="text-xs px-1.5 py-0 border-red-500/50 text-red-500"
+									className="text-xs px-1.5 py-0 border-destructive/50 text-destructive"
 								>
 									Blocked
 								</Badge>
@@ -289,7 +289,7 @@ export function TaskCard({
 							{!isBlocked && hasDependencies && (
 								<Badge
 									variant="outline"
-									className="text-xs px-1.5 py-0 border-mistral-orange/50 text-mistral-orange"
+									className="text-xs px-1.5 py-0 border-accent/50 text-accent"
 								>
 									Dependencies
 								</Badge>
@@ -297,7 +297,7 @@ export function TaskCard({
 							{!isBlocked && hasAwaitingDecision && (
 								<Badge
 									variant="outline"
-									className="text-xs px-1.5 py-0 border-amber-500/50 text-amber-500"
+									className="text-xs px-1.5 py-0 border-warning/50 text-warning"
 								>
 									Awaiting Decision
 								</Badge>
@@ -324,11 +324,11 @@ export function TaskCard({
 									className={cn(
 										"text-xs px-1.5 py-0 gap-1",
 										isOverdue
-											? "text-red-500 border-red-500/50"
+											? "text-destructive border-destructive/50"
 											: isDueToday
-												? "text-orange-500 border-orange-500/50"
+												? "text-warning border-warning/50"
 												: isDueSoon
-													? "text-yellow-500 border-yellow-500/50"
+													? "text-sunshine-700 border-sunshine-700/50"
 													: "text-muted-foreground",
 									)}
 								>

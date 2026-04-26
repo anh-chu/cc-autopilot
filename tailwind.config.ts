@@ -95,6 +95,13 @@ const config: Config = {
 			boxShadow: {
 				golden:
 					"-8px 16px 39px rgba(127, 99, 21, 0.12), -33px 64px 72px rgba(127, 99, 21, 0.1), -73px 144px 97px rgba(127, 99, 21, 0.06), -130px 256px 115px rgba(127, 99, 21, 0.02), -203px 400px 126px rgba(127, 99, 21, 0)",
+				// e-tier elevation system
+				"e-0": "none",
+				"e-1": "0 1px 2px 0 rgb(0 0 0 / 0.05)", // input
+				"e-2": "var(--shadow-golden-card, 0 4px 12px -2px rgba(127, 99, 21, 0.10))", // card — falls back if var not set
+				"e-3": "var(--shadow-golden-pop, 0 8px 24px -4px rgba(127, 99, 21, 0.15))", // dropdown/popover
+				"e-4": "var(--shadow-golden-dialog, 0 16px 48px -8px rgba(127, 99, 21, 0.20))", // dialog
+				"e-5": "var(--shadow-golden-toast, 0 24px 64px -12px rgba(127, 99, 21, 0.25))", // toast
 			},
 			fontFamily: {
 				sans: [
@@ -113,6 +120,17 @@ const config: Config = {
 				subheading: ["2rem", { lineHeight: "1.15" }],
 				"card-title": ["1.875rem", { lineHeight: "1.2" }],
 				feature: ["1.5rem", { lineHeight: "1.33" }],
+			},
+			transitionDuration: {
+				fast: "var(--motion-fast)",
+				base: "var(--motion-base)",
+				slow: "var(--motion-slow)",
+			},
+			zIndex: {
+				sticky: "var(--z-sticky)",
+				sidebar: "var(--z-sidebar)",
+				overlay: "var(--z-overlay)",
+				float: "var(--z-float)",
 			},
 		},
 	},

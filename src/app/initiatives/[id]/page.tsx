@@ -44,7 +44,7 @@ function kanbanBadge(kanban: Task["kanban"]) {
 	switch (kanban) {
 		case "done":
 			return (
-				<Badge className="bg-green-500/20 text-green-400 border-green-500/30 text-[10px]">
+				<Badge className="bg-success/20 text-success border-success/30 text-[10px]">
 					Done
 				</Badge>
 			);
@@ -375,7 +375,7 @@ export default function InitiativeDetailPage() {
 										: s === "paused"
 											? "bg-muted text-muted-foreground border-border"
 											: s === "completed"
-												? "bg-green-500/20 text-green-400 border-green-500/40"
+												? "bg-success/20 text-success border-success/40"
 												: "bg-muted/40 text-muted-foreground border-border"
 									: "bg-transparent text-muted-foreground border-border hover:border-muted-foreground/50"
 							}`}
@@ -443,7 +443,7 @@ export default function InitiativeDetailPage() {
 					</TabsList>
 					{!loadingTasks && totalCount > 0 && (
 						<div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-							<CheckCircle2 className="h-3.5 w-3.5 text-green-400" />
+							<CheckCircle2 className="h-3.5 w-3.5 text-success" />
 							<span>
 								{doneCount} of {totalCount} done
 							</span>
@@ -487,7 +487,7 @@ export default function InitiativeDetailPage() {
 										>
 											<div className="flex items-center gap-2 min-w-0 flex-1">
 												{task.kanban === "done" ? (
-													<Check className="h-3.5 w-3.5 text-green-400 shrink-0" />
+													<Check className="h-3.5 w-3.5 text-success shrink-0" />
 												) : (
 													<div className="h-3.5 w-3.5 rounded-full border border-muted-foreground/40 shrink-0" />
 												)}

@@ -492,7 +492,7 @@ export function TaskForm({
 													collaborators: [...form.collaborators, agent.id],
 												})
 											}
-											className="flex items-center gap-1 rounded-md border border-dashed px-2 py-1 text-xs text-muted-foreground hover:bg-accent hover:text-foreground transition-colors"
+											className="flex items-center gap-1 rounded-sm border border-dashed px-2 py-1 text-xs text-muted-foreground hover:bg-accent hover:text-foreground transition-colors"
 										>
 											<AgentIcon className="h-3 w-3" />
 											<Plus className="h-2.5 w-2.5" />
@@ -669,7 +669,7 @@ export function TaskForm({
 						<Link2 className="h-3.5 w-3.5" />
 						Dependencies
 						{form.blockedBy.length > 0 && (
-							<span className="text-xs text-yellow-500 ml-1 tabular-nums">
+							<span className="text-xs text-sunshine-700 ml-1 tabular-nums">
 								{form.blockedBy.length} selected
 							</span>
 						)}

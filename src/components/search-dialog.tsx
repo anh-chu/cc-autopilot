@@ -17,14 +17,14 @@ import type { Task } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
 const QUADRANT_LABELS: Record<string, { label: string; className: string }> = {
-	do: { label: "DO", className: "bg-red-500/20 text-red-400" },
+	do: { label: "DO", className: "bg-destructive/20 text-destructive" },
 	schedule: {
 		label: "SCHEDULE",
 		className: "bg-sunshine-700/20 text-sunshine-700",
 	},
 	delegate: {
 		label: "DELEGATE",
-		className: "bg-mistral-orange/20 text-mistral-orange",
+		className: "bg-accent/20 text-accent",
 	},
 	eliminate: {
 		label: "ELIMINATE",
@@ -36,7 +36,7 @@ const KANBAN_LABELS: Record<string, { label: string; className: string }> = {
 	"not-started": { label: "Todo", className: "bg-muted text-muted-foreground" },
 	"in-progress": {
 		label: "Active",
-		className: "bg-mistral-orange/20 text-mistral-orange",
+		className: "bg-accent/20 text-accent",
 	},
 	done: { label: "Done", className: "bg-success/20 text-success" },
 };
@@ -191,7 +191,7 @@ export function SearchDialog() {
 										project.status === "active"
 											? "bg-sunshine-700/20 text-sunshine-700"
 											: project.status === "paused"
-												? "bg-mistral-orange/20 text-mistral-orange"
+												? "bg-accent/20 text-accent"
 												: project.status === "completed"
 													? "bg-sunshine-700/20 text-sunshine-700"
 													: "bg-muted text-muted-foreground",
@@ -221,7 +221,7 @@ export function SearchDialog() {
 							>
 								<Lightbulb className="h-4 w-4 shrink-0 text-muted-foreground" />
 								<span className="flex-1 truncate">{entry.content}</span>
-								<span className="rounded-sm px-1.5 py-0.5 text-[10px] font-normal bg-mistral-orange/20 text-mistral-orange">
+								<span className="rounded-sm px-1.5 py-0.5 text-[10px] font-normal bg-accent/20 text-accent">
 									unprocessed
 								</span>
 								<ArrowRight className="h-3 w-3 shrink-0 text-muted-foreground/50" />

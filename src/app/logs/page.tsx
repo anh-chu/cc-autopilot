@@ -54,11 +54,11 @@ function getStatusBadgeClass(status: string): string {
 		case "running":
 			return "bg-sunshine-700 text-white";
 		case "completed":
-			return "bg-green-600 text-white";
+			return "bg-success text-white";
 		case "failed":
-			return "bg-red-600 text-white";
+			return "bg-destructive text-white";
 		case "timeout":
-			return "bg-amber-500 text-black";
+			return "bg-warning text-black";
 		default:
 			return "";
 	}
@@ -108,7 +108,7 @@ function LogTailCard({
 				{isLoading ? (
 					<p className="text-sm text-muted-foreground">Loading log...</p>
 				) : error ? (
-					<p className="text-sm text-red-500">{error}</p>
+					<p className="text-sm text-destructive">{error}</p>
 				) : allLines.length === 0 ? (
 					<p className="text-sm text-muted-foreground">{emptyMessage}</p>
 				) : (
@@ -450,7 +450,7 @@ export default function LogsPage() {
 									{failedRuns.map((run) => (
 										<div
 											key={run.id}
-											className="rounded-sm border border-red-500/20 bg-red-500/5 p-4"
+											className="rounded-sm border border-destructive/20 bg-destructive/5 p-4"
 										>
 											<div className="mb-2 flex flex-wrap items-center gap-2">
 												<p className="font-normal text-sm">{run.agentId}</p>
@@ -470,7 +470,7 @@ export default function LogsPage() {
 												{run.taskId ? `Task ${run.taskId}` : "Unlinked run"} ·
 												Started {formatRelativeTime(run.startedAt)}
 											</p>
-											<pre className="whitespace-pre-wrap break-words font-mono text-xs leading-relaxed text-red-950 dark:text-red-100">
+											<pre className="whitespace-pre-wrap break-words font-mono text-xs leading-relaxed text-destructive dark:text-destructive-foreground">
 												{getErrorExcerpt(run.error)}
 											</pre>
 										</div>

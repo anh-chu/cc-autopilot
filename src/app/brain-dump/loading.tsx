@@ -17,9 +17,9 @@ export default function BrainDumpLoading() {
 						]}
 						linesClassName="flex-1 space-y-2"
 						trailing={[
-							{ key: "primary-action", className: "h-7 w-14 rounded-md" },
-							{ key: "secondary-action", className: "h-7 w-7 rounded-md" },
-							{ key: "tertiary-action", className: "h-7 w-7 rounded-md" },
+							{ key: "primary-action", className: "h-7 w-14 rounded-sm" },
+							{ key: "secondary-action", className: "h-7 w-7 rounded-sm" },
+							{ key: "tertiary-action", className: "h-7 w-7 rounded-sm" },
 						]}
 					/>
 				)}

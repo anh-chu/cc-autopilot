@@ -338,8 +338,8 @@ export default function CommandCenterPage() {
 								onClick={() => setShowCreateProject(true)}
 							>
 								<CardContent className="p-4 flex items-start gap-3">
-									<div className="h-9 w-9 rounded-sm bg-mistral-orange/10 flex items-center justify-center shrink-0">
-										<FolderOpen className="h-4 w-4 text-mistral-orange" />
+									<div className="h-9 w-9 rounded-sm bg-accent/10 flex items-center justify-center shrink-0">
+										<FolderOpen className="h-4 w-4 text-accent" />
 									</div>
 									<div>
 										<p className="text-sm font-normal">Create a project</p>
@@ -355,8 +355,8 @@ export default function CommandCenterPage() {
 								onClick={() => setShowCreateTask(true)}
 							>
 								<CardContent className="p-4 flex items-start gap-3">
-									<div className="h-9 w-9 rounded-sm bg-sunshine-700/10 flex items-center justify-center shrink-0">
-										<Zap className="h-4 w-4 text-mistral-orange" />
+									<div className="h-9 w-9 rounded-sm bg-accent/10 flex items-center justify-center shrink-0">
+										<Zap className="h-4 w-4 text-accent" />
 									</div>
 									<div>
 										<p className="text-sm font-normal">Add your first task</p>
@@ -369,7 +369,7 @@ export default function CommandCenterPage() {
 
 							<Card className="sm:col-span-2 bg-muted/30">
 								<CardContent className="p-4 flex items-start gap-3">
-									<div className="h-9 w-9 rounded-sm bg-sunshine-700/10 flex items-center justify-center shrink-0">
+									<div className="h-9 w-9 rounded-sm bg-accent/10 flex items-center justify-center shrink-0">
 										<Users className="h-4 w-4 text-sunshine-700" />
 									</div>
 									<div>
@@ -410,7 +410,7 @@ export default function CommandCenterPage() {
 				<Card
 					className={cn(
 						"cursor-pointer transition-all hover:shadow-lg hover:border-primary/30",
-						daemonRunning && "border-sunshine-700/20 bg-sunshine-700/10",
+						daemonRunning && "border-sunshine-700/20 bg-accent/10",
 					)}
 				>
 					<CardContent className="p-4">
@@ -419,14 +419,14 @@ export default function CommandCenterPage() {
 								<div
 									className={cn(
 										"h-9 w-9 rounded-sm flex items-center justify-center",
-										daemonRunning ? "bg-sunshine-700/10" : "bg-muted",
+										daemonRunning ? "bg-accent/10" : "bg-muted",
 									)}
 								>
 									<Rocket
 										className={cn(
 											"h-4 w-4",
 											daemonRunning
-												? "text-mistral-orange"
+												? "text-accent"
 												: "text-muted-foreground",
 										)}
 									/>
@@ -437,7 +437,7 @@ export default function CommandCenterPage() {
 											className={cn(
 												"h-2 w-2 rounded-full shrink-0",
 												daemonRunning
-													? "bg-mistral-orange animate-pulse"
+													? "bg-sunshine-700 animate-pulse"
 													: "bg-muted-foreground/40",
 											)}
 										/>
@@ -456,7 +456,7 @@ export default function CommandCenterPage() {
 										<Button
 											size="sm"
 											variant="outline"
-											className="text-xs gap-1.5 text-sunshine-700 border-sunshine-700/30 hover:bg-sunshine-700/10"
+											className="text-xs gap-1.5 text-sunshine-700 border-sunshine-700/30 hover:bg-accent/10"
 											onClick={(e) => {
 												e.preventDefault();
 												startDaemon();
@@ -489,17 +489,17 @@ export default function CommandCenterPage() {
 				</Card>
 			</Link>
 
-			<Card className="border-mistral-orange/20 bg-mistral-orange/5">
+			<Card className="border-sunshine-700/20 bg-accent/10">
 				<CardContent className="p-4">
 					<div className="flex items-center gap-2 mb-3">
-						<AlertTriangle className="h-4 w-4 text-mistral-orange" />
-						<h3 className="text-sm font-normal text-mistral-orange">
+						<AlertTriangle className="h-4 w-4 text-sunshine-700" />
+						<h3 className="text-sm font-normal text-sunshine-700">
 							Attention Required
 						</h3>
 						{totalAttentionCount > 0 && (
 							<Badge
 								variant="secondary"
-								className="text-xs tabular-nums border-yellow-500/30 text-mistral-orange ml-auto"
+								className="text-xs tabular-nums border-sunshine-700/30 text-sunshine-700 ml-auto"
 							>
 								{totalAttentionCount}
 							</Badge>
@@ -538,7 +538,7 @@ export default function CommandCenterPage() {
 													<Button
 														size="sm"
 														variant="outline"
-														className="text-xs h-6 px-2 text-sunshine-700 border-sunshine-700/30 hover:bg-sunshine-700/10"
+														className="text-xs h-6 px-2 text-sunshine-700 border-sunshine-700/30 hover:bg-accent/10"
 														disabled={loadingItems.has(decision.id)}
 														onClick={() =>
 															handleDecisionAnswer(decision.id, "approved")
@@ -549,7 +549,7 @@ export default function CommandCenterPage() {
 													<Button
 														size="sm"
 														variant="outline"
-														className="text-xs h-6 px-2 text-red-600 border-red-500/30 hover:bg-red-500/10"
+														className="text-xs h-6 px-2 text-destructive border-destructive/30 hover:bg-destructive/10"
 														disabled={loadingItems.has(decision.id)}
 														onClick={() =>
 															handleDecisionAnswer(decision.id, "rejected")
@@ -627,7 +627,7 @@ export default function CommandCenterPage() {
 							{doQuadrantMyTasks.length > 0 && (
 								<Link href="/priority-matrix">
 									<div className="flex items-center gap-2 rounded-sm px-3 py-2 hover:bg-accent/50 transition-colors">
-										<ShieldAlert className="h-4 w-4 shrink-0 text-red-400" />
+										<ShieldAlert className="h-4 w-4 shrink-0 text-destructive" />
 										<span className="text-foreground text-xs">
 											{doQuadrantMyTasks.length} DO-quadrant task
 											{doQuadrantMyTasks.length > 1 ? "s" : ""} not started
@@ -684,10 +684,10 @@ export default function CommandCenterPage() {
 								const Icon = agentIcons[agent.id];
 								const statusIndicator =
 									agent.status === "overloaded"
-										? "bg-red-500"
+										? "bg-destructive"
 										: agent.status === "awaiting-decision"
 											? "bg-sunshine-700"
-											: "bg-mistral-orange";
+											: "bg-primary";
 								const statusLabel =
 									agent.status === "overloaded"
 										? "Overloaded"
@@ -718,11 +718,11 @@ export default function CommandCenterPage() {
 													className={cn(
 														"text-[10px] px-1.5 py-0 rounded-full",
 														agent.status === "dependencies" &&
-															"text-mistral-orange dark:text-mistral-orange bg-mistral-orange/10",
+															"text-sunshine-700 dark:text-sunshine-700 bg-accent/10",
 														agent.status === "awaiting-decision" &&
-															"text-amber-600 dark:text-amber-400 bg-sunshine-700/10",
+															"text-warning dark:text-warning bg-accent/10",
 														agent.status === "overloaded" &&
-															"text-red-600 dark:text-red-400 bg-red-500/10",
+															"text-destructive dark:text-destructive bg-destructive/10",
 													)}
 												>
 													{statusLabel}
@@ -738,12 +738,12 @@ export default function CommandCenterPage() {
 												</p>
 											)}
 											{agent.dependencyCount > 0 && (
-												<p className="text-[11px] text-mistral-orange ml-6 mt-0.5">
+												<p className="text-[11px] text-sunshine-700 ml-6 mt-0.5">
 													{agent.dependencyCount} waiting on dependencies
 												</p>
 											)}
 											{agent.awaitingDecisionCount > 0 && (
-												<p className="text-[11px] text-amber-500 ml-6 mt-0.5">
+												<p className="text-[11px] text-warning ml-6 mt-0.5">
 													{agent.awaitingDecisionCount} awaiting decision
 												</p>
 											)}

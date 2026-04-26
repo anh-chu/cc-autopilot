@@ -95,7 +95,7 @@ export function SidebarFooter({ collapsed }: SidebarFooterProps) {
 								className={cn(
 									"h-2.5 w-2.5 fill-current",
 									isPm2
-										? "text-mistral-orange animate-pulse"
+										? "text-accent animate-pulse"
 										: "text-muted-foreground",
 								)}
 							/>
@@ -113,7 +113,7 @@ export function SidebarFooter({ collapsed }: SidebarFooterProps) {
 						<Badge
 							className={cn(
 								isPm2
-									? "bg-mistral-orange/15 text-mistral-orange border-mistral-orange/25"
+									? "bg-accent/15 text-accent border-accent/25"
 									: "bg-muted/50 text-muted-foreground border-muted",
 							)}
 						>
@@ -207,7 +207,7 @@ export function SidebarFooter({ collapsed }: SidebarFooterProps) {
 				<DialogContent>
 					<DialogHeader>
 						<DialogTitle className="flex items-center gap-2">
-							<AlertTriangle className="h-5 w-5 text-red-500" />
+							<AlertTriangle className="h-5 w-5 text-destructive" />
 							Emergency Stop
 						</DialogTitle>
 						<DialogDescription>

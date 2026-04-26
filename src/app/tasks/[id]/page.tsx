@@ -271,7 +271,7 @@ export default function TaskDetailPage() {
 
 	if (loadingTasks) {
 		return (
-			<div className="container mx-auto py-6 max-w-[1400px] space-y-6">
+			<div className="container mx-auto py-6 max-w-screen-2xl space-y-6">
 				<Skeleton className="h-8 w-64" />
 				<div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
 					<div className="lg:col-span-8 space-y-4">
@@ -289,7 +289,7 @@ export default function TaskDetailPage() {
 
 	if (!task) {
 		return (
-			<div className="container mx-auto py-6 max-w-[1400px] space-y-6">
+			<div className="container mx-auto py-6 max-w-screen-2xl space-y-6">
 				<BreadcrumbNav
 					items={[{ label: "Tasks", href: "/tasks" }, { label: "Not Found" }]}
 				/>
@@ -365,7 +365,7 @@ export default function TaskDetailPage() {
 	const comments = localComments ?? [];
 
 	return (
-		<div className="container mx-auto py-6 max-w-[1400px] space-y-6">
+		<div className="container mx-auto py-6 max-w-screen-2xl space-y-6">
 			{/* Top nav row */}
 			<div className="flex items-center gap-4 mb-4">
 				<Button variant="ghost" size="icon" onClick={() => router.back()}>
@@ -409,7 +409,7 @@ export default function TaskDetailPage() {
 											className={cn(
 												"text-xs gap-1",
 												unmetDepCount > 0
-													? "border-mistral-orange/30 text-mistral-orange"
+													? "border-accent/30 text-accent"
 													: "",
 											)}
 										>
@@ -422,7 +422,7 @@ export default function TaskDetailPage() {
 									{hasAwaitingDecision && (
 										<Badge
 											variant="secondary"
-											className="text-xs gap-1 border-amber-500/30 text-amber-500"
+											className="text-xs gap-1 border-sunshine-700/30 text-sunshine-700"
 										>
 											<Clock className="h-3 w-3" />
 											Awaiting Decision
@@ -562,20 +562,20 @@ export default function TaskDetailPage() {
 												key={comment.id}
 												className={cn(
 													"flex gap-2 group/comment",
-													isAgent && "pl-2 border-l-2 border-mistral-orange/30",
+													isAgent && "pl-2 border-l-2 border-accent/30",
 												)}
 											>
 												<div
 													className={cn(
 														"h-6 w-6 rounded-full flex items-center justify-center shrink-0 mt-0.5",
-														isAgent ? "bg-mistral-orange/10" : "bg-muted",
+														isAgent ? "bg-accent/10" : "bg-muted",
 													)}
 												>
 													<AuthorIcon
 														className={cn(
 															"h-3 w-3",
 															isAgent
-																? "text-mistral-orange"
+																? "text-accent"
 																: "text-muted-foreground",
 														)}
 													/>
@@ -585,7 +585,7 @@ export default function TaskDetailPage() {
 														<span
 															className={cn(
 																"text-xs font-normal",
-																isAgent && "text-mistral-orange",
+																isAgent && "text-accent",
 															)}
 														>
 															{comment.author === "system"
@@ -604,7 +604,7 @@ export default function TaskDetailPage() {
 														</span>
 														<button
 															type="button"
-															className="opacity-0 group-hover/comment:opacity-100 transition-opacity text-muted-foreground hover:text-red-500 ml-auto"
+															className="opacity-0 group-hover/comment:opacity-100 transition-opacity text-muted-foreground hover:text-destructive ml-auto"
 															onClick={() => handleDeleteComment(comment.id)}
 															aria-label="Delete comment"
 														>
@@ -631,7 +631,7 @@ export default function TaskDetailPage() {
 																			href={att.url}
 																			target="_blank"
 																			rel="noopener noreferrer"
-																			className="flex items-center gap-1 bg-muted rounded px-2 py-0.5 text-xs text-mistral-orange hover:text-sunshine-700"
+																			className="flex items-center gap-1 bg-muted rounded px-2 py-0.5 text-xs text-accent hover:text-sunshine-700"
 																		>
 																			📎 {att.filename}
 																		</a>
@@ -675,7 +675,7 @@ export default function TaskDetailPage() {
 										className={cn(
 											"shrink-0 self-end",
 											mentionedAgentIds.length > 0 &&
-												"text-mistral-orange hover:text-sunshine-700",
+												"text-accent hover:text-sunshine-700",
 										)}
 										onClick={handleAddComment}
 										disabled={!commentText.trim() && stagedFiles.length === 0}

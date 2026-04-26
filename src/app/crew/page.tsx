@@ -116,7 +116,7 @@ function AgentCard({
 											: agent.skipPermissions;
 									if (permField === "on") {
 										return (
-											<span className="flex items-center gap-1 text-[10px] text-amber-500 font-normal">
+											<span className="flex items-center gap-1 text-[10px] text-warning font-normal">
 												<ShieldAlert className="h-3 w-3" />
 												Unrestricted
 											</span>
@@ -298,7 +298,7 @@ export default function CrewPage() {
 						variant={config.execution.skipPermissions ? "default" : "outline"}
 						className={
 							config.execution.skipPermissions
-								? "bg-amber-500 hover:bg-amber-600 text-white border-amber-500"
+								? "bg-warning hover:bg-warning text-white border-warning"
 								: ""
 						}
 						onClick={() => toggleGlobalPermissions(true)}

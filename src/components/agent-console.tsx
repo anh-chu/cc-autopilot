@@ -87,7 +87,7 @@ function getThinkingFromBlock(block: ContentBlock): string {
 function ResponseTextEntry({ text }: { text: string }) {
 	return (
 		<div className="flex gap-2 py-1.5 px-2">
-			<MessageSquare className="h-3.5 w-3.5 mt-0.5 shrink-0 text-mistral-orange" />
+			<MessageSquare className="h-3.5 w-3.5 mt-0.5 shrink-0 text-accent" />
 			<MarkdownContent
 				content={text}
 				className="min-w-0 flex-1 text-sm text-foreground/90"
@@ -338,14 +338,14 @@ function ToolUseGroupEntry({
 
 	return (
 		<Collapsible open={open} onOpenChange={setOpen}>
-			<CollapsibleTrigger className="flex items-center gap-1.5 py-1 px-2 w-full hover:bg-amber-500/10 rounded text-left">
+			<CollapsibleTrigger className="flex items-center gap-1.5 py-1 px-2 w-full hover:bg-warning/10 rounded text-left">
 				{open ? (
 					<ChevronDown className="h-3 w-3 shrink-0 text-muted-foreground" />
 				) : (
 					<ChevronRight className="h-3 w-3 shrink-0 text-muted-foreground" />
 				)}
-				<Wrench className="h-3 w-3 shrink-0 text-amber-400" />
-				<span className="text-xs font-mono text-amber-400">{label}</span>
+				<Wrench className="h-3 w-3 shrink-0 text-warning" />
+				<span className="text-xs font-mono text-warning">{label}</span>
 			</CollapsibleTrigger>
 			<CollapsibleContent className="space-y-0.5">
 				{entries.map((entry, index) =>
@@ -374,8 +374,8 @@ function ToolUseEntry({ block }: { block: ToolUseBlock }) {
 				) : (
 					<ChevronRight className="h-3 w-3 shrink-0 text-muted-foreground" />
 				)}
-				<Wrench className="h-3 w-3 shrink-0 text-amber-400" />
-				<span className="text-xs font-mono text-amber-400">{block.name}</span>
+				<Wrench className="h-3 w-3 shrink-0 text-warning" />
+				<span className="text-xs font-mono text-warning">{block.name}</span>
 			</CollapsibleTrigger>
 			{input && (
 				<CollapsibleContent>
@@ -584,7 +584,7 @@ export function AgentConsole({ runId, onStop }: AgentConsoleProps) {
 					{isConnected && !isDone && (
 						<Badge
 							variant="outline"
-							className="text-[10px] px-1.5 py-0 text-mistral-orange border-mistral-orange/30"
+							className="text-[10px] px-1.5 py-0 text-accent border-accent/30"
 						>
 							<Loader2 className="h-2.5 w-2.5 mr-1 animate-spin" />
 							streaming
@@ -601,7 +601,7 @@ export function AgentConsole({ runId, onStop }: AgentConsoleProps) {
 					<Button
 						variant="ghost"
 						size="sm"
-						className="h-6 px-2 text-xs text-red-500 hover:text-red-600 hover:bg-red-500/10"
+						className="h-6 px-2 text-xs text-destructive hover:text-destructive hover:bg-destructive/10"
 						onClick={onStop}
 					>
 						<Square className="h-3 w-3 mr-1 fill-current" />
