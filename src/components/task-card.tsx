@@ -131,8 +131,8 @@ export function TaskCard({
 						suppressNextClick.current = true;
 					}}
 					className={cn(
-						"cursor-grab select-none transition-all hover:shadow-e-3 hover:border-primary/20 animate-fade-in-up rounded-sm",
-						isDragging && "opacity-50 shadow-e-3 rotate-1",
+						"cursor-grab select-none transition-all shadow-e-3 hover:shadow-e-4 hover:border-primary/20 animate-fade-in-up rounded-sm",
+						isDragging && "opacity-50 shadow-e-4 rotate-1",
 						onClick && "cursor-pointer",
 						isBlocked && "opacity-60 border-destructive/30",
 						!isBlocked &&
@@ -245,8 +245,8 @@ export function TaskCard({
 							{/* Assignee badge */}
 							{task.assignedTo && AssigneeIcon && (
 								<Badge
-									variant="secondary"
-									className="text-xs px-1.5 py-0 gap-1"
+									variant="outline"
+									className="text-xs px-1.5 py-0 gap-1 text-muted-foreground border-border"
 								>
 									<AssigneeIcon className="h-2.5 w-2.5" />
 									{assigneeLabel}
@@ -306,8 +306,8 @@ export function TaskCard({
 							{task.tags.slice(0, 2).map((tag) => (
 								<Badge
 									key={tag}
-									variant="secondary"
-									className="text-xs px-1.5 py-0 bg-muted"
+									variant="outline"
+									className="text-xs px-1.5 py-0 text-muted-foreground border-border"
 								>
 									{tag}
 								</Badge>
