@@ -14,18 +14,6 @@ A visual canvas where you compose automations by connecting nodes (triggers, age
 
 Open questions: node spec format, storage location in `~/.cmc/workspaces/{id}/`, whether to reuse `@dnd-kit` or bring in a graph lib.
 
-## 2. Second-brain evolving wiki
-
-A living knowledge base that agents read from and write back to. Pages evolve as tasks complete. Goal: project memory that compounds instead of rotting.
-
-- Markdown pages under `~/.cmc/workspaces/{id}/wiki/`
-- Agents can read any page, propose edits through a diff-review flow
-- Backlinks and tag index auto-maintained
-- Daily digest agent summarizes what changed
-- Surfaces in the UI as a left-nav tree, editable inline
-
-Open questions: review/approval model for agent edits, conflict handling when multiple agents touch the same page, embedding search vs plain grep.
-
 ## Done
 
 - ~~Component simplification pass~~: sidebar nav rationalized, context menu wrapper extracted, dialog create/edit pairs merged, AgentForm and SkillForm extracted, checkpoints system removed.
