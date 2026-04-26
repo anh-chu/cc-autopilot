@@ -13,12 +13,15 @@ Complete commitment to warm temperature. Gradient system: yellow (`#ffd900`) to 
 ### Color
 | Role | Variable | Light Value | Dark Value | Notes |
 |---|---|---|---|---|
-| Page Bg | `--background` | `#fffaeb` | `#1f1916` | Foundation canvas |
-| Surface | `--card` | `#fffaeb` | `#2a2218` | Base surface |
-| Popover | `--popover` | `#ffffff` | `#322820` | Floating surfaces |
+| Page Bg | `--background` | `#fdf3da` | `#1f1916` | Foundation canvas (deep honey-cream base) |
+| Surface | `--card` | `#fffaeb` | `#2a2218` | Base surface, lifted above bg |
+| Popover | `--popover` | `#ffffff` | `#322820` | Apex tier — modals, dropdowns, inputs |
+| Secondary | `--secondary` | `#fce7b0` | (dark equiv) | Buttons/pills, distinct from sidebar |
+| Muted | `--muted` | `#f2deb0` | (dark equiv) | Empty/disabled states, subdued surfaces |
+| Sidebar Bg | `--sidebar-background` | `#fff0c2` | `#251c12` | Structural chrome (sunshine-yellow) |
 | Text Base | `--foreground` | `#1f1f1f` | `#fffaeb` | Primary text |
 | Text Muted | `--muted-foreground` | `hsl(0, 0%, 24%)` | `hsl(35, 18%, 60%)` | Secondary text |
-| Border | `--border` | `hsl(40, 30%, 88%)` | `hsl(28, 18%, 22%)` | Structural dividers |
+| Border | `--border` | `#dfcc9f` | `hsl(28, 18%, 22%)` | Structural dividers (warm taupe) |
 | Input Border| `--input` | `hsl(40, 25%, 80%)` | `hsl(28, 15%, 20%)` | Form borders |
 | Primary Action| `--primary` | `#1f1f1f` | `#fa520f` | Main CTA bg |
 | Primary Text| `--primary-foreground`| `#ffffff` | `#ffffff` | Main CTA text |
@@ -61,17 +64,34 @@ Near-zero rule. Architectural geometry.
 - **Exception**: Nothing else. Kill `rounded-md`, `rounded-lg` (Audit 03-spacing: 15+ violations).
 
 ### Elevation
-Map shadow + border + ring to semantic tiers.
-| Tier | Name | Light Spec | Dark Spec | Usage |
-|---|---|---|---|---|
-| `e-0` | Flat | `border shadow-none` | `border shadow-none` | Standard blocks |
-| `e-1` | Input | `border-input shadow-sm` | `border-input shadow-sm` | Inputs, Select |
-| `e-2` | Card | `border-0 shadow-golden` | `border-0 shadow-golden` | Cards, elevated containers |
-| `e-3` | Dropdown| `border shadow-golden` | `border shadow-golden` | Dropdown menus |
-| `e-4` | Dialog | `border shadow-golden` | `border shadow-golden` | Dialogs |
-| `e-5` | Toast | `border-primary shadow-golden`| `border-primary shadow-golden`| High-priority alerts |
+Map shadow + border + ring to semantic tiers. Use `shadow-e-{n}` utilities, never raw `shadow-sm/md/lg`.
+| Tier | Name | Spec | Usage |
+|---|---|---|---|
+| `e-0` | Flat | `shadow-none` | Standard blocks, table rows |
+| `e-1` | Input | `shadow-e-1` | Inputs, textareas, selects, switches |
+| `e-2` | Card | `shadow-e-2` | Cards (default in `Card` primitive), task cards, panels |
+| `e-3` | Pop | `shadow-e-3` | Hover-lifted cards, focused emphasis |
+| `e-4` | Dialog | `shadow-e-4` | Dialogs, modals |
+| `e-5` | Toast | `shadow-e-5` | High-priority alerts, toasts |
+| `golden` | Dramatic | `shadow-golden` | Opt-in only — sidebar, dropdown, command, drag preview, hero project cards on hover |
 
-*Note: `shadow-golden` in light is rgba(127,99,21,x) multi-layer. Dark is dark drop-shadow only.*
+*`shadow-e-*` in light is `rgba(127,99,21,x)` warm-brown multi-layer with white inset highlight. Dark is pure dark drop-shadow with subtle white inset. `shadow-golden` is the original 5-layer cone, reserved for elevated chrome where the dramatic look is intentional.*
+
+### Surface Hierarchy (Light Mode)
+Monotonic warm-to-white elevation. All lift moves in the same hue family; pure white is reserved for the apex tier.
+
+| Tier | Token | Hex | Role |
+|---|---|---|---|
+| Base | `--background` | `#fdf3da` | Recessive canvas |
+| Mid | `--card` | `#fffaeb` | Cards, panels, content surfaces |
+| Apex | `--popover` | `#ffffff` | Modals, dropdowns, inputs |
+
+Sidebar (`#fff0c2`) and secondary chips (`#fce7b0`) sit *parallel* to this stack as warm structural chrome — they are not part of the elevation ladder.
+
+**Rules**
+- Inputs/textareas bind to `bg-popover` so they read white in light, lifted in dark, regardless of the surface they sit on.
+- Never use `bg-white` directly. Use `bg-popover` for the apex tier.
+- Never use `bg-card` and `bg-background` interchangeably; they are different elevation tiers.
 
 ### Motion
 Semantic states tied to durations. All `ease-out`.
