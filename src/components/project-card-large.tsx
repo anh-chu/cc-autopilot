@@ -71,7 +71,7 @@ export function ProjectCardLarge({
 				<Link href={`/projects/${project.id}`}>
 					<Card
 						className={cn(
-							"group cursor-pointer border border-transparent transition-all hover:shadow-golden hover:border-primary/30 hover:-translate-y-0.5 animate-fade-in-up",
+							"group cursor-pointer border border-transparent transition-all hover:shadow-e-4 hover:border-primary/30 hover:-translate-y-0.5 animate-fade-in-up",
 							isRunning &&
 								"ring-2 ring-accent/50 border-accent/30 shadow-golden",
 						)}

@@ -116,7 +116,7 @@ Three tiers, applied by role. All transitions `transition-all` (slow duration). 
 
 | Tier | Used for | Recipe |
 |---|---|---|
-| **Entity** | Cards that navigate to a detail page and represent a domain object (project, initiative, agent, task list row) | `group cursor-pointer border border-transparent transition-all hover:shadow-golden hover:border-primary/30 hover:-translate-y-0.5` |
+| **Entity** | Cards that navigate to a detail page and represent a domain object (project, initiative, agent, task list row) | `group cursor-pointer border border-transparent transition-all hover:shadow-e-4 hover:border-primary/30 hover:-translate-y-0.5` |
 | **Widget** | Dashboard CTA tiles, banners, summary cards, quadrant tiles | `cursor-pointer border border-transparent transition-all hover:shadow-e-3 hover:border-primary/30` (no translate) |
 | **Dashed CTA** | "Create your first…" empty placeholders with `border-dashed` | `cursor-pointer hover:border-primary/30` (already has dashed border, only color tint changes) |
 | **Draggable card-on-card** | Task cards inside kanban columns | `cursor-grab select-none border border-transparent transition-all shadow-e-3 hover:shadow-e-4 hover:border-primary/20` |
@@ -125,7 +125,7 @@ Draggable card-on-card is intentionally not the entity recipe. It rests at `shad
 
 The `border border-transparent` resting state matters: the `Card` primitive is `border-0`, so `hover:border-primary/30` alone sets only border-color and renders nothing. The transparent border reserves the 1px gutter and lets the tint fade in without layout shift.
 
-Entity cards use `group` so nested affordances (overflow menus, action icons) can fade in on `group-hover:opacity-100`. Never put `shadow-golden` on the resting state of an entity card; it collapses the hover signal.
+Entity cards use `group` so nested affordances (overflow menus, action icons) can fade in on `group-hover:opacity-100`. The hover shadow is `shadow-e-4`, not the dramatic `shadow-golden` 5-stop ambient — entity cards live in dense grids where a 400px spread on hover would feel theatrical. Reserve `shadow-golden` for surfaces that are alone on screen (popovers, focused single-card states).
 
 ### Motion
 Semantic states tied to durations. All `ease-out`.
