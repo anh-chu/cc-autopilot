@@ -1,6 +1,6 @@
 "use client";
 
-import { Rocket, Loader2, Square } from "lucide-react";
+import { Loader2, Rocket, Square } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Tip } from "@/components/ui/tip";
 import { cn } from "@/lib/utils";

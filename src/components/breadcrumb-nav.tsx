@@ -1,7 +1,7 @@
 "use client";
 
-import Link from "next/link";
 import { ChevronRight, LayoutDashboard } from "lucide-react";
+import Link from "next/link";
 import { cn } from "@/lib/utils";
 
 export interface BreadcrumbItem {
@@ -38,7 +38,7 @@ export function BreadcrumbNav({ items, className }: BreadcrumbNavProps) {
 							{item.label}
 						</Link>
 					) : (
-						<span className="text-foreground font-medium">{item.label}</span>
+						<span className="text-foreground font-normal">{item.label}</span>
 					)}
 				</span>
 			))}

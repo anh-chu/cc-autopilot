@@ -1,6 +1,6 @@
+import { type NextRequest, NextResponse } from "next/server";
 import path from "path";
-import { NextRequest, NextResponse } from "next/server";
-import { tailFile, isAllowedLogPath } from "@/lib/log-reader";
+import { isAllowedLogPath, tailFile } from "@/lib/log-reader";
 import { DATA_DIR } from "@/lib/paths";
 
 export async function GET(request: NextRequest) {

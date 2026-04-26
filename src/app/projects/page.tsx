@@ -133,7 +133,7 @@ export default function ProjectsPage() {
 			<BreadcrumbNav items={[{ label: "Projects" }]} />
 			<div className="flex items-center justify-between">
 				<div className="flex items-center gap-3">
-					<h1 className="text-xl font-bold">Projects</h1>
+					<h1 className="text-xl font-normal">Projects</h1>
 					{archivedCount > 0 && (
 						<Tip content="Toggle archived projects">
 							<Button

@@ -1,26 +1,26 @@
 "use client";
 
-import { useState } from "react";
 import {
-	HelpCircle,
-	User,
-	Search,
-	Code,
-	Megaphone,
 	BarChart3,
 	Bot,
+	Code,
+	HelpCircle,
+	Megaphone,
+	Search,
+	User,
 } from "lucide-react";
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
 import {
 	Dialog,
 	DialogContent,
+	DialogDescription,
 	DialogHeader,
 	DialogTitle,
-	DialogDescription,
 } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { showSuccess, showError } from "@/lib/toast";
 import { apiFetch } from "@/lib/api-client";
+import { showError, showSuccess } from "@/lib/toast";
 import type { DecisionItem } from "@/lib/types";
 import { AGENT_ROLES } from "@/lib/types";
 
@@ -113,11 +113,11 @@ export function DecisionDialog({
 				<div className="space-y-4">
 					{/* Question */}
 					<div className="flex items-start gap-3">
-						<div className="h-8 w-8 rounded-lg bg-yellow-500/20 flex items-center justify-center shrink-0">
+						<div className="h-8 w-8 rounded-sm bg-yellow-500/20 flex items-center justify-center shrink-0">
 							<RequestorIcon className="h-4 w-4 text-yellow-400" />
 						</div>
 						<div className="flex-1">
-							<p className="text-sm font-semibold">{decision.question}</p>
+							<p className="text-sm font-normal">{decision.question}</p>
 							<div className="flex items-center gap-2 mt-1">
 								<span className="text-xs text-muted-foreground">
 									Asked by {requestorLabel}

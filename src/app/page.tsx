@@ -85,7 +85,7 @@ function AttentionRow({
 	actions?: ReactNode;
 }) {
 	return (
-		<div className="rounded-lg border border-border/50 bg-background/60 p-3 space-y-2">
+		<div className="rounded-sm border border-border/50 bg-background/60 p-3 space-y-2">
 			<div className="flex items-start gap-2">
 				<span className="text-base leading-none mt-0.5">{icon}</span>
 				<div className="flex-1 min-w-0">{children}</div>
@@ -321,11 +321,11 @@ export default function CommandCenterPage() {
 
 				<div className="flex flex-col items-center justify-center py-12 md:py-20">
 					<div className="text-center max-w-lg mx-auto space-y-6">
-						<div className="h-16 w-16 rounded-2xl bg-primary/10 flex items-center justify-center mx-auto">
+						<div className="h-16 w-16 rounded-sm bg-primary/10 flex items-center justify-center mx-auto">
 							<Rocket className="h-8 w-8 text-primary" />
 						</div>
 						<div>
-							<h1 className="text-2xl font-bold">Welcome to Task Control</h1>
+							<h1 className="text-2xl font-normal">Welcome to Task Control</h1>
 							<p className="text-muted-foreground mt-2">
 								Your hub for orchestrating AI agents. Create projects, delegate
 								tasks, and let your agents handle the rest.
@@ -338,11 +338,11 @@ export default function CommandCenterPage() {
 								onClick={() => setShowCreateProject(true)}
 							>
 								<CardContent className="p-4 flex items-start gap-3">
-									<div className="h-9 w-9 rounded-lg bg-blue-500/10 flex items-center justify-center shrink-0">
-										<FolderOpen className="h-4 w-4 text-blue-500" />
+									<div className="h-9 w-9 rounded-sm bg-mistral-orange/10 flex items-center justify-center shrink-0">
+										<FolderOpen className="h-4 w-4 text-mistral-orange" />
 									</div>
 									<div>
-										<p className="text-sm font-medium">Create a project</p>
+										<p className="text-sm font-normal">Create a project</p>
 										<p className="text-xs text-muted-foreground mt-0.5">
 											Organize your work into projects
 										</p>
@@ -355,11 +355,11 @@ export default function CommandCenterPage() {
 								onClick={() => setShowCreateTask(true)}
 							>
 								<CardContent className="p-4 flex items-start gap-3">
-									<div className="h-9 w-9 rounded-lg bg-green-500/10 flex items-center justify-center shrink-0">
-										<Zap className="h-4 w-4 text-green-500" />
+									<div className="h-9 w-9 rounded-sm bg-sunshine-700/10 flex items-center justify-center shrink-0">
+										<Zap className="h-4 w-4 text-mistral-orange" />
 									</div>
 									<div>
-										<p className="text-sm font-medium">Add your first task</p>
+										<p className="text-sm font-normal">Add your first task</p>
 										<p className="text-xs text-muted-foreground mt-0.5">
 											Break work into actionable items
 										</p>
@@ -369,11 +369,11 @@ export default function CommandCenterPage() {
 
 							<Card className="sm:col-span-2 bg-muted/30">
 								<CardContent className="p-4 flex items-start gap-3">
-									<div className="h-9 w-9 rounded-lg bg-purple-500/10 flex items-center justify-center shrink-0">
-										<Users className="h-4 w-4 text-purple-500" />
+									<div className="h-9 w-9 rounded-sm bg-sunshine-700/10 flex items-center justify-center shrink-0">
+										<Users className="h-4 w-4 text-sunshine-700" />
 									</div>
 									<div>
-										<p className="text-sm font-medium">Deploy AI agents</p>
+										<p className="text-sm font-normal">Deploy AI agents</p>
 										<p className="text-xs text-muted-foreground mt-0.5">
 											Assign tasks to Researcher, Developer, Marketer, or
 											Business Analyst agents. They work through Claude Code and
@@ -410,7 +410,7 @@ export default function CommandCenterPage() {
 				<Card
 					className={cn(
 						"cursor-pointer transition-all hover:shadow-lg hover:border-primary/30",
-						daemonRunning && "border-green-500/20 bg-green-500/5",
+						daemonRunning && "border-sunshine-700/20 bg-sunshine-700/10",
 					)}
 				>
 					<CardContent className="p-4">
@@ -418,15 +418,15 @@ export default function CommandCenterPage() {
 							<div className="flex items-center gap-3">
 								<div
 									className={cn(
-										"h-9 w-9 rounded-lg flex items-center justify-center",
-										daemonRunning ? "bg-green-500/10" : "bg-muted",
+										"h-9 w-9 rounded-sm flex items-center justify-center",
+										daemonRunning ? "bg-sunshine-700/10" : "bg-muted",
 									)}
 								>
 									<Rocket
 										className={cn(
 											"h-4 w-4",
 											daemonRunning
-												? "text-green-500"
+												? "text-mistral-orange"
 												: "text-muted-foreground",
 										)}
 									/>
@@ -437,11 +437,11 @@ export default function CommandCenterPage() {
 											className={cn(
 												"h-2 w-2 rounded-full shrink-0",
 												daemonRunning
-													? "bg-green-500 animate-pulse"
+													? "bg-mistral-orange animate-pulse"
 													: "bg-muted-foreground/40",
 											)}
 										/>
-										<p className="text-sm font-semibold">Automation</p>
+										<p className="text-sm font-normal">Automation</p>
 									</div>
 									<p className="text-xs text-muted-foreground mt-0.5">
 										{daemonRunning
@@ -456,7 +456,7 @@ export default function CommandCenterPage() {
 										<Button
 											size="sm"
 											variant="outline"
-											className="text-xs gap-1.5 text-green-500 border-green-500/30 hover:bg-green-500/10"
+											className="text-xs gap-1.5 text-sunshine-700 border-sunshine-700/30 hover:bg-sunshine-700/10"
 											onClick={(e) => {
 												e.preventDefault();
 												startDaemon();
@@ -489,17 +489,17 @@ export default function CommandCenterPage() {
 				</Card>
 			</Link>
 
-			<Card className="border-yellow-500/20 bg-yellow-500/5">
+			<Card className="border-mistral-orange/20 bg-mistral-orange/5">
 				<CardContent className="p-4">
 					<div className="flex items-center gap-2 mb-3">
-						<AlertTriangle className="h-4 w-4 text-yellow-500" />
-						<h3 className="text-sm font-semibold text-yellow-500">
+						<AlertTriangle className="h-4 w-4 text-mistral-orange" />
+						<h3 className="text-sm font-normal text-mistral-orange">
 							Attention Required
 						</h3>
 						{totalAttentionCount > 0 && (
 							<Badge
 								variant="secondary"
-								className="text-xs tabular-nums border-yellow-500/30 text-yellow-500 ml-auto"
+								className="text-xs tabular-nums border-yellow-500/30 text-mistral-orange ml-auto"
 							>
 								{totalAttentionCount}
 							</Badge>
@@ -538,7 +538,7 @@ export default function CommandCenterPage() {
 													<Button
 														size="sm"
 														variant="outline"
-														className="text-xs h-6 px-2 text-green-600 border-green-500/30 hover:bg-green-500/10"
+														className="text-xs h-6 px-2 text-sunshine-700 border-sunshine-700/30 hover:bg-sunshine-700/10"
 														disabled={loadingItems.has(decision.id)}
 														onClick={() =>
 															handleDecisionAnswer(decision.id, "approved")
@@ -562,7 +562,7 @@ export default function CommandCenterPage() {
 										</>
 									}
 								>
-									<p className="text-xs font-medium text-foreground leading-snug">
+									<p className="text-xs font-normal text-foreground leading-snug">
 										{decision.question}
 									</p>
 									{decision.context && (
@@ -591,7 +591,7 @@ export default function CommandCenterPage() {
 										</>
 									}
 								>
-									<p className="text-xs font-medium text-foreground leading-snug">
+									<p className="text-xs font-normal text-foreground leading-snug">
 										{msg.subject}
 									</p>
 									<p className="text-[11px] text-muted-foreground mt-0.5 line-clamp-2">
@@ -615,7 +615,7 @@ export default function CommandCenterPage() {
 										</Button>
 									}
 								>
-									<p className="text-[11px] text-muted-foreground font-medium">
+									<p className="text-[11px] text-muted-foreground font-normal">
 										Brain dump
 									</p>
 									<p className="text-xs text-foreground leading-snug line-clamp-2 mt-0.5">
@@ -626,7 +626,7 @@ export default function CommandCenterPage() {
 
 							{doQuadrantMyTasks.length > 0 && (
 								<Link href="/priority-matrix">
-									<div className="flex items-center gap-2 rounded-lg px-3 py-2 hover:bg-accent/50 transition-colors">
+									<div className="flex items-center gap-2 rounded-sm px-3 py-2 hover:bg-accent/50 transition-colors">
 										<ShieldAlert className="h-4 w-4 shrink-0 text-red-400" />
 										<span className="text-foreground text-xs">
 											{doQuadrantMyTasks.length} DO-quadrant task
@@ -638,8 +638,8 @@ export default function CommandCenterPage() {
 
 							{recentCompletions.length > 0 && (
 								<Link href="/priority-matrix">
-									<div className="flex items-center gap-2 rounded-lg px-3 py-2 hover:bg-accent/50 transition-colors">
-										<CheckSquare className="h-4 w-4 shrink-0 text-green-400" />
+									<div className="flex items-center gap-2 rounded-sm px-3 py-2 hover:bg-accent/50 transition-colors">
+										<CheckSquare className="h-4 w-4 shrink-0 text-success" />
 										<span className="text-foreground text-xs">
 											{recentCompletions.length} completed task
 											{recentCompletions.length > 1 ? "s" : ""} to review
@@ -686,8 +686,8 @@ export default function CommandCenterPage() {
 									agent.status === "overloaded"
 										? "bg-red-500"
 										: agent.status === "awaiting-decision"
-											? "bg-amber-500"
-											: "bg-blue-500";
+											? "bg-sunshine-700"
+											: "bg-mistral-orange";
 								const statusLabel =
 									agent.status === "overloaded"
 										? "Overloaded"
@@ -700,7 +700,7 @@ export default function CommandCenterPage() {
 										href={`/crew/${agent.id}`}
 										className="block"
 									>
-										<div className="group hover:bg-accent/30 rounded-lg px-2 py-1.5 -mx-2 transition-colors">
+										<div className="group hover:bg-accent/30 rounded-sm px-2 py-1.5 -mx-2 transition-colors">
 											<div className="flex items-center gap-2">
 												<div className="relative">
 													<Icon className="h-4 w-4 text-muted-foreground shrink-0" />
@@ -711,16 +711,16 @@ export default function CommandCenterPage() {
 														)}
 													/>
 												</div>
-												<span className="text-xs font-medium flex-1 truncate">
+												<span className="text-xs font-normal flex-1 truncate">
 													{agent.label}
 												</span>
 												<span
 													className={cn(
 														"text-[10px] px-1.5 py-0 rounded-full",
 														agent.status === "dependencies" &&
-															"text-blue-600 dark:text-blue-400 bg-blue-500/10",
+															"text-mistral-orange dark:text-mistral-orange bg-mistral-orange/10",
 														agent.status === "awaiting-decision" &&
-															"text-amber-600 dark:text-amber-400 bg-amber-500/10",
+															"text-amber-600 dark:text-amber-400 bg-sunshine-700/10",
 														agent.status === "overloaded" &&
 															"text-red-600 dark:text-red-400 bg-red-500/10",
 													)}
@@ -738,7 +738,7 @@ export default function CommandCenterPage() {
 												</p>
 											)}
 											{agent.dependencyCount > 0 && (
-												<p className="text-[11px] text-blue-500 ml-6 mt-0.5">
+												<p className="text-[11px] text-mistral-orange ml-6 mt-0.5">
 													{agent.dependencyCount} waiting on dependencies
 												</p>
 											)}
@@ -758,7 +758,7 @@ export default function CommandCenterPage() {
 
 			<section aria-label="Projects">
 				<div className="flex items-center justify-between mb-3">
-					<h2 className="text-lg font-semibold flex items-center gap-2">
+					<h2 className="text-lg font-normal flex items-center gap-2">
 						<Sparkles className="h-4 w-4 text-primary" />
 						Projects
 					</h2>

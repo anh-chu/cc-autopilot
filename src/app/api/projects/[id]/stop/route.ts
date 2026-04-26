@@ -1,5 +1,5 @@
+import { existsSync, readFileSync, writeFileSync } from "fs";
 import { NextResponse } from "next/server";
-import { readFileSync, writeFileSync, existsSync } from "fs";
 import path from "path";
 import { DATA_DIR } from "@/lib/paths";
 

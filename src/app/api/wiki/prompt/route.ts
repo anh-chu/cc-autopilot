@@ -2,9 +2,9 @@ import { existsSync } from "fs";
 import { mkdir, readFile, writeFile } from "fs/promises";
 import { NextResponse } from "next/server";
 import path from "path";
+import { initWikiDir } from "@/lib/data";
 import { getWikiDir } from "@/lib/paths";
 import { applyWorkspaceContext } from "@/lib/workspace-context";
-import { initWikiDir } from "@/lib/data";
 
 const DEFAULT_PROMPT = `You are managing a markdown wiki knowledge base.
 

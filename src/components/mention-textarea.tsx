@@ -1,11 +1,11 @@
 "use client";
 
-import { useState, useRef, useEffect, useCallback } from "react";
-import { Textarea } from "@/components/ui/textarea";
-import type { AgentDefinition } from "@/lib/types";
-import { getAgentIcon } from "@/lib/agent-icons";
-import { cn } from "@/lib/utils";
 import { Paperclip, X } from "lucide-react";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { Textarea } from "@/components/ui/textarea";
+import { getAgentIcon } from "@/lib/agent-icons";
+import type { AgentDefinition } from "@/lib/types";
+import { cn } from "@/lib/utils";
 
 interface MentionTextareaProps {
 	value: string;
@@ -187,7 +187,7 @@ export function MentionTextarea({
 					{showDropdown && filteredAgents.length > 0 && (
 						<div
 							ref={dropdownRef}
-							className="absolute bottom-full left-0 mb-1 w-56 max-h-48 overflow-y-auto rounded-lg border bg-popover shadow-lg z-50"
+							className="absolute bottom-full left-0 mb-1 w-56 max-h-48 overflow-y-auto rounded-sm border bg-popover shadow-golden z-50"
 						>
 							{filteredAgents.map((agent, idx) => {
 								const Icon = getAgentIcon(agent.id, agent.icon);
@@ -209,7 +209,7 @@ export function MentionTextarea({
 											<Icon className="h-3 w-3 text-muted-foreground" />
 										</div>
 										<div className="flex-1 min-w-0">
-											<span className="font-medium">{agent.name}</span>
+											<span className="font-normal">{agent.name}</span>
 											<span className="text-muted-foreground ml-1">
 												@{agent.id}
 											</span>

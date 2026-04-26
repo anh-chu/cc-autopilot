@@ -1,8 +1,16 @@
 "use client";
 
-import { useState } from "react";
 import { Check, ChevronDown, Plus, Settings2 } from "lucide-react";
 import Link from "next/link";
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import {
+	Dialog,
+	DialogContent,
+	DialogFooter,
+	DialogHeader,
+	DialogTitle,
+} from "@/components/ui/dialog";
 import {
 	DropdownMenu,
 	DropdownMenuContent,
@@ -10,26 +18,18 @@ import {
 	DropdownMenuSeparator,
 	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import {
-	Dialog,
-	DialogContent,
-	DialogHeader,
-	DialogTitle,
-	DialogFooter,
-} from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { cn } from "@/lib/utils";
 import { useWorkspace } from "@/hooks/use-workspace";
+import { cn } from "@/lib/utils";
 
 const COLOR_SWATCHES = [
-	{ label: "Indigo", value: "#6366f1" },
-	{ label: "Amber", value: "#f59e0b" },
-	{ label: "Emerald", value: "#10b981" },
-	{ label: "Rose", value: "#f43f5e" },
-	{ label: "Sky", value: "#0ea5e9" },
-	{ label: "Violet", value: "#8b5cf6" },
+	{ label: "Orange", value: "#fa520f" },
+	{ label: "Amber", value: "#ffa110" },
+	{ label: "Gold", value: "#ffd900" },
+	{ label: "Flame", value: "#fb6424" },
+	{ label: "Sunshine", value: "#ffb83e" },
+	{ label: "Black", value: "#1f1f1f" },
 ];
 
 interface WorkspaceSwitcherProps {
@@ -73,7 +73,7 @@ export function WorkspaceSwitcher({
 		return (
 			<div
 				className={cn(
-					"mx-2 mb-1 flex items-center gap-2 rounded-lg px-3 py-2",
+					"mx-2 mb-1 flex items-center gap-2 rounded-sm px-3 py-2",
 					collapsed && "justify-center px-2",
 				)}
 			>
@@ -87,7 +87,7 @@ export function WorkspaceSwitcher({
 
 	const display = currentWorkspace ?? {
 		name: "Default",
-		color: "#6366f1",
+		color: "#fa520f",
 		id: "default",
 	};
 
@@ -96,14 +96,14 @@ export function WorkspaceSwitcher({
 			<DropdownMenu>
 				<div
 					className={cn(
-						"mx-2 mb-1 flex w-[calc(100%-1rem)] items-center rounded-lg text-sm text-sidebar-foreground",
+						"mx-2 mb-1 flex w-[calc(100%-1rem)] items-center rounded-sm text-sm text-sidebar-foreground",
 						collapsed && "w-10 justify-center",
 					)}
 				>
 					<DropdownMenuTrigger asChild>
 						<button
 							className={cn(
-								"flex flex-1 items-center gap-2 rounded-lg px-3 py-2 transition-colors",
+								"flex flex-1 items-center gap-2 rounded-sm px-3 py-2 transition-colors",
 								"hover:bg-sidebar-accent/50",
 								collapsed && "justify-center px-2",
 							)}
@@ -114,7 +114,7 @@ export function WorkspaceSwitcher({
 							/>
 							{!collapsed && (
 								<>
-									<span className="flex-1 truncate text-left font-medium text-xs">
+									<span className="flex-1 truncate text-left font-normal text-xs">
 										{display.name}
 									</span>
 									<ChevronDown className="h-3 w-3 shrink-0 text-sidebar-foreground/50" />
@@ -125,7 +125,7 @@ export function WorkspaceSwitcher({
 					{!collapsed && (
 						<Link
 							href="/settings"
-							className="shrink-0 rounded p-1.5 text-sidebar-foreground/50 hover:text-sidebar-foreground transition-colors"
+							className="shrink-0 rounded-sm p-1.5 text-sidebar-foreground/50 hover:text-sidebar-foreground transition-colors"
 							title="Settings"
 						>
 							<Settings2 className="h-3 w-3" />

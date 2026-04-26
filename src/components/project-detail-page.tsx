@@ -125,14 +125,14 @@ function DroppableZone({
 		<div
 			ref={setNodeRef}
 			className={cn(
-				"flex flex-col rounded-xl border bg-card/50 min-h-[200px] transition-all",
+				"flex flex-col rounded-sm border bg-card/50 min-h-[200px] transition-all",
 				isOver && "ring-2 ring-primary/50",
 			)}
 		>
 			<div className="flex items-center justify-between px-3 py-2 border-b">
 				<div className="flex items-center gap-2">
 					<div className={cn("h-2 w-2 rounded-full", dotColor)} />
-					<span className="text-xs font-semibold">{label}</span>
+					<span className="text-xs font-normal">{label}</span>
 				</div>
 				<Badge
 					variant="secondary"
@@ -343,7 +343,7 @@ export function ProjectDetailPage({
 						className="h-4 w-4 rounded-full"
 						style={{ backgroundColor: project.color }}
 					/>
-					<h1 className="text-xl font-bold">{project.name}</h1>
+					<h1 className="text-xl font-normal">{project.name}</h1>
 					<Badge variant="outline" className="text-xs capitalize">
 						{project.status}
 					</Badge>
@@ -376,9 +376,9 @@ export function ProjectDetailPage({
 
 			{/* Progress */}
 			<div className="flex items-center gap-3">
-				<div className="h-1.5 flex-1 rounded-full bg-muted overflow-hidden">
+				<div className="h-1.5 flex-1 rounded-sm bg-muted overflow-hidden">
 					<div
-						className="h-full rounded-full bg-primary transition-all"
+						className="h-full rounded-sm bg-primary transition-all"
 						style={{ width: `${progress}%` }}
 					/>
 				</div>
@@ -403,7 +403,7 @@ export function ProjectDetailPage({
 			<div className="space-y-2">
 				<div className="flex items-center gap-2">
 					<Users className="h-4 w-4 text-muted-foreground" />
-					<h2 className="text-sm font-semibold">Team</h2>
+					<h2 className="text-sm font-normal">Team</h2>
 					<span className="text-xs text-muted-foreground">
 						{(project.teamMembers ?? []).length} member
 						{(project.teamMembers ?? []).length !== 1 ? "s" : ""}
@@ -417,12 +417,12 @@ export function ProjectDetailPage({
 						return (
 							<div
 								key={memberId}
-								className="flex items-center gap-1.5 rounded-lg border bg-card px-2.5 py-1.5 text-sm group"
+								className="flex items-center gap-1.5 rounded-sm border bg-card px-2.5 py-1.5 text-sm group"
 							>
 								<div className="h-5 w-5 rounded-full bg-primary/10 flex items-center justify-center">
 									<MemberIcon className="h-3 w-3 text-primary" />
 								</div>
-								<span className="text-xs font-medium">
+								<span className="text-xs font-normal">
 									{agent?.name ?? memberId}
 								</span>
 								<button
@@ -462,7 +462,7 @@ export function ProjectDetailPage({
 											teamMembers: newMembers,
 										});
 									}}
-									className="flex items-center gap-1.5 rounded-lg border border-dashed px-2.5 py-1.5 text-xs text-muted-foreground hover:bg-accent hover:text-foreground transition-colors"
+									className="flex items-center gap-1.5 rounded-sm border border-dashed px-2.5 py-1.5 text-xs text-muted-foreground hover:bg-accent hover:text-foreground transition-colors"
 								>
 									<AgentIcon className="h-3 w-3" />
 									<Plus className="h-2.5 w-2.5" />
@@ -542,7 +542,7 @@ export function ProjectDetailPage({
 						</div>
 						<DragOverlay>
 							{activeTask ? (
-								<TaskCard task={activeTask} className="shadow-xl" />
+								<TaskCard task={activeTask} className="shadow-golden" />
 							) : null}
 						</DragOverlay>
 					</DndContext>

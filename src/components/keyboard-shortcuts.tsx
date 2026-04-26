@@ -128,7 +128,7 @@ export function KeyboardShortcuts({ onCreateTask }: KeyboardShortcutsProps) {
 								{s.key.split(" ").map((k) => (
 									<kbd
 										key={k}
-										className="inline-flex h-5 min-w-[1.25rem] items-center justify-center rounded border bg-muted px-1.5 text-[10px] font-medium text-muted-foreground"
+										className="inline-flex h-5 min-w-[1.25rem] items-center justify-center rounded border bg-muted px-1.5 text-[10px] font-normal text-muted-foreground"
 									>
 										{k}
 									</kbd>

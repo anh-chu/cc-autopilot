@@ -1,13 +1,13 @@
-import { NextRequest } from "next/server";
 import {
-	readFileSync,
+	closeSync,
 	existsSync,
+	openSync,
+	readFileSync,
+	readSync,
 	statSync,
 	watch,
-	openSync,
-	readSync,
-	closeSync,
 } from "fs";
+import type { NextRequest } from "next/server";
 import path from "path";
 import { getWorkspaceDataDir } from "@/lib/data";
 

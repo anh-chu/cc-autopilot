@@ -71,13 +71,13 @@ export function ProjectCardLarge({
 				<Link href={`/projects/${project.id}`}>
 					<Card
 						className={cn(
-							"group cursor-pointer transition-all hover:shadow-lg hover:border-primary/30 hover:-translate-y-0.5 animate-fade-in-up",
+							"group cursor-pointer transition-all hover:shadow-golden hover:border-primary/30 hover:-translate-y-0.5 animate-fade-in-up",
 							isRunning &&
-								"ring-2 ring-green-500/50 border-green-500/30 shadow-green-500/10 shadow-md",
+								"ring-2 ring-green-500/50 border-green-500/30 shadow-green-500/10 shadow-golden",
 						)}
 					>
 						<CardHeader
-							className={cn("pb-3", isRunning && "bg-green-500/5 rounded-t-lg")}
+							className={cn("pb-3", isRunning && "bg-green-500/5 rounded-t-sm")}
 						>
 							<div className="flex items-center justify-between">
 								<div className="flex items-center gap-2">
@@ -179,9 +179,9 @@ export function ProjectCardLarge({
 									<span>Progress</span>
 									<span>{progress}%</span>
 								</div>
-								<div className="h-1.5 w-full rounded-full bg-muted overflow-hidden">
+								<div className="h-1.5 w-full rounded-sm bg-muted overflow-hidden">
 									<div
-										className="h-full rounded-full bg-primary transition-all"
+										className="h-full rounded-sm bg-primary transition-all"
 										style={{ width: `${progress}%` }}
 									/>
 								</div>
@@ -190,19 +190,19 @@ export function ProjectCardLarge({
 							{/* Task counts */}
 							<div className="flex gap-3 text-xs">
 								<span className="text-muted-foreground">
-									<span className="font-medium text-foreground">
+									<span className="font-normal text-foreground">
 										{notStarted}
 									</span>{" "}
 									todo
 								</span>
 								<span className="text-muted-foreground">
-									<span className="font-medium text-status-in-progress">
+									<span className="font-normal text-status-in-progress">
 										{inProgress}
 									</span>{" "}
 									active
 								</span>
 								<span className="text-muted-foreground">
-									<span className="font-medium text-status-done">{done}</span>{" "}
+									<span className="font-normal text-status-done">{done}</span>{" "}
 									done
 								</span>
 							</div>

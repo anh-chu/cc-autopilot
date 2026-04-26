@@ -590,7 +590,7 @@ export function TaskForm({
 
 				{/* Subtask list */}
 				{form.subtasks.length > 0 && (
-					<div className="space-y-1 rounded-lg border bg-muted/30 p-2">
+					<div className="space-y-1 rounded-sm border bg-muted/30 p-2">
 						{form.subtasks.map((sub) => (
 							<div key={sub.id} className="flex items-center gap-2 group">
 								<button
@@ -664,7 +664,7 @@ export function TaskForm({
 					<button
 						type="button"
 						onClick={() => setShowDeps(!showDeps)}
-						className="flex items-center gap-1.5 text-sm font-medium"
+						className="flex items-center gap-1.5 text-sm font-normal"
 					>
 						<Link2 className="h-3.5 w-3.5" />
 						Dependencies
@@ -679,7 +679,7 @@ export function TaskForm({
 					</button>
 
 					{showDeps && (
-						<div className="rounded-lg border bg-muted/30 p-2 space-y-1.5">
+						<div className="rounded-sm border bg-muted/30 p-2 space-y-1.5">
 							<Input
 								value={depSearch}
 								onChange={(e) => setDepSearch(e.target.value)}

@@ -53,7 +53,7 @@ function AgentCard({
 				<Link href={`/crew/${agent.id}`}>
 					<div
 						className={cn(
-							"group rounded-xl border bg-card p-5 transition-all hover:shadow-md hover:border-primary/30",
+							"group rounded-sm border bg-card p-5 transition-all hover:shadow-md hover:border-primary/30",
 							isInactive && "opacity-60",
 						)}
 					>
@@ -63,7 +63,7 @@ function AgentCard({
 									<Icon className="h-5 w-5 text-primary" />
 								</div>
 								<div>
-									<h3 className="font-semibold text-sm group-hover:text-primary transition-colors">
+									<h3 className="font-normal text-sm group-hover:text-primary transition-colors">
 										{agent.name}
 									</h3>
 									<p className="text-xs text-muted-foreground mt-0.5 line-clamp-1">
@@ -76,7 +76,7 @@ function AgentCard({
 									className={cn(
 										"h-3 w-3",
 										agent.status === "active"
-											? "text-green-500"
+											? "text-sunshine-700"
 											: "text-muted-foreground",
 									)}
 								/>
@@ -116,7 +116,7 @@ function AgentCard({
 											: agent.skipPermissions;
 									if (permField === "on") {
 										return (
-											<span className="flex items-center gap-1 text-[10px] text-amber-500 font-medium">
+											<span className="flex items-center gap-1 text-[10px] text-amber-500 font-normal">
 												<ShieldAlert className="h-3 w-3" />
 												Unrestricted
 											</span>
@@ -260,7 +260,7 @@ export default function CrewPage() {
 
 			<div className="flex items-center justify-between">
 				<div>
-					<h1 className="text-xl font-bold">Agents</h1>
+					<h1 className="text-xl font-normal">Agents</h1>
 					<p className="text-sm text-muted-foreground mt-0.5">
 						{agents.length} agent{agents.length !== 1 ? "s" : ""} registered
 					</p>
@@ -277,9 +277,9 @@ export default function CrewPage() {
 			</div>
 
 			{/* Global permission default */}
-			<div className="flex items-center justify-between rounded-lg border px-4 py-3 gap-4">
+			<div className="flex items-center justify-between rounded-sm border px-4 py-3 gap-4">
 				<div className="min-w-0">
-					<p className="text-sm font-medium">Global permission default</p>
+					<p className="text-sm font-normal">Global permission default</p>
 					<p className="text-xs text-muted-foreground mt-0.5">
 						Skip all permission prompts for all agents (can be restricted per
 						agent)

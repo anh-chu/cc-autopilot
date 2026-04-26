@@ -117,7 +117,7 @@ export function DraggableTaskCard({
 			ref={setNodeRef}
 			style={style}
 			{...attributes}
-			className={cn(isSelected && "ring-2 ring-primary rounded-lg")}
+			className={cn(isSelected && "ring-2 ring-primary rounded-sm")}
 			onContextMenu={() => {
 				contextMenuOpenRef.current = true;
 				setTimeout(() => {
@@ -182,7 +182,7 @@ export function BoardColumn({
 		<div
 			ref={setNodeRef}
 			className={cn(
-				"flex flex-col rounded-xl border bg-card/50 transition-all",
+				"flex flex-col rounded-sm border bg-card/50 transition-all",
 				minHeight,
 				config.borderColor,
 				isOver && "ring-2 ring-primary/40 bg-primary/5 scale-[1.01]",
@@ -195,7 +195,7 @@ export function BoardColumn({
 						<div>
 							<h2
 								className={cn(
-									"text-xs font-bold tracking-wider",
+									"text-xs font-normal tracking-wider",
 									config.textColor,
 								)}
 							>
@@ -204,7 +204,7 @@ export function BoardColumn({
 							<p className="text-xs text-muted-foreground">{config.subtitle}</p>
 						</div>
 					) : (
-						<h2 className="text-sm font-semibold">{config.label}</h2>
+						<h2 className="text-sm font-normal">{config.label}</h2>
 					)}
 				</div>
 				<Badge
@@ -404,7 +404,7 @@ export function BoardDndWrapper({
 					<TaskCard
 						task={activeTask}
 						project={projects.find((p) => p.id === activeTask.projectId)}
-						className="shadow-xl"
+						className="shadow-golden"
 					/>
 				) : null}
 			</DragOverlay>

@@ -298,7 +298,7 @@ export default function TasksPage() {
 			<BreadcrumbNav items={[{ label: "Tasks" }]} />
 
 			<div className="flex items-center justify-between flex-wrap gap-2">
-				<h1 className="text-xl font-bold">Tasks</h1>
+				<h1 className="text-xl font-normal">Tasks</h1>
 				<div className="flex items-center gap-2">
 					{/* View toggle */}
 					<div className="flex items-center rounded-md border bg-muted/30 p-0.5">

@@ -1,8 +1,18 @@
 "use client";
 
+import {
+	Brain,
+	CheckCircle2,
+	ChevronDown,
+	ChevronRight,
+	Loader2,
+	MessageSquare,
+	Square,
+	Terminal,
+	Wrench,
+} from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { MarkdownContent } from "@/components/markdown-content";
-import { useAgentStream, type StreamLine } from "@/hooks/use-agent-stream";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -10,17 +20,7 @@ import {
 	CollapsibleContent,
 	CollapsibleTrigger,
 } from "@/components/ui/collapsible";
-import {
-	Square,
-	ChevronRight,
-	ChevronDown,
-	Terminal,
-	Wrench,
-	MessageSquare,
-	CheckCircle2,
-	Loader2,
-	Brain,
-} from "lucide-react";
+import { type StreamLine, useAgentStream } from "@/hooks/use-agent-stream";
 
 interface AgentConsoleProps {
 	runId: string;
@@ -87,7 +87,7 @@ function getThinkingFromBlock(block: ContentBlock): string {
 function ResponseTextEntry({ text }: { text: string }) {
 	return (
 		<div className="flex gap-2 py-1.5 px-2">
-			<MessageSquare className="h-3.5 w-3.5 mt-0.5 shrink-0 text-blue-400" />
+			<MessageSquare className="h-3.5 w-3.5 mt-0.5 shrink-0 text-mistral-orange" />
 			<MarkdownContent
 				content={text}
 				className="min-w-0 flex-1 text-sm text-foreground/90"
@@ -103,20 +103,20 @@ function ThinkingEntry({ thinking }: { thinking: string }) {
 
 	return (
 		<Collapsible open={open} onOpenChange={setOpen}>
-			<CollapsibleTrigger className="flex items-start gap-1.5 py-1.5 px-2 w-full hover:bg-violet-500/10 rounded text-left bg-violet-500/5">
+			<CollapsibleTrigger className="flex items-start gap-1.5 py-1.5 px-2 w-full hover:bg-sunshine-700/10 rounded text-left bg-sunshine-700/5">
 				{open ? (
 					<ChevronDown className="h-3 w-3 mt-0.5 shrink-0 text-muted-foreground" />
 				) : (
 					<ChevronRight className="h-3 w-3 mt-0.5 shrink-0 text-muted-foreground" />
 				)}
-				<Brain className="h-3.5 w-3.5 mt-0.5 shrink-0 text-violet-400" />
+				<Brain className="h-3.5 w-3.5 mt-0.5 shrink-0 text-sunshine-700" />
 				<div className="min-w-0 flex-1">
 					<div className="flex items-center gap-2">
-						<span className="text-[10px] font-mono uppercase tracking-wide text-violet-300/80">
+						<span className="text-[10px] font-mono uppercase tracking-wide text-sunshine-700/80">
 							Thinking
 						</span>
 						{!open && hint && (
-							<span className="text-[10px] text-violet-200/60 truncate">
+							<span className="text-[10px] text-sunshine-700/60 truncate">
 								{hint}
 							</span>
 						)}
@@ -124,7 +124,7 @@ function ThinkingEntry({ thinking }: { thinking: string }) {
 				</div>
 			</CollapsibleTrigger>
 			<CollapsibleContent>
-				<pre className="text-xs text-violet-200/90 whitespace-pre-wrap break-words font-mono leading-relaxed px-7 py-1.5">
+				<pre className="text-xs text-sunshine-700/90 whitespace-pre-wrap break-words font-mono leading-relaxed px-7 py-1.5">
 					{thinking}
 				</pre>
 			</CollapsibleContent>
@@ -409,8 +409,8 @@ function ToolResultEntry({ block }: { block: ToolResultBlock }) {
 				) : (
 					<ChevronRight className="h-3 w-3 shrink-0 text-muted-foreground" />
 				)}
-				<CheckCircle2 className="h-3 w-3 shrink-0 text-green-400" />
-				<span className="text-xs font-mono text-green-400">result</span>
+				<CheckCircle2 className="h-3 w-3 shrink-0 text-success" />
+				<span className="text-xs font-mono text-success">result</span>
 				{hint && !open && (
 					<span className="text-[10px] text-muted-foreground truncate max-w-[300px]">
 						{hint}
@@ -492,7 +492,7 @@ export function StreamEntry({ line }: { line: StreamLine }) {
 		const turns = typeof line.num_turns === "number" ? line.num_turns : null;
 		return (
 			<div className="flex items-center gap-2 py-1.5 px-2 bg-muted/30 rounded">
-				<CheckCircle2 className="h-3.5 w-3.5 shrink-0 text-green-500" />
+				<CheckCircle2 className="h-3.5 w-3.5 shrink-0 text-success" />
 				<span className="text-xs text-muted-foreground">
 					Session complete
 					{cost && <> &middot; {cost}</>}
@@ -575,16 +575,16 @@ export function AgentConsole({ runId, onStop }: AgentConsoleProps) {
 	const elapsed = lines.length > 0 ? `${lines.length} events` : "waiting...";
 
 	return (
-		<div className="border rounded-lg bg-background overflow-hidden">
+		<div className="border rounded-sm bg-background overflow-hidden">
 			{/* Header */}
 			<div className="flex items-center justify-between px-3 py-2 border-b bg-muted/30">
 				<div className="flex items-center gap-2">
 					<Terminal className="h-3.5 w-3.5 text-muted-foreground" />
-					<span className="text-xs font-medium">Live Console</span>
+					<span className="text-xs font-normal">Live Console</span>
 					{isConnected && !isDone && (
 						<Badge
 							variant="outline"
-							className="text-[10px] px-1.5 py-0 text-green-500 border-green-500/30"
+							className="text-[10px] px-1.5 py-0 text-mistral-orange border-mistral-orange/30"
 						>
 							<Loader2 className="h-2.5 w-2.5 mr-1 animate-spin" />
 							streaming

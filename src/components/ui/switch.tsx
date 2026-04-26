@@ -1,7 +1,7 @@
 "use client";
 
-import * as React from "react";
 import * as SwitchPrimitive from "@radix-ui/react-switch";
+import type * as React from "react";
 import { cn } from "@/lib/utils";
 
 function Switch({
@@ -12,7 +12,7 @@ function Switch({
 		<SwitchPrimitive.Root
 			data-slot="switch"
 			className={cn(
-				"peer data-[state=checked]:bg-primary data-[state=unchecked]:bg-input inline-flex h-5 w-9 shrink-0 items-center rounded-full border-2 border-transparent shadow-xs transition-all outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:cursor-not-allowed disabled:opacity-50 cursor-pointer",
+				"peer data-[state=checked]:bg-accent data-[state=unchecked]:bg-input inline-flex h-5 w-9 shrink-0 items-center rounded-sm border-2 border-transparent shadow-xs transition-all outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:cursor-not-allowed disabled:opacity-50 cursor-pointer",
 				className,
 			)}
 			{...props}

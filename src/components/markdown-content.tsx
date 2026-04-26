@@ -24,7 +24,7 @@ export function MarkdownContent({ content, className }: MarkdownContentProps) {
 				"[&>h1]:text-sm [&>h2]:text-sm [&>h3]:text-xs",
 				"[&>pre]:bg-muted [&>pre]:rounded [&>pre]:p-2 [&>pre]:overflow-x-auto",
 				"[&>blockquote]:border-l-2 [&>blockquote]:border-muted-foreground/40 [&>blockquote]:pl-3 [&>blockquote]:italic",
-				"[&_a]:text-blue-400 [&_a]:underline [&_a:hover]:text-blue-300",
+				"[&_a]:text-mistral-orange [&_a]:underline [&_a:hover]:text-mistral-orange/80",
 				"[&_code]:bg-muted [&_code]:rounded [&_code]:px-1 [&_code]:text-[11px] [&_code]:font-mono",
 				"[&_img]:rounded [&_img]:max-w-full [&_img]:max-h-64 [&_img]:object-contain",
 				"[&_strong]:text-foreground [&_em]:text-muted-foreground/80",
@@ -64,7 +64,7 @@ function highlightMentions(children: React.ReactNode): React.ReactNode {
 		if (parts.length === 1) return children;
 		return parts.map((part, i) =>
 			/^@[a-z0-9-]+$/.test(part) ? (
-				<span key={i} className="text-blue-400 font-medium">
+				<span key={i} className="text-mistral-orange font-normal">
 					{part}
 				</span>
 			) : (

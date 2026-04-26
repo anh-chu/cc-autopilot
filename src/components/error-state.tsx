@@ -23,14 +23,14 @@ export function ErrorState({
 				className,
 			)}
 		>
-			<div className="rounded-full bg-destructive/10 p-3 mb-3">
+			<div className="rounded-sm bg-destructive/10 p-3 mb-3">
 				<AlertTriangle
 					className={cn("text-destructive", compact ? "h-5 w-5" : "h-6 w-6")}
 				/>
 			</div>
 			<h3
 				className={cn(
-					"font-medium text-foreground",
+					"font-normal text-foreground",
 					compact ? "text-sm" : "text-base",
 				)}
 			>

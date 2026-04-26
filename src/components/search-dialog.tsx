@@ -18,15 +18,27 @@ import { cn } from "@/lib/utils";
 
 const QUADRANT_LABELS: Record<string, { label: string; className: string }> = {
 	do: { label: "DO", className: "bg-red-500/20 text-red-400" },
-	schedule: { label: "SCHEDULE", className: "bg-blue-500/20 text-blue-400" },
-	delegate: { label: "DELEGATE", className: "bg-amber-500/20 text-amber-400" },
-	eliminate: { label: "ELIMINATE", className: "bg-zinc-500/20 text-zinc-400" },
+	schedule: {
+		label: "SCHEDULE",
+		className: "bg-sunshine-700/20 text-sunshine-700",
+	},
+	delegate: {
+		label: "DELEGATE",
+		className: "bg-mistral-orange/20 text-mistral-orange",
+	},
+	eliminate: {
+		label: "ELIMINATE",
+		className: "bg-muted text-muted-foreground",
+	},
 };
 
 const KANBAN_LABELS: Record<string, { label: string; className: string }> = {
-	"not-started": { label: "Todo", className: "bg-zinc-500/20 text-zinc-400" },
-	"in-progress": { label: "Active", className: "bg-blue-500/20 text-blue-400" },
-	done: { label: "Done", className: "bg-emerald-500/20 text-emerald-400" },
+	"not-started": { label: "Todo", className: "bg-muted text-muted-foreground" },
+	"in-progress": {
+		label: "Active",
+		className: "bg-mistral-orange/20 text-mistral-orange",
+	},
+	done: { label: "Done", className: "bg-success/20 text-success" },
 };
 
 function getQuadrantKey(task: Task): string {
@@ -133,7 +145,7 @@ export function SearchDialog() {
 									{quad && (
 										<span
 											className={cn(
-												"rounded px-1.5 py-0.5 text-[10px] font-medium",
+												"rounded px-1.5 py-0.5 text-[10px] font-normal",
 												quad.className,
 											)}
 										>
@@ -143,7 +155,7 @@ export function SearchDialog() {
 									{kanban && (
 										<span
 											className={cn(
-												"rounded px-1.5 py-0.5 text-[10px] font-medium",
+												"rounded px-1.5 py-0.5 text-[10px] font-normal",
 												kanban.className,
 											)}
 										>
@@ -175,14 +187,14 @@ export function SearchDialog() {
 								<span className="flex-1 truncate">{project.name}</span>
 								<span
 									className={cn(
-										"rounded px-1.5 py-0.5 text-[10px] font-medium",
+										"rounded px-1.5 py-0.5 text-[10px] font-normal",
 										project.status === "active"
-											? "bg-emerald-500/20 text-emerald-400"
+											? "bg-sunshine-700/20 text-sunshine-700"
 											: project.status === "paused"
-												? "bg-amber-500/20 text-amber-400"
+												? "bg-mistral-orange/20 text-mistral-orange"
 												: project.status === "completed"
-													? "bg-blue-500/20 text-blue-400"
-													: "bg-zinc-500/20 text-zinc-400",
+													? "bg-sunshine-700/20 text-sunshine-700"
+													: "bg-muted text-muted-foreground",
 									)}
 								>
 									{project.status}
@@ -209,7 +221,7 @@ export function SearchDialog() {
 							>
 								<Lightbulb className="h-4 w-4 shrink-0 text-muted-foreground" />
 								<span className="flex-1 truncate">{entry.content}</span>
-								<span className="rounded px-1.5 py-0.5 text-[10px] font-medium bg-amber-500/20 text-amber-400">
+								<span className="rounded-sm px-1.5 py-0.5 text-[10px] font-normal bg-mistral-orange/20 text-mistral-orange">
 									unprocessed
 								</span>
 								<ArrowRight className="h-3 w-3 shrink-0 text-muted-foreground/50" />

@@ -295,7 +295,7 @@ export default function TaskDetailPage() {
 				/>
 				<Card>
 					<CardContent className="py-12 text-center">
-						<h2 className="text-lg font-medium">Task not found</h2>
+						<h2 className="text-lg font-normal">Task not found</h2>
 						<p className="text-sm text-muted-foreground mt-1">
 							This task may have been deleted.
 						</p>
@@ -409,7 +409,7 @@ export default function TaskDetailPage() {
 											className={cn(
 												"text-xs gap-1",
 												unmetDepCount > 0
-													? "border-blue-500/30 text-blue-500"
+													? "border-mistral-orange/30 text-mistral-orange"
 													: "",
 											)}
 										>
@@ -538,7 +538,7 @@ export default function TaskDetailPage() {
 					{/* Comments card */}
 					<Card>
 						<CardHeader className="pb-3">
-							<div className="flex items-center gap-2 text-sm font-medium">
+							<div className="flex items-center gap-2 text-sm font-normal">
 								<MessageSquare className="h-4 w-4" />
 								Comments {comments.length > 0 && `(${comments.length})`}
 							</div>
@@ -562,20 +562,20 @@ export default function TaskDetailPage() {
 												key={comment.id}
 												className={cn(
 													"flex gap-2 group/comment",
-													isAgent && "pl-2 border-l-2 border-blue-500/30",
+													isAgent && "pl-2 border-l-2 border-mistral-orange/30",
 												)}
 											>
 												<div
 													className={cn(
 														"h-6 w-6 rounded-full flex items-center justify-center shrink-0 mt-0.5",
-														isAgent ? "bg-blue-500/10" : "bg-muted",
+														isAgent ? "bg-mistral-orange/10" : "bg-muted",
 													)}
 												>
 													<AuthorIcon
 														className={cn(
 															"h-3 w-3",
 															isAgent
-																? "text-blue-400"
+																? "text-mistral-orange"
 																: "text-muted-foreground",
 														)}
 													/>
@@ -584,8 +584,8 @@ export default function TaskDetailPage() {
 													<div className="flex items-center gap-2">
 														<span
 															className={cn(
-																"text-xs font-medium",
-																isAgent && "text-blue-400",
+																"text-xs font-normal",
+																isAgent && "text-mistral-orange",
 															)}
 														>
 															{comment.author === "system"
@@ -631,7 +631,7 @@ export default function TaskDetailPage() {
 																			href={att.url}
 																			target="_blank"
 																			rel="noopener noreferrer"
-																			className="flex items-center gap-1 bg-muted rounded px-2 py-0.5 text-xs text-blue-400 hover:text-blue-300"
+																			className="flex items-center gap-1 bg-muted rounded px-2 py-0.5 text-xs text-mistral-orange hover:text-sunshine-700"
 																		>
 																			📎 {att.filename}
 																		</a>
@@ -675,7 +675,7 @@ export default function TaskDetailPage() {
 										className={cn(
 											"shrink-0 self-end",
 											mentionedAgentIds.length > 0 &&
-												"text-blue-400 hover:text-blue-500",
+												"text-mistral-orange hover:text-sunshine-700",
 										)}
 										onClick={handleAddComment}
 										disabled={!commentText.trim() && stagedFiles.length === 0}
@@ -697,7 +697,7 @@ export default function TaskDetailPage() {
 						<Collapsible open={timelineOpen} onOpenChange={setTimelineOpen}>
 							<CollapsibleTrigger className="flex items-center gap-2 w-full text-left px-6 py-4 hover:text-foreground text-muted-foreground transition-colors">
 								<Clock className="h-4 w-4" />
-								<span className="text-sm font-medium">
+								<span className="text-sm font-normal">
 									Timeline {timeline.length > 0 && `(${timeline.length})`}
 								</span>
 							</CollapsibleTrigger>

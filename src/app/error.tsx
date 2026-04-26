@@ -1,15 +1,15 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import {
 	AlertTriangle,
-	RotateCcw,
-	Home,
 	ChevronDown,
 	ChevronUp,
+	Home,
+	RotateCcw,
 } from "lucide-react";
-import { Button } from "@/components/ui/button";
 import Link from "next/link";
+import { useEffect, useState } from "react";
+import { Button } from "@/components/ui/button";
 
 const AUTO_RETRY_DELAY = 3000; // 3 seconds
 
@@ -54,7 +54,7 @@ export default function Error({
 			<div className="rounded-full bg-destructive/10 p-3 mb-4">
 				<AlertTriangle className="h-6 w-6 text-destructive" />
 			</div>
-			<h2 className="text-lg font-semibold">Something went wrong</h2>
+			<h2 className="text-lg font-normal">Something went wrong</h2>
 			<p className="text-sm text-muted-foreground mt-1 max-w-[360px]">
 				{error.message || "An unexpected error occurred. Please try again."}
 			</p>

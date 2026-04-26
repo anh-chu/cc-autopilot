@@ -157,7 +157,7 @@ export default function BrainDumpPage() {
 					count={3}
 					renderItem={() => (
 						<RowSkeleton
-							className="rounded-xl border bg-card/50 p-3 items-start justify-between"
+							className="rounded-sm border bg-card/50 p-3 items-start justify-between"
 							lines={[
 								{ key: "title", className: "h-4 w-4/5" },
 								{ key: "meta", className: "h-3 w-24" },
@@ -188,7 +188,7 @@ export default function BrainDumpPage() {
 		<div className="space-y-6">
 			<BreadcrumbNav items={[{ label: "Quick Capture" }]} />
 			<div className="flex items-center justify-between">
-				<h1 className="text-xl font-bold flex items-center gap-2">
+				<h1 className="text-xl font-normal flex items-center gap-2">
 					<Lightbulb className="h-5 w-5 text-primary" />
 					Quick Capture
 				</h1>
@@ -240,7 +240,7 @@ export default function BrainDumpPage() {
 
 			{/* Unprocessed */}
 			<section>
-				<h2 className="text-sm font-semibold mb-2 text-muted-foreground">
+				<h2 className="text-sm font-normal mb-2 text-muted-foreground">
 					To Process ({unprocessed.length})
 				</h2>
 				{unprocessed.length === 0 ? (
@@ -386,7 +386,7 @@ export default function BrainDumpPage() {
 			{/* Archived */}
 			{processed.length > 0 && (
 				<section>
-					<h2 className="text-sm font-semibold mb-2 text-muted-foreground/60">
+					<h2 className="text-sm font-normal mb-2 text-muted-foreground/60">
 						Archived ({processed.length})
 					</h2>
 					<div className="space-y-1.5">

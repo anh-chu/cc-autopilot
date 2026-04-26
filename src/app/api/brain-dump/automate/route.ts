@@ -1,6 +1,6 @@
-import { NextResponse } from "next/server";
 import { spawn } from "child_process";
-import { readFileSync, existsSync } from "fs";
+import { existsSync, readFileSync } from "fs";
+import { NextResponse } from "next/server";
 import path from "path";
 import { DATA_DIR } from "@/lib/paths";
 

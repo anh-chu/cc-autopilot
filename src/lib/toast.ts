@@ -1,4 +1,4 @@
-import { toast, type ExternalToast } from "sonner";
+import { type ExternalToast, toast } from "sonner";
 
 export function showSuccess(message: string, options?: ExternalToast) {
 	toast.success(message, options);

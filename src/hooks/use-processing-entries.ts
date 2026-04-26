@@ -1,8 +1,8 @@
 "use client";
 
-import { useState, useCallback, useRef, useEffect } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { showError, showSuccess } from "@/lib/toast";
 import type { BrainDumpEntry } from "@/lib/types";
-import { showSuccess, showError } from "@/lib/toast";
 
 const PROCESSING_TIMEOUT_MS = 10 * 60 * 1000; // 10 minutes
 

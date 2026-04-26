@@ -1,31 +1,31 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { OctagonX, AlertTriangle, Circle } from "lucide-react";
-import {
-	Popover,
-	PopoverTrigger,
-	PopoverContent,
-} from "@/components/ui/popover";
+import { AlertTriangle, Circle, OctagonX } from "lucide-react";
+import { useEffect, useState } from "react";
+import { ThemeToggle } from "@/components/theme-toggle";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import {
 	Dialog,
 	DialogContent,
-	DialogHeader,
-	DialogTitle,
 	DialogDescription,
 	DialogFooter,
+	DialogHeader,
+	DialogTitle,
 } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
+import {
+	Popover,
+	PopoverContent,
+	PopoverTrigger,
+} from "@/components/ui/popover";
 import { Separator } from "@/components/ui/separator";
 import {
 	Tooltip,
-	TooltipTrigger,
 	TooltipContent,
+	TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { ThemeToggle } from "@/components/theme-toggle";
 import { apiFetch } from "@/lib/api-client";
-import { showSuccess, showError } from "@/lib/toast";
+import { showError, showSuccess } from "@/lib/toast";
 import { cn } from "@/lib/utils";
 
 interface SidebarFooterProps {
@@ -88,13 +88,15 @@ export function SidebarFooter({ collapsed }: SidebarFooterProps) {
 				<TooltipTrigger asChild>
 					<PopoverTrigger asChild>
 						<button
-							className="flex items-center justify-center h-8 w-8 rounded-md hover:bg-accent transition-colors"
+							className="flex items-center justify-center h-8 w-8 rounded-sm hover:bg-accent transition-colors"
 							aria-label="Server mode"
 						>
 							<Circle
 								className={cn(
 									"h-2.5 w-2.5 fill-current",
-									isPm2 ? "text-green-500 animate-pulse" : "text-zinc-500",
+									isPm2
+										? "text-mistral-orange animate-pulse"
+										: "text-muted-foreground",
 								)}
 							/>
 						</button>
@@ -107,12 +109,12 @@ export function SidebarFooter({ collapsed }: SidebarFooterProps) {
 			<PopoverContent side="top" align="start" className="w-72">
 				<div className="space-y-3">
 					<div className="flex items-center justify-between">
-						<h4 className="text-sm font-semibold">Server Mode</h4>
+						<h4 className="text-sm font-normal">Server Mode</h4>
 						<Badge
 							className={cn(
 								isPm2
-									? "bg-green-500/15 text-green-500 border-green-500/25"
-									: "bg-zinc-500/15 text-zinc-400 border-zinc-500/25",
+									? "bg-mistral-orange/15 text-mistral-orange border-mistral-orange/25"
+									: "bg-muted/50 text-muted-foreground border-muted",
 							)}
 						>
 							{isPm2 ? "Always-on (PM2)" : "Terminal"}
@@ -134,25 +136,25 @@ export function SidebarFooter({ collapsed }: SidebarFooterProps) {
 					<Separator />
 
 					<div className="space-y-2">
-						<p className="text-xs font-medium">Server Management</p>
+						<p className="text-xs font-normal">Server Management</p>
 						<p className="text-xs text-muted-foreground">
 							For continuous operation, run with PM2. The server auto-restarts
 							on crashes.
 						</p>
 						<div className="space-y-1.5">
-							<p className="text-[10px] text-muted-foreground/60 uppercase tracking-wider font-medium">
+							<p className="text-[10px] text-muted-foreground/60 uppercase tracking-wider font-normal">
 								Always-on mode (PM2)
 							</p>
 							<code className="block text-xs bg-muted px-2 py-1 rounded font-mono">
 								pm2 start ecosystem.config.js
 							</code>
-							<p className="text-[10px] text-muted-foreground/60 uppercase tracking-wider font-medium mt-2">
+							<p className="text-[10px] text-muted-foreground/60 uppercase tracking-wider font-normal mt-2">
 								Terminal mode
 							</p>
 							<code className="block text-xs bg-muted px-2 py-1 rounded font-mono">
 								pnpm dev
 							</code>
-							<p className="text-[10px] text-muted-foreground/60 uppercase tracking-wider font-medium mt-2">
+							<p className="text-[10px] text-muted-foreground/60 uppercase tracking-wider font-normal mt-2">
 								Stop PM2 server
 							</p>
 							<code className="block text-xs bg-muted px-2 py-1 rounded font-mono">
@@ -169,7 +171,7 @@ export function SidebarFooter({ collapsed }: SidebarFooterProps) {
 		<Tooltip>
 			<TooltipTrigger asChild>
 				<button
-					className="flex items-center justify-center h-8 w-8 rounded-md text-red-500/60 hover:text-red-400 hover:bg-red-500/10 transition-colors"
+					className="flex items-center justify-center h-8 w-8 rounded-sm text-destructive hover:text-destructive hover:bg-destructive/10 transition-colors"
 					onClick={() => setKillDialogOpen(true)}
 					aria-label="Emergency Stop"
 				>

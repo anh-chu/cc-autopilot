@@ -25,14 +25,14 @@ import { getAgentIcon } from "@/lib/agent-icons";
 import type { AgentDefinition, Project, ProjectStatus } from "@/lib/types";
 
 const PROJECT_COLORS = [
-	"#6366f1",
-	"#8b5cf6",
-	"#ec4899",
-	"#f43f5e",
-	"#f97316",
-	"#eab308",
-	"#22c55e",
-	"#06b6d4",
+	"#fa520f",
+	"#fb6424",
+	"#ff8105",
+	"#ffa110",
+	"#ffb83e",
+	"#ffd06a",
+	"#ffd900",
+	"#1f1f1f",
 ];
 
 interface ProjectDialogProps {

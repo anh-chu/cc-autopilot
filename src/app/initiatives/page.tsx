@@ -45,43 +45,39 @@ const STATUS_GROUPS: { status: InitiativeStatus; label: string }[] = [
 ];
 
 const COLOR_SWATCHES = [
-	"#6366f1",
-	"#8b5cf6",
-	"#ec4899",
-	"#ef4444",
-	"#f97316",
-	"#eab308",
-	"#22c55e",
-	"#14b8a6",
-	"#3b82f6",
-	"#06b6d4",
-	"#64748b",
-	"#78716c",
+	"#fa520f",
+	"#fb6424",
+	"#ff8105",
+	"#ffa110",
+	"#ffb83e",
+	"#ffd06a",
+	"#ffd900",
+	"#1f1f1f",
 ];
 
 function statusBadge(status: InitiativeStatus) {
 	switch (status) {
 		case "active":
 			return (
-				<Badge className="bg-blue-500/20 text-blue-400 border-blue-500/30 text-[10px]">
+				<Badge className="bg-sunshine-500/20 text-sunshine-700 border-sunshine-500/30 text-[10px]">
 					Active
 				</Badge>
 			);
 		case "paused":
 			return (
-				<Badge className="bg-zinc-500/20 text-zinc-400 border-zinc-500/30 text-[10px]">
+				<Badge className="bg-muted text-muted-foreground border-muted text-[10px]">
 					Paused
 				</Badge>
 			);
 		case "completed":
 			return (
-				<Badge className="bg-green-500/20 text-green-400 border-green-500/30 text-[10px]">
+				<Badge className="bg-success/20 text-success border-success/30 text-[10px]">
 					Completed
 				</Badge>
 			);
 		case "archived":
 			return (
-				<Badge className="bg-zinc-700/40 text-zinc-500 border-zinc-700/30 text-[10px]">
+				<Badge className="bg-muted/60 text-muted-foreground border-muted text-[10px]">
 					Archived
 				</Badge>
 			);
@@ -249,7 +245,7 @@ function InitiativeCard({
 									className="h-3 w-3 rounded-full shrink-0"
 									style={{ backgroundColor: initiative.color }}
 								/>
-								<h3 className="font-medium truncate">{initiative.title}</h3>
+								<h3 className="font-normal truncate">{initiative.title}</h3>
 							</div>
 							<div className="flex items-center gap-1.5 shrink-0">
 								{statusBadge(initiative.status)}
@@ -328,7 +324,7 @@ export default function InitiativesPage() {
 
 			<div className="flex items-center justify-between">
 				<div>
-					<h1 className="text-xl font-bold">Initiatives</h1>
+					<h1 className="text-xl font-normal">Initiatives</h1>
 					<p className="text-sm text-muted-foreground">
 						Group tasks into focused campaigns
 					</p>
@@ -346,7 +342,7 @@ export default function InitiativesPage() {
 				{statCards.map(({ label, value }) => (
 					<Card key={label}>
 						<CardContent className="p-4">
-							<p className="text-2xl font-bold">{value}</p>
+							<p className="text-2xl font-normal">{value}</p>
 							<p className="text-xs text-muted-foreground mt-0.5">{label}</p>
 						</CardContent>
 					</Card>
@@ -356,7 +352,7 @@ export default function InitiativesPage() {
 			{loading ? (
 				<div className="space-y-3">
 					{[1, 2, 3].map((i) => (
-						<Skeleton key={i} className="h-24 w-full rounded-lg" />
+						<Skeleton key={i} className="h-24 w-full rounded-sm" />
 					))}
 				</div>
 			) : visible.length === 0 ? (
@@ -365,7 +361,7 @@ export default function InitiativesPage() {
 						<CardContent className="flex flex-col items-center justify-center gap-3 py-16 text-center">
 							<Lightbulb className="h-12 w-12 text-muted-foreground/30" />
 							<div className="space-y-1.5 max-w-sm">
-								<h3 className="font-medium text-lg">No initiatives yet</h3>
+								<h3 className="font-normal text-lg">No initiatives yet</h3>
 								<p className="text-sm text-muted-foreground">
 									Use initiatives to group related tasks into a focused campaign
 									with one ownership point.
@@ -386,7 +382,7 @@ export default function InitiativesPage() {
 						if (group.length === 0) return null;
 						return (
 							<section key={status}>
-								<h2 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground/60 mb-3">
+								<h2 className="text-xs font-normal uppercase tracking-wider text-muted-foreground/60 mb-3">
 									{label} ({group.length})
 								</h2>
 								<div className="space-y-3">

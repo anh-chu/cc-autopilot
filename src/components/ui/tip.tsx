@@ -1,10 +1,10 @@
 "use client";
 
-import * as React from "react";
+import type * as React from "react";
 import {
 	Tooltip,
-	TooltipTrigger,
 	TooltipContent,
+	TooltipTrigger,
 } from "@/components/ui/tooltip";
 
 interface TipProps {

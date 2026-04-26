@@ -43,11 +43,11 @@ type EventMetaMap = Record<string, EventMeta>;
 const EVENT_META: EventMetaMap = {
 	task_created: {
 		label: "Task Created",
-		color: "bg-blue-500/10 text-blue-400 border-blue-500/20",
+		color: "bg-sunshine-500/10 text-sunshine-700 border-sunshine-500/20",
 	},
 	task_updated: {
 		label: "Task Updated",
-		color: "bg-purple-500/10 text-purple-400 border-purple-500/20",
+		color: "bg-mistral-orange/10 text-mistral-orange border-mistral-orange/20",
 	},
 	task_completed: {
 		label: "Task Completed",
@@ -63,7 +63,7 @@ const EVENT_META: EventMetaMap = {
 	},
 	message_sent: {
 		label: "Message Sent",
-		color: "bg-cyan-500/10 text-cyan-400 border-cyan-500/20",
+		color: "bg-sunshine-700/10 text-sunshine-700 border-sunshine-700/20",
 	},
 	decision_requested: {
 		label: "Decision Requested",
@@ -75,7 +75,7 @@ const EVENT_META: EventMetaMap = {
 	},
 	brain_dump_triaged: {
 		label: "Quick Capture Processed",
-		color: "bg-pink-500/10 text-pink-400 border-pink-500/20",
+		color: "bg-mistral-orange/10 text-mistral-orange border-mistral-orange/20",
 	},
 	milestone_completed: {
 		label: "Milestone Completed",
@@ -83,7 +83,7 @@ const EVENT_META: EventMetaMap = {
 	},
 	agent_checkin: {
 		label: "Agent Check-in",
-		color: "bg-indigo-500/10 text-indigo-400 border-indigo-500/20",
+		color: "bg-sunshine-500/10 text-sunshine-700 border-sunshine-500/20",
 	},
 } as const;
 
@@ -237,7 +237,7 @@ function EventRow({
 			: null;
 
 	return (
-		<div className="flex gap-3 py-2.5 px-3 rounded-lg hover:bg-accent/30 transition-colors">
+		<div className="flex gap-3 py-2.5 px-3 rounded-sm hover:bg-accent/30 transition-colors">
 			<div className="mt-0.5 shrink-0">
 				<div className="h-7 w-7 rounded-full bg-muted flex items-center justify-center">
 					<Icon className="h-3.5 w-3.5 text-muted-foreground" />
@@ -245,7 +245,7 @@ function EventRow({
 			</div>
 			<div className="flex-1 min-w-0 space-y-1">
 				<div className="flex items-center gap-2 flex-wrap">
-					<span className="text-xs font-medium text-foreground">
+					<span className="text-xs font-normal text-foreground">
 						{ACTOR_LABELS[event.actor] ?? event.actor}
 					</span>
 					{meta && (
@@ -421,7 +421,7 @@ export default function ActivityPage() {
 					{Array.from(grouped.entries()).map(([key, dayEvents]) => (
 						<div key={key}>
 							<div className="flex items-center gap-2 mb-1 px-1">
-								<span className="text-xs font-semibold text-muted-foreground">
+								<span className="text-xs font-normal text-muted-foreground">
 									{dayLabel(key)}
 								</span>
 								<div className="flex-1 h-px bg-border/50" />

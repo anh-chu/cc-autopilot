@@ -22,14 +22,14 @@ import {
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
-import { StreamEntry, prepareConsoleLines } from "@/components/agent-console";
-import type { StreamLine } from "@/hooks/use-agent-stream";
-import { useAgents } from "@/hooks/use-data";
+import { prepareConsoleLines, StreamEntry } from "@/components/agent-console";
 import { BreadcrumbNav } from "@/components/breadcrumb-nav";
 import { ConfirmDialog } from "@/components/confirm-dialog";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
+import type { StreamLine } from "@/hooks/use-agent-stream";
+import { useAgents } from "@/hooks/use-data";
 import { cn } from "@/lib/utils";
 
 interface TreeNode {
@@ -705,9 +705,9 @@ export default function DocumentsPage() {
 							<Folder className="h-4 w-4 shrink-0 text-amber-500" />
 						)
 					) : isImage(node.name) ? (
-						<ImageIcon className="h-4 w-4 shrink-0 text-green-500" />
+						<ImageIcon className="h-4 w-4 shrink-0 text-sunshine-700" />
 					) : isText(node.name) ? (
-						<FileText className="h-4 w-4 shrink-0 text-blue-500" />
+						<FileText className="h-4 w-4 shrink-0 text-mistral-orange" />
 					) : (
 						<File className="h-4 w-4 shrink-0 text-muted-foreground" />
 					)}
@@ -943,7 +943,7 @@ export default function DocumentsPage() {
 			<Card className="flex flex-col w-96 shrink-0 overflow-hidden">
 				<div className="flex items-center justify-between px-3 py-2 border-b bg-muted/20 shrink-0">
 					<div>
-						<p className="text-sm font-medium">Generate Wiki</p>
+						<p className="text-sm font-normal">Generate Wiki</p>
 						<p className="text-xs text-muted-foreground">
 							{promptIsDefault
 								? "Default prompt loaded"
@@ -1016,7 +1016,7 @@ export default function DocumentsPage() {
 
 					<div className="space-y-2">
 						<div className="flex items-center justify-between">
-							<p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+							<p className="text-xs font-normal uppercase tracking-wide text-muted-foreground">
 								Prompt
 							</p>
 							<span className="text-[11px] text-muted-foreground">
@@ -1058,7 +1058,7 @@ export default function DocumentsPage() {
 					</div>
 
 					<div className="space-y-2">
-						<p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+						<p className="text-xs font-normal uppercase tracking-wide text-muted-foreground">
 							Additional instructions
 						</p>
 						<Textarea
@@ -1073,7 +1073,7 @@ export default function DocumentsPage() {
 					</div>
 
 					<div className="space-y-2">
-						<p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+						<p className="text-xs font-normal uppercase tracking-wide text-muted-foreground">
 							Agent
 						</p>
 						<select
@@ -1096,7 +1096,7 @@ export default function DocumentsPage() {
 					</div>
 
 					<div className="space-y-2">
-						<p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+						<p className="text-xs font-normal uppercase tracking-wide text-muted-foreground">
 							Model
 						</p>
 						<select
@@ -1115,7 +1115,7 @@ export default function DocumentsPage() {
 
 					<div className="space-y-2">
 						<div className="flex items-center justify-between">
-							<p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+							<p className="text-xs font-normal uppercase tracking-wide text-muted-foreground">
 								Recent runs
 							</p>
 							<span className="text-[11px] text-muted-foreground">
@@ -1132,7 +1132,7 @@ export default function DocumentsPage() {
 										className="rounded-md border bg-background px-3 py-2 text-xs space-y-1"
 									>
 										<div className="flex items-center justify-between gap-2">
-											<span className="font-medium truncate" title={run.id}>
+											<span className="font-normal truncate" title={run.id}>
 												{run.id}
 											</span>
 											<span className="uppercase text-[10px] text-muted-foreground">
@@ -1164,7 +1164,7 @@ export default function DocumentsPage() {
 				<Card className="flex-1 flex flex-col overflow-hidden min-w-0">
 					<div className="flex items-center justify-between px-4 py-2 border-b bg-muted/20 shrink-0">
 						<div className="min-w-0">
-							<p className="text-sm font-medium">Claude Run Stream</p>
+							<p className="text-sm font-normal">Claude Run Stream</p>
 							<p
 								className="text-xs text-muted-foreground truncate"
 								title={streamRunId}
@@ -1200,14 +1200,14 @@ export default function DocumentsPage() {
 					<div className="flex items-center justify-between px-4 py-2 border-b bg-muted/20 shrink-0">
 						<div className="flex items-center gap-2 min-w-0">
 							{isImage(openFile.name) ? (
-								<ImageIcon className="h-4 w-4 shrink-0 text-green-500" />
+								<ImageIcon className="h-4 w-4 shrink-0 text-sunshine-700" />
 							) : isText(openFile.name) ? (
-								<FileText className="h-4 w-4 shrink-0 text-blue-500" />
+								<FileText className="h-4 w-4 shrink-0 text-mistral-orange" />
 							) : (
 								<File className="h-4 w-4 shrink-0 text-muted-foreground" />
 							)}
 							<span
-								className="text-sm font-medium truncate"
+								className="text-sm font-normal truncate"
 								title={openFile.path}
 							>
 								{openFile.path}
@@ -1268,22 +1268,22 @@ export default function DocumentsPage() {
 									remarkPlugins={[remarkGfm]}
 									components={{
 										h1: ({ children }) => (
-											<h1 className="text-2xl font-bold mt-6 mb-3 pb-1 border-b">
+											<h1 className="text-2xl font-normal mt-6 mb-3 pb-1 border-b">
 												{children}
 											</h1>
 										),
 										h2: ({ children }) => (
-											<h2 className="text-xl font-semibold mt-5 mb-2 pb-1 border-b">
+											<h2 className="text-xl font-normal mt-5 mb-2 pb-1 border-b">
 												{children}
 											</h2>
 										),
 										h3: ({ children }) => (
-											<h3 className="text-lg font-semibold mt-4 mb-2">
+											<h3 className="text-lg font-normal mt-4 mb-2">
 												{children}
 											</h3>
 										),
 										h4: ({ children }) => (
-											<h4 className="text-base font-semibold mt-3 mb-1">
+											<h4 className="text-base font-normal mt-3 mb-1">
 												{children}
 											</h4>
 										),
@@ -1340,7 +1340,7 @@ export default function DocumentsPage() {
 											</a>
 										),
 										strong: ({ children }) => (
-											<strong className="font-semibold">{children}</strong>
+											<strong className="font-normal">{children}</strong>
 										),
 										em: ({ children }) => (
 											<em className="italic">{children}</em>
@@ -1354,7 +1354,7 @@ export default function DocumentsPage() {
 											</div>
 										),
 										th: ({ children }) => (
-											<th className="border border-border px-3 py-1.5 bg-muted font-semibold text-left">
+											<th className="border border-border px-3 py-1.5 bg-muted font-normal text-left">
 												{children}
 											</th>
 										),

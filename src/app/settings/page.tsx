@@ -20,16 +20,14 @@ import { useDaemon } from "@/hooks/use-daemon";
 import { useWorkspace } from "@/hooks/use-workspace";
 
 const COLORS = [
-	"#6366f1",
-	"#8b5cf6",
-	"#ec4899",
-	"#ef4444",
-	"#f97316",
-	"#eab308",
-	"#22c55e",
-	"#14b8a6",
-	"#3b82f6",
-	"#06b6d4",
+	"#fa520f",
+	"#fb6424",
+	"#ff8105",
+	"#ffa110",
+	"#ffb83e",
+	"#ffd06a",
+	"#ffd900",
+	"#1f1f1f",
 ];
 
 export default function SettingsPage() {
@@ -44,7 +42,7 @@ export default function SettingsPage() {
 	} = useDaemon();
 
 	const [name, setName] = useState("");
-	const [color, setColor] = useState("#6366f1");
+	const [color, setColor] = useState("#fa520f");
 	const [saving, setSaving] = useState(false);
 	const [saved, setSaved] = useState(false);
 	const [showDeleteDialog, setShowDeleteDialog] = useState(false);
@@ -331,7 +329,7 @@ export default function SettingsPage() {
 
 						<div className="flex items-center justify-between">
 							<div>
-								<p className="text-sm font-medium">Polling</p>
+								<p className="text-sm font-normal">Polling</p>
 								<p className="text-xs text-muted-foreground">
 									Automatically pick up new tasks
 								</p>
@@ -380,7 +378,7 @@ export default function SettingsPage() {
 					<CardContent>
 						<div className="flex items-center justify-between">
 							<div>
-								<p className="text-sm font-medium">Delete workspace</p>
+								<p className="text-sm font-normal">Delete workspace</p>
 								<p className="text-xs text-muted-foreground mt-0.5">
 									{currentWorkspace?.isDefault
 										? "The default workspace cannot be deleted."

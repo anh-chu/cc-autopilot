@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useCallback, useEffect, useState } from "react";
 
 const PING_INTERVAL = 30_000; // 30 seconds
 const PING_TIMEOUT = 5_000; // 5 second timeout for health check

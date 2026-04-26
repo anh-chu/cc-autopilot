@@ -49,7 +49,7 @@ export async function apiFetch(
 
 			// Only retry on 5xx (server error), never on 4xx (client error)
 			if (res.status >= 500 && attempt < maxRetries) {
-				await sleep(baseDelay * Math.pow(2, attempt));
+				await sleep(baseDelay * 2 ** attempt);
 				continue;
 			}
 
@@ -58,8 +58,7 @@ export async function apiFetch(
 			// Network error (server unreachable, DNS failure, CORS, etc.)
 			lastError = err;
 			if (attempt < maxRetries) {
-				await sleep(baseDelay * Math.pow(2, attempt));
-				continue;
+				await sleep(baseDelay * 2 ** attempt);
 			}
 		}
 	}
