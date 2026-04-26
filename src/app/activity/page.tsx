@@ -55,11 +55,11 @@ const EVENT_META: EventMetaMap = {
 	},
 	task_delegated: {
 		label: "Task Delegated",
-		color: "bg-warning/10 text-warning border-warning/20",
+		color: "bg-warning-soft text-warning border-warning/20",
 	},
 	task_failed: {
 		label: "Task Failed",
-		color: "bg-destructive/10 text-destructive border-destructive/20",
+		color: "bg-destructive-soft text-destructive border-destructive/20",
 	},
 	message_sent: {
 		label: "Message Sent",

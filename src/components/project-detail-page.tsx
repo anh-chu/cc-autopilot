@@ -419,7 +419,7 @@ export function ProjectDetailPage({
 								key={memberId}
 								className="flex items-center gap-1.5 rounded-sm border bg-card px-2.5 py-1.5 text-sm group"
 							>
-								<div className="h-5 w-5 rounded-full bg-primary/10 flex items-center justify-center">
+								<div className="h-5 w-5 rounded-full bg-primary-soft flex items-center justify-center">
 									<MemberIcon className="h-3 w-3 text-primary" />
 								</div>
 								<span className="text-xs font-normal">

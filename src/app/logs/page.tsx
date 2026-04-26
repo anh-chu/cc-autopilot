@@ -450,7 +450,7 @@ export default function LogsPage() {
 									{failedRuns.map((run) => (
 										<div
 											key={run.id}
-											className="rounded-sm border border-destructive/20 bg-destructive/5 p-4"
+											className="rounded-sm border border-destructive/20 bg-destructive-soft p-4"
 										>
 											<div className="mb-2 flex flex-wrap items-center gap-2">
 												<p className="font-normal text-sm">{run.agentId}</p>

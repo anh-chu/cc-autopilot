@@ -238,7 +238,7 @@ export default function AgentPage() {
 
 			{/* Agent Profile Header */}
 			<div className="flex items-start gap-4">
-				<div className="h-14 w-14 rounded-sm bg-primary/10 flex items-center justify-center shrink-0">
+				<div className="h-14 w-14 rounded-sm bg-primary-soft flex items-center justify-center shrink-0">
 					<Icon className="h-7 w-7 text-primary" />
 				</div>
 				<div className="flex-1 min-w-0">

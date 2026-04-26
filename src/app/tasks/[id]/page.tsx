@@ -568,7 +568,7 @@ export default function TaskDetailPage() {
 												<div
 													className={cn(
 														"h-6 w-6 rounded-full flex items-center justify-center shrink-0 mt-0.5",
-														isAgent ? "bg-accent/10" : "bg-muted",
+														isAgent ? "bg-accent-soft" : "bg-muted",
 													)}
 												>
 													<AuthorIcon

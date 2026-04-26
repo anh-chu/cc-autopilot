@@ -678,7 +678,7 @@ export default function DocumentsPage() {
 						openFile?.path === node.path
 							? "bg-accent text-accent-foreground"
 							: "hover:bg-accent/50",
-						dragOverPath === node.path && "ring-2 ring-primary bg-primary/10",
+						dragOverPath === node.path && "ring-2 ring-primary bg-primary-soft",
 					)}
 					style={{ paddingLeft: `${depth * 14 + 8}px` }}
 					onClick={() => {
@@ -864,7 +864,7 @@ export default function DocumentsPage() {
 				</div>
 
 				{uploadError && (
-					<div className="flex items-center gap-1.5 px-3 py-1.5 text-xs text-destructive bg-destructive/10 shrink-0">
+					<div className="flex items-center gap-1.5 px-3 py-1.5 text-xs text-destructive bg-destructive-soft shrink-0">
 						<AlertCircle className="h-3.5 w-3.5 shrink-0" />
 						{uploadError}
 					</div>
@@ -916,7 +916,7 @@ export default function DocumentsPage() {
 					className={cn(
 						"flex-1 overflow-auto py-1",
 						dragOverPath === "" &&
-							"ring-2 ring-inset ring-primary bg-primary/5",
+							"ring-2 ring-inset ring-primary bg-primary-soft",
 					)}
 					onDragOver={(e) => handleDragOver(e, "", "root")}
 					onDragLeave={(e) => {
@@ -999,17 +999,17 @@ export default function DocumentsPage() {
 						scaffold. Run processes docs and updates pages.
 					</p>
 					{promptError && (
-						<div className="rounded-sm border border-destructive/30 bg-destructive/10 px-3 py-2 text-xs text-destructive">
+						<div className="rounded-sm border border-destructive/30 bg-destructive-soft px-3 py-2 text-xs text-destructive">
 							{promptError}
 						</div>
 					)}
 					{runError && (
-						<div className="rounded-sm border border-destructive/30 bg-destructive/10 px-3 py-2 text-xs text-destructive">
+						<div className="rounded-sm border border-destructive/30 bg-destructive-soft px-3 py-2 text-xs text-destructive">
 							{runError}
 						</div>
 					)}
 					{runMessage && (
-						<div className="rounded-sm border border-primary/30 bg-primary/10 px-3 py-2 text-xs text-primary">
+						<div className="rounded-sm border border-primary/30 bg-primary-soft px-3 py-2 text-xs text-primary">
 							{runMessage}
 						</div>
 					)}

@@ -160,7 +160,7 @@ export function SkillForm({ mode, initialData, onDelete }: SkillFormProps) {
 			</div>
 
 			{error && (
-				<div className="rounded-sm border border-destructive bg-destructive/10 px-4 py-3 text-sm text-destructive">
+				<div className="rounded-sm border border-destructive bg-destructive-soft px-4 py-3 text-sm text-destructive">
 					{error}
 				</div>
 			)}
@@ -278,7 +278,7 @@ export function SkillForm({ mode, initialData, onDelete }: SkillFormProps) {
 										onClick={() => toggleAgent(agent.id)}
 										className={`flex items-center gap-2 rounded-sm border p-2.5 text-left transition-colors ${
 											isAssigned
-												? "border-primary bg-primary/5"
+												? "border-primary bg-primary-soft"
 												: "hover:bg-muted"
 										}`}
 									>

@@ -196,7 +196,7 @@ export default function SkillsPage() {
 			{/* AI Commands (slash commands) */}
 			<div className="rounded-sm border bg-card">
 				<div className="flex items-center gap-3 border-b px-5 py-4">
-					<div className="h-9 w-9 rounded-full bg-primary/10 flex items-center justify-center">
+					<div className="h-9 w-9 rounded-full bg-primary-soft flex items-center justify-center">
 						<Terminal className="h-4 w-4 text-primary" />
 					</div>
 					<div>

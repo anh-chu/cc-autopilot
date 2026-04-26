@@ -696,7 +696,7 @@ export function TaskForm({
 											onClick={() => toggleDependency(t.id)}
 											className={cn(
 												"flex items-center gap-2 w-full text-left px-2 py-1 rounded-sm text-xs hover:bg-accent/50 transition-colors",
-												checked && "bg-accent/30",
+												checked && "bg-accent-soft",
 											)}
 										>
 											{checked ? (

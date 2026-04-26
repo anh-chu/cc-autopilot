@@ -19,6 +19,7 @@ const config: Config = {
 				primary: {
 					DEFAULT: "var(--primary)",
 					foreground: "var(--primary-foreground)",
+					soft: "var(--primary-soft)",
 				},
 				secondary: {
 					DEFAULT: "var(--secondary)",
@@ -31,10 +32,12 @@ const config: Config = {
 				accent: {
 					DEFAULT: "var(--accent)",
 					foreground: "var(--accent-foreground)",
+					soft: "var(--accent-soft)",
 				},
 				destructive: {
 					DEFAULT: "var(--destructive)",
 					foreground: "var(--destructive-foreground)",
+					soft: "var(--destructive-soft)",
 				},
 				border: "var(--border)",
 				input: "var(--input)",
@@ -67,7 +70,10 @@ const config: Config = {
 				"status-done": "var(--status-done)",
 				// Semantic colors
 				success: "var(--success)",
-				warning: "var(--warning)",
+				warning: {
+					DEFAULT: "var(--warning)",
+					soft: "var(--warning-soft)",
+				},
 				info: "var(--info)",
 				// Warm palette — direct use in Phase 2-4 components
 				mistral: {

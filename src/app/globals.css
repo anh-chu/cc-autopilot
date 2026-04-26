@@ -17,8 +17,12 @@
 	--muted-foreground: hsl(0, 0%, 24%);
 	--accent: #fa520f;
 	--accent-foreground: #ffffff;
+	--accent-soft: #fde9d4;
+	--primary-soft: #ececec;
 	--destructive: #dc2626;
 	--destructive-foreground: #ffffff;
+	--destructive-soft: #fbe7e7;
+	--warning-soft: #fff3d6;
 	--border: hsl(40, 30%, 88%);
 	--input: hsl(40, 25%, 80%);
 	--ring: #fa520f;
@@ -97,8 +101,12 @@
 	--muted-foreground: hsl(35, 18%, 60%);
 	--accent: #fa520f;
 	--accent-foreground: #ffffff;
+	--accent-soft: #3a2818;
+	--primary-soft: #3a2818;
 	--destructive: #ef4444;
 	--destructive-foreground: #ffffff;
+	--destructive-soft: #3a2424;
+	--warning-soft: #3d3320;
 	--border: hsl(28, 18%, 22%);
 	--input: hsl(28, 15%, 20%);
 	--ring: #fa520f;

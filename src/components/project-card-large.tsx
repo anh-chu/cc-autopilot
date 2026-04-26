@@ -77,7 +77,7 @@ export function ProjectCardLarge({
 						)}
 					>
 						<CardHeader
-							className={cn("pb-3", isRunning && "bg-accent/5 rounded-t-sm")}
+							className={cn("pb-3", isRunning && "bg-accent-soft rounded-t-sm")}
 						>
 							<div className="flex items-center justify-between">
 								<div className="flex items-center gap-2">

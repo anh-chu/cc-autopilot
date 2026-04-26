@@ -113,7 +113,7 @@ export function SidebarFooter({ collapsed }: SidebarFooterProps) {
 						<Badge
 							className={cn(
 								isPm2
-									? "bg-accent/15 text-accent border-accent/25"
+									? "bg-accent-soft text-accent border-accent/25"
 									: "bg-muted text-muted-foreground border-muted",
 							)}
 						>

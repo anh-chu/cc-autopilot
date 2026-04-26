@@ -240,7 +240,7 @@ export function AgentForm({
 			</div>
 
 			{error && (
-				<div className="rounded-sm border border-destructive bg-destructive/10 px-4 py-3 text-sm text-destructive">
+				<div className="rounded-sm border border-destructive bg-destructive-soft px-4 py-3 text-sm text-destructive">
 					{error}
 				</div>
 			)}
@@ -507,7 +507,7 @@ export function AgentForm({
 						Preview
 					</p>
 					<div className="flex items-center gap-3">
-						<div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
+						<div className="h-10 w-10 rounded-full bg-primary-soft flex items-center justify-center">
 							<SelectedIcon className="h-5 w-5 text-primary" />
 						</div>
 						<div>

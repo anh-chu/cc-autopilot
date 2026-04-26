@@ -185,7 +185,7 @@ export function BoardColumn({
 				"flex flex-col rounded-sm border bg-card transition-all",
 				minHeight,
 				config.borderColor,
-				isOver && "ring-2 ring-primary/40 bg-primary/5 scale-[1.01]",
+				isOver && "ring-2 ring-primary/40 bg-primary-soft scale-[1.01]",
 			)}
 		>
 			<div className="flex items-center justify-between px-4 py-2.5 border-b border-inherit">

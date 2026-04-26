@@ -107,7 +107,7 @@ export function LayoutShell({ children }: LayoutShellProps) {
 					)}
 				>
 					{!online && (
-						<div className="mb-4 rounded-sm bg-destructive/10 border border-destructive/20 text-destructive text-xs text-center py-2 px-3 flex items-center justify-center gap-2">
+						<div className="mb-4 rounded-sm bg-destructive-soft border border-destructive/20 text-destructive text-xs text-center py-2 px-3 flex items-center justify-center gap-2">
 							<span className="inline-block h-1.5 w-1.5 rounded-full bg-destructive animate-pulse" />
 							Connection lost — changes may not save. Retrying automatically...
 						</div>

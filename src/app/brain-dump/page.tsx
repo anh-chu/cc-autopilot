@@ -255,7 +255,7 @@ export default function BrainDumpPage() {
 						{unprocessed.map((entry) => (
 							<Card
 								key={entry.id}
-								className={`bg-card ${processing.isProcessing(entry.id) ? "animate-pulse border-primary/30 bg-primary/5" : ""}`}
+								className={`bg-card ${processing.isProcessing(entry.id) ? "animate-pulse border-primary/30 bg-primary-soft" : ""}`}
 							>
 								<CardContent className="p-3 flex items-start justify-between gap-3">
 									{editingEntryId === entry.id ? (
