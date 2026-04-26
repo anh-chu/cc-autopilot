@@ -489,7 +489,7 @@ export default function CommandCenterPage() {
 				</Card>
 			</Link>
 
-			<Card className="border-sunshine-700/20 bg-accent/10">
+			<Card className="border-sunshine-700/20">
 				<CardContent className="p-4">
 					<div className="flex items-center gap-2 mb-3">
 						<AlertTriangle className="h-4 w-4 text-sunshine-700" />
@@ -652,7 +652,7 @@ export default function CommandCenterPage() {
 				</CardContent>
 			</Card>
 
-			<Card className="bg-card/50">
+			<Card>
 				<CardHeader className="pb-2">
 					<CardTitle className="text-sm flex items-center gap-2">
 						<User className="h-4 w-4 text-primary" />
