@@ -235,7 +235,7 @@ function InitiativeCard({
 		<ContextMenu>
 			<ContextMenuTrigger asChild>
 				<Card
-					className="hover:border-primary/30 transition-all cursor-pointer"
+					className="group cursor-pointer border border-transparent transition-all hover:shadow-golden hover:border-primary/30 hover:-translate-y-0.5"
 					onClick={() => router.push(`/initiatives/${initiative.id}`)}
 				>
 					<CardContent className="p-4 space-y-2">

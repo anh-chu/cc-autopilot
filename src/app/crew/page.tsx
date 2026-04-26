@@ -53,7 +53,7 @@ function AgentCard({
 				<Link href={`/crew/${agent.id}`}>
 					<div
 						className={cn(
-							"group rounded-sm bg-card p-5 transition-all shadow-golden",
+							"group cursor-pointer rounded-sm border border-transparent bg-card p-5 shadow-e-2 transition-all hover:shadow-golden hover:border-primary/30 hover:-translate-y-0.5",
 							isInactive && "opacity-60",
 						)}
 					>

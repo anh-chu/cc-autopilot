@@ -111,6 +111,19 @@ When a card sits inside another card-tier surface (e.g. task cards inside a kanb
 **Metadata chips**
 Small in-card metadata (assignee, tags, project labels) uses `Badge variant="outline"` with `text-muted-foreground` and `border-border`, not the filled secondary variant. Filled chips read as chunky UI buttons against the lifted card surface; outline chips read as thin typographic labels and avoid the contrast war between chip fill and card fill.
 
+**Interactive card hover**
+Three tiers, applied by role. All transitions `transition-all` (slow duration). Resting shadow is whatever the surface tier dictates (Card primitive default = `shadow-e-2`, card-on-card = `shadow-e-3`). Hover adds the lift on top.
+
+| Tier | Used for | Recipe |
+|---|---|---|
+| **Entity** | Cards that navigate to a detail page and represent a domain object (project, initiative, agent, task list row) | `group cursor-pointer border border-transparent transition-all hover:shadow-golden hover:border-primary/30 hover:-translate-y-0.5` |
+| **Widget** | Dashboard CTA tiles, banners, summary cards, quadrant tiles | `cursor-pointer border border-transparent transition-all hover:shadow-e-3 hover:border-primary/30` (no translate) |
+| **Dashed CTA** | "Create your first…" empty placeholders with `border-dashed` | `cursor-pointer hover:border-primary/30` (already has dashed border, only color tint changes) |
+
+The `border border-transparent` resting state matters: the `Card` primitive is `border-0`, so `hover:border-primary/30` alone sets only border-color and renders nothing. The transparent border reserves the 1px gutter and lets the tint fade in without layout shift.
+
+Entity cards use `group` so nested affordances (overflow menus, action icons) can fade in on `group-hover:opacity-100`. Never put `shadow-golden` on the resting state of an entity card; it collapses the hover signal.
+
 ### Motion
 Semantic states tied to durations. All `ease-out`.
 - `fast`: `duration-100` (Hover color shifts, focus rings)
