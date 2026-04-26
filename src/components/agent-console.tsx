@@ -584,7 +584,7 @@ export function AgentConsole({ runId, onStop }: AgentConsoleProps) {
 					{isConnected && !isDone && (
 						<Badge
 							variant="outline"
-							className="text-[10px] px-1.5 py-0 text-accent border-accent/30"
+							className="text-[10px] px-1.5 py-0 bg-accent-soft text-accent border-accent/40"
 						>
 							<Loader2 className="h-2.5 w-2.5 mr-1 animate-spin" />
 							streaming

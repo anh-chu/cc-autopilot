@@ -455,8 +455,7 @@ export default function CommandCenterPage() {
 									<Tip content="Start autonomous agent processing">
 										<Button
 											size="sm"
-											variant="outline"
-											className="text-xs gap-1.5 text-sunshine-700 border-sunshine-700/30 hover:bg-accent/10"
+											className="text-xs gap-1.5"
 											onClick={(e) => {
 												e.preventDefault();
 												startDaemon();
@@ -537,8 +536,7 @@ export default function CommandCenterPage() {
 												<>
 													<Button
 														size="sm"
-														variant="outline"
-														className="text-xs h-6 px-2 text-sunshine-700 border-sunshine-700/30 hover:bg-accent/10"
+														className="text-xs h-6 px-2"
 														disabled={loadingItems.has(decision.id)}
 														onClick={() =>
 															handleDecisionAnswer(decision.id, "approved")

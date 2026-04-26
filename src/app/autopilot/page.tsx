@@ -444,7 +444,7 @@ export default function AutopilotPage() {
 												{runId && (
 													<Badge
 														variant="outline"
-														className="text-[10px] text-sunshine-700 border-sunshine-700/30"
+														className="text-[10px] bg-accent-soft text-accent border-accent/40"
 													>
 														Live
 													</Badge>

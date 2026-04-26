@@ -289,7 +289,7 @@ export function TaskCard({
 							{!isBlocked && hasDependencies && (
 								<Badge
 									variant="outline"
-									className="text-xs px-1.5 py-0 border-accent/50 text-accent"
+									className="text-xs px-1.5 py-0 bg-accent-soft text-accent border-accent/40"
 								>
 									Dependencies
 								</Badge>
