@@ -403,7 +403,7 @@ export default function CommandCenterPage() {
 	}
 
 	return (
-		<div className="space-y-8">
+		<div className="flex flex-col gap-8">
 			<BreadcrumbNav items={[]} />
 
 			<Link href="/autopilot">
