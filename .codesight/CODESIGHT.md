@@ -2,9 +2,9 @@
 
 > **Stack:** next-app | none | react | typescript
 
-> 83 routes | 0 models | 73 components | 36 lib files | 21 env vars | 2 middleware | 0% test coverage
-> **Token savings:** this file is ~6,100 tokens. Without it, AI exploration would cost ~88,600 tokens. **Saves ~82,500 tokens per conversation.**
-> **Last scanned:** 2026-04-24 15:18 — re-run after significant changes
+> 81 routes | 0 models | 70 components | 41 lib files | 21 env vars | 2 middleware | 0% test coverage
+> **Token savings:** this file is ~6,200 tokens. Without it, AI exploration would cost ~87,900 tokens. **Saves ~81,600 tokens per conversation.**
+> **Last scanned:** 2026-04-27 07:17 — re-run after significant changes
 
 ---
 
@@ -27,11 +27,9 @@
 ## Other Routes
 
 - `POST` `/api/brain-dump/automate` → out: { error }
-- `GET` `/api/dashboard` [cache]
+- `GET` `/api/claude/slash-commands` → out: { commands } [auth, ai]
+- `GET` `/api/dashboard` → out: { stats } [cache]
 - `POST` `/api/emergency-stop` → out: { ok, results }
-- `POST` `/api/inbox/respond` → out: { error }
-- `GET` `/api/inbox/respond/status` → out: { runs }
-- `POST` `/api/inbox/respond/stop` → out: { error }
 - `GET` `/api/logs/app` → out: { lines, error }
 - `GET` `/api/logs/daemon` → out: { lines, error }
 - `GET` `/api/logs/stream` [cache, queue]
@@ -56,7 +54,7 @@
 - `PUT` `/api/wiki/content` → out: { error }
 - `GET` `/api/wiki/file` → out: { error } [cache]
 - `POST` `/api/wiki/folder` → out: { error }
-- `POST` `/api/wiki/generate` → out: { runId, pid, workspaceId, startedAt }
+- `POST` `/api/wiki/generate` → out: { runId, pid, workspaceId, startedAt } [auth]
 - `POST` `/api/wiki/init` → out: { error }
 - `POST` `/api/wiki/move` → out: { error }
 - `GET` `/api/wiki/prompt` → out: { content, isDefault }
@@ -81,12 +79,9 @@
 - **CrewLoading** — `src/app/crew/loading.tsx`
 - **NewAgentPage** [client] — `src/app/crew/new/page.tsx`
 - **CrewPage** [client] — `src/app/crew/page.tsx`
-- **DecisionsPage** [client] — `src/app/decisions/page.tsx`
 - **DocumentsPage** [client] — `src/app/documents/page.tsx`
 - **Error** [client] — props: error, reset — `src/app/error.tsx`
 - **GlobalError** [client] — props: error, reset — `src/app/global-error.tsx`
-- **InboxLoading** — `src/app/inbox/loading.tsx`
-- **InboxPage** [client] — `src/app/inbox/page.tsx`
 - **InitiativeDetailPage** [client] — `src/app/initiatives/[id]/page.tsx`
 - **InitiativesPage** [client] — `src/app/initiatives/page.tsx`
 - **RootLayout** — `src/app/layout.tsx`
@@ -106,7 +101,7 @@
 - **StreamEntry** [client] — props: line — `src/components/agent-console.tsx`
 - **AgentConsole** [client] — props: runId, onStop — `src/components/agent-console.tsx`
 - **AgentForm** [client] — props: mode, initialData, currentStatus, onSave, onDelete, onStatusToggle, onCancel — `src/components/agent-form.tsx`
-- **AppSidebar** [client] — props: collapsed, unreadInbox, pendingDecisions, isMobile, onClose — `src/components/app-sidebar.tsx`
+- **AppSidebar** [client] — props: collapsed, isMobile, onClose — `src/components/app-sidebar.tsx`
 - **DraggableTaskCard** [client] — props: task, project, onClick, isSelected, onToggleSelect, isRunning, onRun, pendingDecisionTaskIds, onStatusChange, onDuplicate — `src/components/board-view.tsx`
 - **BoardColumn** [client] — props: config, tasks, projects, onTaskClick, minHeight, maxHeight, selected, onToggleSelect, runningTaskIds, onRunTask — `src/components/board-view.tsx`
 - **BoardPanels** [client] — props: projects, showCreateTask, onCloseCreate, onSubmitCreate — `src/components/board-view.tsx`
@@ -150,10 +145,15 @@
 
 # Libraries
 
+- `scripts/daemon/active-runs.ts`
+  - function readActiveRuns: (filePath) => void
+  - function writeActiveRuns: (filePath, data) => void
+  - interface ActiveRunEntry
 - `scripts/daemon/config.ts`
   - function loadConfig: (workspaceId) => DaemonConfig
   - function saveConfig: (config, workspaceId) => void
   - function getConfigPath: (workspaceId) => string
+- `scripts/daemon/data-io.ts` — function readJSON: (filePath) => T | null
 - `scripts/daemon/dispatcher.ts` — class Dispatcher
 - `scripts/daemon/health.ts` — class HealthMonitor
 - `scripts/daemon/prompt-builder.ts`
@@ -169,15 +169,15 @@
   - function runCrashRecovery: (workspaceId) => RecoveryResult
   - interface SessionRecord
   - interface RecoveryResult
-- `scripts/daemon/respond-runs.ts`
-  - function readRespondRuns: () => RespondRunsFile
-  - function writeRespondRuns: (data) => void
-  - function isRunStopped: (runId) => boolean
-  - function findRunningByMessage: (messageId) => RespondRunEntry | null
-  - function getRunningRuns: () => RespondRunEntry[]
-  - function createRespondRun: (entry) => void
-  - _...3 more_
 - `scripts/daemon/runner.ts` — function parseClaudeOutput: (stdout) => ClaudeOutputMeta, class AgentRunner
+- `scripts/daemon/runs-registry.ts`
+  - function readJsonFile: (filePath, defaultValue) => T
+  - function writeJsonFile: (filePath, data) => void
+  - function atomicWriteJson: (filePath, data) => void
+  - function pruneOldEntries: (entries, maxAgeMs) => T[]
+  - function findEntryById: (filePath, id, defaultValue) => T | null
+  - function updateEntryById: (filePath, id, updates, defaultValue) => boolean
+  - _...1 more_
 - `scripts/daemon/scheduler.ts` — class Scheduler
 - `scripts/daemon/security.ts`
   - function validatePathWithinWorkspace: (filePath, workspaceRoot) => boolean
@@ -186,6 +186,8 @@
   - function enforcePromptLimit: (prompt) => string
   - function validateBinary: (binary) => boolean
   - function buildSafeEnv: (opts?) => Record<string, string>
+- `scripts/daemon/spawn-utils.ts` — function extractSummary: (stdout) => string
+- `scripts/daemon/workspace-env.ts` — function getWorkspaceEnv: (workspaceId) => Record<string, string>
 - `src/hooks/use-active-runs.ts` — function useActiveRuns: () => void
 - `src/hooks/use-agent-stream.ts` — function useAgentStream: (runId) => UseAgentStreamReturn, interface StreamLine
 - `src/hooks/use-connection.ts` — function useConnection: () => void
@@ -193,8 +195,6 @@
 - `src/hooks/use-dashboard-data.ts`
   - function useDashboardData: () => void
   - interface DashboardStats
-  - interface DashboardAttention
-  - interface DashboardEisenhowerCounts
   - interface DashboardData
 - `src/hooks/use-data.ts`
   - function useTasks: () => void
@@ -227,6 +227,12 @@
   - function createLogger: (processName, opts) => Logger
   - interface Logger
   - type LogLevel
+- `src/lib/paginate.ts`
+  - function parsePaginationParams: (searchParams) => PaginationParams
+  - function paginateItems: (items, {...}, offset }, total) => PaginatedResult<T>
+  - interface PaginationParams
+  - interface PaginatedResult
+  - const CACHE_HEADERS
 - `src/lib/paths.ts`
   - function getWorkspaceDir: (workspaceId) => string
   - function getUploadsDir: (workspaceId) => string
@@ -256,7 +262,7 @@
   - interface AgentDefinition
   - interface AgentsFile
   - interface SkillDefinition
-  - _...46 more_
+  - _...45 more_
 - `src/lib/utils.ts`
   - function cn: (...inputs) => void
   - function generateId: (prefix) => string
@@ -265,10 +271,10 @@
   - function validateBody: (request, schema) => Promise<ValidationResult<T>>
   - const DEFAULT_LIMIT
   - const LIMITS
+  - const commentSchema
   - const taskCreateSchema
   - const taskUpdateSchema
-  - const projectCreateSchema
-  - _...15 more_
+  - _...16 more_
 - `src/lib/wiki-plugin.ts`
   - function ensureWikiPluginInstalledDetailed: (cwd, options?) => WikiPluginInstall
   - function ensureWikiPluginInstalled: (cwd) => WikiPluginStatus
@@ -335,39 +341,39 @@
 
 ## Most Imported Files (change these carefully)
 
-- `src/lib/types.ts` — imported by **61** files
+- `src/lib/types.ts` — imported by **57** files
 - `src/lib/utils.ts` — imported by **51** files
-- `src/lib/paths.ts` — imported by **47** files
-- `src/components/ui/button.tsx` — imported by **37** files
-- `src/components/breadcrumb-nav.tsx` — imported by **27** files
-- `src/components/ui/badge.tsx` — imported by **26** files
+- `src/lib/paths.ts` — imported by **43** files
+- `src/components/ui/button.tsx` — imported by **36** files
+- `src/components/breadcrumb-nav.tsx` — imported by **24** files
+- `src/components/ui/badge.tsx` — imported by **23** files
 - `src/lib/data.ts` — imported by **18** files
 - `src/lib/workspace-context.ts` — imported by **18** files
-- `src/hooks/use-data.ts` — imported by **16** files
-- `scripts/daemon/logger.ts` — imported by **14** files
-- `src/components/ui/card.tsx` — imported by **14** files
-- `src/components/ui/input.tsx` — imported by **14** files
-- `src/components/skeletons.tsx` — imported by **13** files
+- `src/hooks/use-data.ts` — imported by **14** files
+- `scripts/daemon/logger.ts` — imported by **13** files
+- `src/components/ui/input.tsx` — imported by **13** files
 - `src/lib/api-client.ts` — imported by **13** files
-- `src/components/ui/tip.tsx` — imported by **12** files
-- `src/components/error-state.tsx` — imported by **11** files
-- `scripts/daemon/types.ts` — imported by **10** files
-- `src/lib/toast.ts` — imported by **10** files
+- `src/components/ui/card.tsx` — imported by **12** files
+- `src/components/ui/tip.tsx` — imported by **11** files
+- `src/components/error-state.tsx` — imported by **9** files
+- `src/lib/toast.ts` — imported by **9** files
+- `src/components/skeletons.tsx` — imported by **9** files
 - `src/components/ui/textarea.tsx` — imported by **9** files
-- `src/components/empty-state.tsx` — imported by **8** files
+- `src/providers/active-runs-provider.tsx` — imported by **8** files
+- `scripts/daemon/security.ts` — imported by **7** files
 
 ## Import Map (who imports what)
 
-- `src/lib/types.ts` ← `__tests__/data.test.ts`, `src/app/activity/page.tsx`, `src/app/activity/page.tsx`, `src/app/api/activity-log/route.ts`, `src/app/api/agents/route.ts` +56 more
+- `src/lib/types.ts` ← `__tests__/data.test.ts`, `src/app/activity/page.tsx`, `src/app/api/activity-log/route.ts`, `src/app/api/agents/route.ts`, `src/app/api/brain-dump/route.ts` +52 more
 - `src/lib/utils.ts` ← `src/app/api/activity-log/route.ts`, `src/app/api/brain-dump/route.ts`, `src/app/api/decisions/route.ts`, `src/app/api/inbox/route.ts`, `src/app/api/projects/route.ts` +46 more
-- `src/lib/paths.ts` ← `scripts/cleanup-uploads.ts`, `scripts/daemon/config.ts`, `scripts/daemon/dispatcher.ts`, `scripts/daemon/health.ts`, `scripts/daemon/index.ts` +42 more
-- `src/components/ui/button.tsx` ← `src/app/autopilot/page.tsx`, `src/app/brain-dump/page.tsx`, `src/app/crew/[id]/edit/page.tsx`, `src/app/crew/[id]/page.tsx`, `src/app/crew/page.tsx` +32 more
-- `src/components/breadcrumb-nav.tsx` ← `src/app/activity/page.tsx`, `src/app/autopilot/page.tsx`, `src/app/brain-dump/loading.tsx`, `src/app/brain-dump/page.tsx`, `src/app/crew/[id]/edit/page.tsx` +22 more
-- `src/components/ui/badge.tsx` ← `src/app/activity/page.tsx`, `src/app/autopilot/page.tsx`, `src/app/brain-dump/page.tsx`, `src/app/crew/[id]/page.tsx`, `src/app/crew/page.tsx` +21 more
+- `src/lib/paths.ts` ← `scripts/cleanup-uploads.ts`, `scripts/daemon/config.ts`, `scripts/daemon/dispatcher.ts`, `scripts/daemon/health.ts`, `scripts/daemon/index.ts` +38 more
+- `src/components/ui/button.tsx` ← `src/app/activity/page.tsx`, `src/app/autopilot/page.tsx`, `src/app/brain-dump/page.tsx`, `src/app/crew/[id]/edit/page.tsx`, `src/app/crew/[id]/page.tsx` +31 more
+- `src/components/breadcrumb-nav.tsx` ← `src/app/activity/page.tsx`, `src/app/autopilot/page.tsx`, `src/app/brain-dump/loading.tsx`, `src/app/brain-dump/page.tsx`, `src/app/crew/[id]/edit/page.tsx` +19 more
+- `src/components/ui/badge.tsx` ← `src/app/activity/page.tsx`, `src/app/autopilot/page.tsx`, `src/app/brain-dump/page.tsx`, `src/app/crew/[id]/page.tsx`, `src/app/crew/page.tsx` +18 more
 - `src/lib/data.ts` ← `__tests__/seeding.test.ts`, `src/app/api/activity-log/route.ts`, `src/app/api/brain-dump/route.ts`, `src/app/api/daemon/route.ts`, `src/app/api/emergency-stop/route.ts` +13 more
 - `src/lib/workspace-context.ts` ← `src/app/api/agents/route.ts`, `src/app/api/initiatives/route.ts`, `src/app/api/sidebar/route.ts`, `src/app/api/tasks/[id]/comment/route.ts`, `src/app/api/tasks/route.ts` +13 more
-- `src/hooks/use-data.ts` ← `src/app/activity/page.tsx`, `src/app/brain-dump/page.tsx`, `src/app/crew/[id]/edit/page.tsx`, `src/app/crew/new/page.tsx`, `src/app/crew/page.tsx` +11 more
-- `scripts/daemon/logger.ts` ← `scripts/daemon/config.ts`, `scripts/daemon/dispatcher.ts`, `scripts/daemon/health.ts`, `scripts/daemon/index.ts`, `scripts/daemon/prompt-builder.ts` +9 more
+- `src/hooks/use-data.ts` ← `src/app/activity/page.tsx`, `src/app/brain-dump/page.tsx`, `src/app/crew/[id]/edit/page.tsx`, `src/app/crew/new/page.tsx`, `src/app/crew/page.tsx` +9 more
+- `scripts/daemon/logger.ts` ← `scripts/daemon/config.ts`, `scripts/daemon/dispatcher.ts`, `scripts/daemon/health.ts`, `scripts/daemon/index.ts`, `scripts/daemon/prompt-builder.ts` +8 more
 
 ---
 

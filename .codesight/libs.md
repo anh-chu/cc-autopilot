@@ -1,9 +1,14 @@
 # Libraries
 
+- `scripts/daemon/active-runs.ts`
+  - function readActiveRuns: (filePath) => void
+  - function writeActiveRuns: (filePath, data) => void
+  - interface ActiveRunEntry
 - `scripts/daemon/config.ts`
   - function loadConfig: (workspaceId) => DaemonConfig
   - function saveConfig: (config, workspaceId) => void
   - function getConfigPath: (workspaceId) => string
+- `scripts/daemon/data-io.ts` — function readJSON: (filePath) => T | null
 - `scripts/daemon/dispatcher.ts` — class Dispatcher
 - `scripts/daemon/health.ts` — class HealthMonitor
 - `scripts/daemon/prompt-builder.ts`
@@ -19,15 +24,15 @@
   - function runCrashRecovery: (workspaceId) => RecoveryResult
   - interface SessionRecord
   - interface RecoveryResult
-- `scripts/daemon/respond-runs.ts`
-  - function readRespondRuns: () => RespondRunsFile
-  - function writeRespondRuns: (data) => void
-  - function isRunStopped: (runId) => boolean
-  - function findRunningByMessage: (messageId) => RespondRunEntry | null
-  - function getRunningRuns: () => RespondRunEntry[]
-  - function createRespondRun: (entry) => void
-  - _...3 more_
 - `scripts/daemon/runner.ts` — function parseClaudeOutput: (stdout) => ClaudeOutputMeta, class AgentRunner
+- `scripts/daemon/runs-registry.ts`
+  - function readJsonFile: (filePath, defaultValue) => T
+  - function writeJsonFile: (filePath, data) => void
+  - function atomicWriteJson: (filePath, data) => void
+  - function pruneOldEntries: (entries, maxAgeMs) => T[]
+  - function findEntryById: (filePath, id, defaultValue) => T | null
+  - function updateEntryById: (filePath, id, updates, defaultValue) => boolean
+  - _...1 more_
 - `scripts/daemon/scheduler.ts` — class Scheduler
 - `scripts/daemon/security.ts`
   - function validatePathWithinWorkspace: (filePath, workspaceRoot) => boolean
@@ -36,6 +41,8 @@
   - function enforcePromptLimit: (prompt) => string
   - function validateBinary: (binary) => boolean
   - function buildSafeEnv: (opts?) => Record<string, string>
+- `scripts/daemon/spawn-utils.ts` — function extractSummary: (stdout) => string
+- `scripts/daemon/workspace-env.ts` — function getWorkspaceEnv: (workspaceId) => Record<string, string>
 - `src/hooks/use-active-runs.ts` — function useActiveRuns: () => void
 - `src/hooks/use-agent-stream.ts` — function useAgentStream: (runId) => UseAgentStreamReturn, interface StreamLine
 - `src/hooks/use-connection.ts` — function useConnection: () => void
@@ -43,8 +50,6 @@
 - `src/hooks/use-dashboard-data.ts`
   - function useDashboardData: () => void
   - interface DashboardStats
-  - interface DashboardAttention
-  - interface DashboardEisenhowerCounts
   - interface DashboardData
 - `src/hooks/use-data.ts`
   - function useTasks: () => void
@@ -77,6 +82,12 @@
   - function createLogger: (processName, opts) => Logger
   - interface Logger
   - type LogLevel
+- `src/lib/paginate.ts`
+  - function parsePaginationParams: (searchParams) => PaginationParams
+  - function paginateItems: (items, {...}, offset }, total) => PaginatedResult<T>
+  - interface PaginationParams
+  - interface PaginatedResult
+  - const CACHE_HEADERS
 - `src/lib/paths.ts`
   - function getWorkspaceDir: (workspaceId) => string
   - function getUploadsDir: (workspaceId) => string
@@ -106,7 +117,7 @@
   - interface AgentDefinition
   - interface AgentsFile
   - interface SkillDefinition
-  - _...46 more_
+  - _...45 more_
 - `src/lib/utils.ts`
   - function cn: (...inputs) => void
   - function generateId: (prefix) => string
@@ -115,10 +126,10 @@
   - function validateBody: (request, schema) => Promise<ValidationResult<T>>
   - const DEFAULT_LIMIT
   - const LIMITS
+  - const commentSchema
   - const taskCreateSchema
   - const taskUpdateSchema
-  - const projectCreateSchema
-  - _...15 more_
+  - _...16 more_
 - `src/lib/wiki-plugin.ts`
   - function ensureWikiPluginInstalledDetailed: (cwd, options?) => WikiPluginInstall
   - function ensureWikiPluginInstalled: (cwd) => WikiPluginStatus

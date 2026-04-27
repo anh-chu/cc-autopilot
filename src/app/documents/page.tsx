@@ -35,7 +35,6 @@ import {
 	Image as ImageIcon,
 	Loader2,
 	Pencil,
-	Play,
 	RefreshCw,
 	Trash2,
 	Upload,
@@ -70,8 +69,6 @@ interface WikiRunRecord {
 	id: string;
 	workspaceId: string;
 	status: "running" | "completed" | "failed";
-	promptFile: string | null;
-	hasOverride: boolean;
 	agentId?: string;
 	model?: string;
 	startedAt: string;
@@ -159,12 +156,6 @@ export default function DocumentsPage() {
 	const [saving, setSaving] = useState(false);
 	const [saveError, setSaveError] = useState<string | null>(null);
 
-	const [wikiPrompt, setWikiPrompt] = useState("");
-	const [promptLoading, setPromptLoading] = useState(false);
-	const [promptSaving, setPromptSaving] = useState(false);
-	const [promptError, setPromptError] = useState<string | null>(null);
-	const [promptIsDefault, setPromptIsDefault] = useState(false);
-	const [promptOverride, setPromptOverride] = useState("");
 	const [wikiRuns, setWikiRuns] = useState<WikiRunRecord[]>([]);
 	const [runsLoading, setRunsLoading] = useState(false);
 	const [runError, setRunError] = useState<string | null>(null);
@@ -330,59 +321,6 @@ export default function DocumentsPage() {
 		setSaving(false);
 	}
 
-	const loadPrompt = useCallback(async () => {
-		setPromptLoading(true);
-		setPromptError(null);
-		try {
-			const res = await fetch("/api/wiki/prompt");
-			if (!res.ok) {
-				const e: { error?: string } = await res.json();
-				throw new Error(e.error ?? "Failed to load prompt");
-			}
-			const data: { content: string; isDefault: boolean } = await res.json();
-			setWikiPrompt(data.content);
-			setPromptIsDefault(data.isDefault);
-		} catch (err) {
-			setPromptError(
-				err instanceof Error ? err.message : "Failed to load prompt",
-			);
-		} finally {
-			setPromptLoading(false);
-		}
-	}, []);
-
-	const savePrompt = useCallback(async () => {
-		const content = wikiPrompt.trim();
-		if (!content) {
-			setPromptError("Prompt cannot be empty");
-			return false;
-		}
-
-		setPromptSaving(true);
-		setPromptError(null);
-		try {
-			const res = await fetch("/api/wiki/prompt", {
-				method: "PUT",
-				headers: { "Content-Type": "application/json" },
-				body: JSON.stringify({ content }),
-			});
-			if (!res.ok) {
-				const e: { error?: string } = await res.json();
-				throw new Error(e.error ?? "Failed to save prompt");
-			}
-			setWikiPrompt(content);
-			setPromptIsDefault(false);
-			return true;
-		} catch (err) {
-			setPromptError(
-				err instanceof Error ? err.message : "Failed to save prompt",
-			);
-			return false;
-		} finally {
-			setPromptSaving(false);
-		}
-	}, [wikiPrompt]);
-
 	const loadRuns = useCallback(async () => {
 		setRunsLoading(true);
 		try {
@@ -397,55 +335,9 @@ export default function DocumentsPage() {
 		}
 	}, []);
 
-	const handleGenerate = useCallback(async () => {
-		setRunning(true);
-		setRunError(null);
-		setRunMessage(null);
-		try {
-			const saved = await savePrompt();
-			if (!saved) return;
-
-			const res = await fetch("/api/wiki/generate", {
-				method: "POST",
-				headers: { "Content-Type": "application/json" },
-				body: JSON.stringify({
-					agentId: selectedAgentId,
-					model: selectedModel,
-					...(promptOverride.trim()
-						? { promptOverride: promptOverride.trim() }
-						: {}),
-				}),
-			});
-			if (!res.ok) {
-				const e: { error?: string } = await res.json();
-				throw new Error(e.error ?? "Failed to start wiki generation");
-			}
-			const data: {
-				runId: string;
-				pid: number;
-				workspaceId: string;
-				startedAt: string;
-			} = await res.json();
-			setActiveRunId(data.runId);
-			setStreamRunId(data.runId);
-			setStreamEvents([]);
-			streamCursorRef.current = 0;
-			setStreamCursor(0);
-			setRunMessage(`Run ${data.runId} started. PID ${data.pid}.`);
-			await loadRuns();
-		} catch (err) {
-			setRunError(
-				err instanceof Error ? err.message : "Failed to start wiki generation",
-			);
-		} finally {
-			// keep "running" true until polling sees final run state
-		}
-	}, [loadRuns, promptOverride, savePrompt, selectedAgentId, selectedModel]);
-
 	useEffect(() => {
-		void loadPrompt();
 		void loadRuns();
-	}, [loadPrompt, loadRuns]);
+	}, [loadRuns]);
 
 	useEffect(() => {
 		if (runAgents.length === 0) return;
@@ -537,10 +429,10 @@ export default function DocumentsPage() {
 				? `${skill.longDescription}${extra ? `\n\n${extra}` : ""}`
 				: msg;
 
-			// Find sessionId from most recent completed run
+			// Find sessionId from current stream run only (null = new conversation)
 			const run = streamRunId
 				? wikiRuns.find((r) => r.id === streamRunId)
-				: wikiRuns[0];
+				: null;
 			const sessionId = run?.sessionId;
 
 			const res = await fetch("/api/wiki/generate", {
@@ -549,7 +441,7 @@ export default function DocumentsPage() {
 				body: JSON.stringify({
 					agentId: selectedAgentId,
 					model: selectedModel,
-					promptOverride: expandedMsg,
+					message: expandedMsg,
 					...(sessionId ? { sessionId } : {}),
 				}),
 			});
@@ -613,7 +505,6 @@ export default function DocumentsPage() {
 					.filter(Boolean)
 					.join(" · "),
 			);
-			await loadPrompt();
 			await loadRuns();
 			await reloadDir("");
 		} catch (err) {
@@ -624,7 +515,7 @@ export default function DocumentsPage() {
 			setInitingWiki(false);
 		}
 		// biome-ignore lint/correctness/useExhaustiveDependencies: reloadDir is stable within session
-	}, [loadPrompt, loadRuns, reloadDir]);
+	}, [loadRuns, reloadDir]);
 
 	const doUpload = useCallback(
 		async (files: FileList | File[], dir: string) => {
@@ -1066,18 +957,14 @@ export default function DocumentsPage() {
 				<div className="flex items-center justify-between px-3 py-2 border-b bg-muted shrink-0">
 					<div>
 						<p className="text-sm font-normal">Generate Wiki</p>
-						<p className="text-xs text-muted-foreground">
-							{promptIsDefault
-								? "Default prompt loaded"
-								: "Workspace prompt loaded"}
-						</p>
+						<p className="text-xs text-muted-foreground">Wiki generation</p>
 					</div>
 					<div className="flex gap-1">
 						<Button
 							size="sm"
 							variant="outline"
 							onClick={handleInitWiki}
-							disabled={initingWiki || running || promptLoading}
+							disabled={initingWiki || running}
 						>
 							{initingWiki ? (
 								<Loader2 className="h-3 w-3 animate-spin" />
@@ -1089,27 +976,11 @@ export default function DocumentsPage() {
 							size="sm"
 							variant="ghost"
 							className="h-7 w-7 p-0"
-							title="Reload prompt and runs"
-							onClick={() => {
-								void loadPrompt();
-								void loadRuns();
-							}}
-							disabled={promptLoading || runsLoading}
+							title="Reload runs"
+							onClick={() => void loadRuns()}
+							disabled={runsLoading}
 						>
 							<RefreshCw className="h-3.5 w-3.5" />
-						</Button>
-						<Button
-							size="sm"
-							className="gap-1"
-							onClick={handleGenerate}
-							disabled={running || promptLoading || promptSaving}
-						>
-							{running ? (
-								<Loader2 className="h-3 w-3 animate-spin" />
-							) : (
-								<Play className="h-3 w-3" />
-							)}
-							Run
 						</Button>
 					</div>
 				</div>
@@ -1119,11 +990,6 @@ export default function DocumentsPage() {
 						Init/Sync keeps llm-wiki-pm plugin current and lets plugin own wiki
 						scaffold. Run processes docs and updates pages.
 					</p>
-					{promptError && (
-						<div className="rounded-sm border border-destructive/30 bg-destructive-soft px-3 py-2 text-xs text-destructive">
-							{promptError}
-						</div>
-					)}
 					{runError && (
 						<div className="rounded-sm border border-destructive/30 bg-destructive-soft px-3 py-2 text-xs text-destructive">
 							{runError}
@@ -1134,62 +1000,6 @@ export default function DocumentsPage() {
 							{runMessage}
 						</div>
 					)}
-
-					<div className="space-y-2">
-						<div className="flex items-center justify-between">
-							<p className="text-xs font-normal uppercase tracking-wide text-muted-foreground">
-								Prompt
-							</p>
-							<span className="text-[11px] text-muted-foreground">
-								{promptLoading
-									? "Loading"
-									: promptIsDefault
-										? "Default"
-										: "Saved"}
-							</span>
-						</div>
-						<Textarea
-							className="min-h-[190px] font-mono text-xs resize-y w-full"
-							value={wikiPrompt}
-							onChange={(e) => setWikiPrompt(e.target.value)}
-							placeholder="Prompt Claude should use for wiki generation"
-						/>
-						<div className="flex justify-end gap-2">
-							<Button
-								size="sm"
-								variant="ghost"
-								onClick={() => void loadPrompt()}
-								disabled={promptLoading}
-							>
-								Reload
-							</Button>
-							<Button
-								size="sm"
-								onClick={() => void savePrompt()}
-								disabled={promptSaving || promptLoading}
-							>
-								{promptSaving ? (
-									<Loader2 className="h-3 w-3 animate-spin" />
-								) : null}
-								Save prompt
-							</Button>
-						</div>
-					</div>
-
-					<div className="space-y-2">
-						<p className="text-xs font-normal uppercase tracking-wide text-muted-foreground">
-							Additional instructions
-						</p>
-						<Textarea
-							className="min-h-[120px] font-mono text-xs resize-y w-full"
-							value={promptOverride}
-							onChange={(e) => setPromptOverride(e.target.value)}
-							placeholder="Optional override for this run"
-						/>
-						<p className="text-[11px] text-muted-foreground">
-							Sent only for next run.
-						</p>
-					</div>
 
 					<div className="space-y-2">
 						<p className="text-xs font-normal uppercase tracking-wide text-muted-foreground">
@@ -1273,9 +1083,7 @@ export default function DocumentsPage() {
 											title={run.error ?? ""}
 										>
 											{run.agentId ?? DOC_MAINTAINER_AGENT_ID} ·{" "}
-											{run.model ?? "default"} ·{" "}
-											{run.hasOverride ? "Override: yes" : "Override: no"} ·
-											Exit: {run.exitCode ?? "-"}
+											{run.model ?? "default"} · Exit: {run.exitCode ?? "-"}
 										</p>
 									</button>
 								))
@@ -1620,8 +1428,117 @@ export default function DocumentsPage() {
 					)}
 				</Card>
 			) : (
-				<Card className="flex-1 flex items-center justify-center text-muted-foreground text-sm border-dashed">
-					Select a file to view
+				<Card className="flex-1 flex flex-col overflow-hidden min-w-0">
+					<div className="flex items-center justify-between px-4 py-2 border-b bg-muted shrink-0">
+						<div>
+							<p className="text-sm font-normal">New Run</p>
+							<p className="text-xs text-muted-foreground">
+								Type a message to start
+							</p>
+						</div>
+						<div className="flex items-center gap-2">
+							<select
+								className="h-7 rounded-sm border bg-background px-2 text-xs"
+								value={selectedAgentId}
+								onChange={(e) => setSelectedAgentId(e.target.value)}
+							>
+								{!hasDocMaintainer ? (
+									<option value={DOC_MAINTAINER_AGENT_ID}>
+										Doc Maintainer
+									</option>
+								) : null}
+								{runAgents.map((agent) => (
+									<option key={agent.id} value={agent.id}>
+										{agent.name}
+									</option>
+								))}
+							</select>
+							<select
+								className="h-7 rounded-sm border bg-background px-2 text-xs"
+								value={selectedModel}
+								onChange={(e) => setSelectedModel(e.target.value)}
+							>
+								<option value="haiku">haiku</option>
+								<option value="sonnet">sonnet</option>
+								<option value="opus">opus</option>
+							</select>
+						</div>
+					</div>
+					<div className="flex-1 flex items-center justify-center text-muted-foreground text-sm">
+						<p>Send a message below to start a new wiki generation run.</p>
+					</div>
+					<div className="border-t shrink-0">
+						{slashMenuOpen && matchingSkills.length > 0 && (
+							<div className="border-b bg-popover max-h-48 overflow-y-auto">
+								<p className="px-3 py-1.5 text-[10px] uppercase tracking-wide text-muted-foreground border-b">
+									AI Skills
+								</p>
+								{matchingSkills.map((skill) => (
+									<button
+										key={skill.command}
+										type="button"
+										className="flex items-center gap-2 w-full px-3 py-2 text-left hover:bg-accent/50 transition-colors"
+										onMouseDown={(e) => {
+											e.preventDefault();
+											const lines = chatInput.split("\n");
+											lines[lines.length - 1] = skill.command;
+											setChatInput(lines.join("\n"));
+											setSlashMenuOpen(false);
+											setSlashQuery("");
+										}}
+									>
+										<code className="text-xs font-mono text-primary shrink-0">
+											{skill.command}
+										</code>
+										<span className="text-xs text-muted-foreground truncate">
+											{skill.description}
+										</span>
+									</button>
+								))}
+							</div>
+						)}
+						<div className="p-3 flex gap-2">
+							<textarea
+								className="flex-1 resize-none rounded-sm border bg-background px-3 py-2 text-xs placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring min-h-[60px]"
+								placeholder="Describe what to generate... (Ctrl+Enter to send)"
+								value={chatInput}
+								onChange={(e) => {
+									const val = e.target.value;
+									setChatInput(val);
+									const lastLine = val.split("\n").pop() ?? "";
+									if (lastLine.startsWith("/")) {
+										setSlashMenuOpen(true);
+										setSlashQuery(lastLine.slice(1));
+									} else {
+										setSlashMenuOpen(false);
+										setSlashQuery("");
+									}
+								}}
+								onKeyDown={(e) => {
+									if (slashMenuOpen && e.key === "Escape") {
+										e.preventDefault();
+										setSlashMenuOpen(false);
+										return;
+									}
+									if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) {
+										e.preventDefault();
+										setSlashMenuOpen(false);
+										void handleChatSend();
+									}
+								}}
+								disabled={chatSending}
+							/>
+							<Button
+								size="sm"
+								variant="default"
+								onClick={() => void handleChatSend()}
+								disabled={!chatInput.trim() || chatSending}
+								className="self-end"
+							>
+								{chatSending ? "Sending..." : "Send"}
+							</Button>
+						</div>
+					</div>
 				</Card>
 			)}
 

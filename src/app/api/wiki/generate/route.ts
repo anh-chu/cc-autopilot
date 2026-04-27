@@ -10,17 +10,17 @@ export async function POST(request: Request) {
 		const workspaceId = await applyWorkspaceContext();
 
 		let body: {
-			promptOverride?: string;
 			agentId?: string;
 			model?: string;
 			sessionId?: string;
+			message?: string;
 		} = {};
 		try {
 			body = (await request.json()) as {
-				promptOverride?: string;
 				agentId?: string;
 				model?: string;
 				sessionId?: string;
+				message?: string;
 			};
 		} catch {
 			// body is optional
@@ -45,10 +45,6 @@ export async function POST(request: Request) {
 			workspaceId,
 		];
 
-		if (body.promptOverride?.trim()) {
-			args.push("--prompt-override", body.promptOverride.trim());
-		}
-
 		if (body.agentId?.trim()) {
 			args.push("--agent-id", body.agentId.trim());
 		}
@@ -59,6 +55,10 @@ export async function POST(request: Request) {
 
 		if (body.sessionId?.trim()) {
 			args.push("--session-id", body.sessionId.trim());
+		}
+
+		if (body.message?.trim()) {
+			args.push("--message", body.message.trim());
 		}
 
 		try {

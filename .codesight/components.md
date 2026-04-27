@@ -9,12 +9,9 @@
 - **CrewLoading** — `src/app/crew/loading.tsx`
 - **NewAgentPage** [client] — `src/app/crew/new/page.tsx`
 - **CrewPage** [client] — `src/app/crew/page.tsx`
-- **DecisionsPage** [client] — `src/app/decisions/page.tsx`
 - **DocumentsPage** [client] — `src/app/documents/page.tsx`
 - **Error** [client] — props: error, reset — `src/app/error.tsx`
 - **GlobalError** [client] — props: error, reset — `src/app/global-error.tsx`
-- **InboxLoading** — `src/app/inbox/loading.tsx`
-- **InboxPage** [client] — `src/app/inbox/page.tsx`
 - **InitiativeDetailPage** [client] — `src/app/initiatives/[id]/page.tsx`
 - **InitiativesPage** [client] — `src/app/initiatives/page.tsx`
 - **RootLayout** — `src/app/layout.tsx`
@@ -34,7 +31,7 @@
 - **StreamEntry** [client] — props: line — `src/components/agent-console.tsx`
 - **AgentConsole** [client] — props: runId, onStop — `src/components/agent-console.tsx`
 - **AgentForm** [client] — props: mode, initialData, currentStatus, onSave, onDelete, onStatusToggle, onCancel — `src/components/agent-form.tsx`
-- **AppSidebar** [client] — props: collapsed, unreadInbox, pendingDecisions, isMobile, onClose — `src/components/app-sidebar.tsx`
+- **AppSidebar** [client] — props: collapsed, isMobile, onClose — `src/components/app-sidebar.tsx`
 - **DraggableTaskCard** [client] — props: task, project, onClick, isSelected, onToggleSelect, isRunning, onRun, pendingDecisionTaskIds, onStatusChange, onDuplicate — `src/components/board-view.tsx`
 - **BoardColumn** [client] — props: config, tasks, projects, onTaskClick, minHeight, maxHeight, selected, onToggleSelect, runningTaskIds, onRunTask — `src/components/board-view.tsx`
 - **BoardPanels** [client] — props: projects, showCreateTask, onCloseCreate, onSubmitCreate — `src/components/board-view.tsx`

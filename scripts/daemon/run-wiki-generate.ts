@@ -8,18 +8,11 @@
  *   node --import tsx run-wiki-generate.ts \
  *     --run-id <id> \
  *     --workspace-id <wsid> \
- *     [--prompt-override "extra instructions"] \
  *     [--agent-id doc-maintainer]
  */
 
 import { query, type SDKMessage } from "@anthropic-ai/claude-agent-sdk";
-import {
-	appendFileSync,
-	existsSync,
-	mkdirSync,
-	readFileSync,
-	writeFileSync,
-} from "fs";
+import { appendFileSync, mkdirSync, readFileSync, writeFileSync } from "fs";
 import path from "path";
 import {
 	DOC_MAINTAINER_AGENT_ID,
@@ -44,8 +37,8 @@ function getArg(name: string): string | null {
 const runId = getArg("run-id") ?? `wiki_${Date.now()}`;
 const workspaceId =
 	getArg("workspace-id") ?? process.env.CMC_WORKSPACE_ID ?? "default";
-const promptOverride = getArg("prompt-override") ?? null;
 const resumeSessionId = getArg("session-id") ?? null;
+const userMessage = getArg("message") ?? null;
 const selectedAgentId = getArg("agent-id") ?? DOC_MAINTAINER_AGENT_ID;
 const selectedModel = getArg("model") ?? "";
 
@@ -54,17 +47,6 @@ const wikiDir = getWikiDir(workspaceId);
 const runsDir = path.join(wikiDir, ".runs");
 const runFile = path.join(runsDir, `${runId}.json`);
 const streamFile = path.join(runsDir, `${runId}.stream.jsonl`);
-const defaultPromptFile = path.join(wikiDir, "prompts", "default.md");
-
-const FALLBACK_PROMPT = `You are managing a markdown wiki knowledge base.
-
-Review the files in this directory, then:
-1. Update or create wiki pages based on any new source documents
-2. Maintain consistent cross-links between pages
-3. Keep index.md current with a table of contents
-
-Focus on accuracy and conciseness. Do not delete existing wiki pages unless
-they are fully superseded. Preserve the existing directory structure.`;
 
 interface WikiAgentConfig {
 	id: string;
@@ -91,8 +73,6 @@ export interface WikiRunRecord {
 	id: string;
 	workspaceId: string;
 	status: "running" | "completed" | "failed";
-	promptFile: string | null;
-	hasOverride: boolean;
 	agentId: string;
 	model?: string;
 	pluginStatus?: "installed" | "already-installed" | "missing";
@@ -129,23 +109,14 @@ function appendStreamEvent(event: unknown): void {
 	appendFileSync(streamFile, `${JSON.stringify(event)}\n`, "utf-8");
 }
 
-function buildPrompt(agentInstruction: string): string {
-	let base = FALLBACK_PROMPT;
-
-	if (existsSync(defaultPromptFile)) {
-		try {
-			const content = readFileSync(defaultPromptFile, "utf-8").trim();
-			if (content) base = content;
-		} catch {
-			// use fallback
-		}
+function buildPrompt(
+	agentInstruction: string,
+	message?: string | null,
+): string {
+	if (message) {
+		return [agentInstruction.trim(), message].filter(Boolean).join("\n\n");
 	}
-
-	const parts = [agentInstruction.trim(), base];
-	if (promptOverride?.trim()) {
-		parts.push(`## Additional Instructions\n\n${promptOverride.trim()}`);
-	}
-	return parts.filter(Boolean).join("\n\n");
+	return agentInstruction.trim();
 }
 
 function normalizeSdkMessage(msg: SDKMessage): unknown[] {
@@ -237,8 +208,6 @@ async function main(): Promise<void> {
 		id: runId,
 		workspaceId,
 		status: "running",
-		promptFile: existsSync(defaultPromptFile) ? "prompts/default.md" : null,
-		hasOverride: !!promptOverride?.trim(),
 		agentId,
 		model: selectedModel || undefined,
 		startedAt: new Date().toISOString(),
@@ -282,7 +251,10 @@ async function main(): Promise<void> {
 		return;
 	}
 
-	const prompt = buildPrompt(agentInstruction);
+	const prompt =
+		resumeSessionId && userMessage
+			? userMessage
+			: buildPrompt(agentInstruction, userMessage);
 	let exitCode = 1;
 	let sessionId: string | null = null;
 	try {
