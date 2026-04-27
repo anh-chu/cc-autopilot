@@ -80,6 +80,12 @@ export function proxy(request: NextRequest) {
 
 	const token = process.env.MC_API_TOKEN;
 
+	// Exempt server-status endpoint from auth (needed for health checks)
+	if (pathname === "/api/server-status")
+		return finalize(
+			NextResponse.next({ request: { headers: requestHeaders } }),
+		);
+
 	// No token configured = open access (default local dev experience)
 	if (!token)
 		return finalize(

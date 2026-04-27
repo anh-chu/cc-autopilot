@@ -16,6 +16,22 @@ import cron from "node-cron";
 import path from "path";
 import { DATA_DIR } from "./paths";
 
+// Get base directory for script resolution.
+// Priority: MC_INSTALL_DIR env var > __dirname-based > process.cwd() fallback.
+function getBaseDir(): string {
+	// CLI wrapper sets MC_INSTALL_DIR when installed as npm package
+	if (process.env.MC_INSTALL_DIR) {
+		return process.env.MC_INSTALL_DIR;
+	}
+	// __dirname-relative: up from lib/ to package root
+	const packageRoot = path.resolve(__dirname, "..", "..");
+	if (existsSync(path.join(packageRoot, "scripts", "daemon"))) {
+		return packageRoot;
+	}
+	// Fallback for dev compatibility (pnpm dev)
+	return process.cwd();
+}
+
 const GRACE_MS = 60 * 60 * 1000; // 1 hour
 const LOG_RETENTION_MS = 7 * 24 * 60 * 60 * 1000; // 7 days
 const UPLOAD_RE = /\/uploads\/[^"'\s)\]]+/g;
@@ -183,7 +199,7 @@ export function scheduleLogCleanup() {
 
 function spawnDaemon(): number | null {
 	const scriptPath = path.resolve(
-		process.cwd(),
+		getBaseDir(),
 		"scripts",
 		"daemon",
 		"index.ts",

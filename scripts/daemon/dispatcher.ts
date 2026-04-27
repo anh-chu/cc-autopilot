@@ -18,6 +18,24 @@ import { getWorkspaceEnv } from "./workspace-env";
 const TSX_BIN = path.resolve(__dirname, "../../node_modules/.bin/tsx");
 const MAX_RETRY_DELAY_MINUTES = 60;
 
+// ─── Script Resolution ─────────────────────────────────────────────────────────
+
+/**
+ * Resolve the path to a daemon script.
+ * If a compiled dist/ version exists, use it (node); otherwise use tsx.
+ */
+function resolveScript(
+	scriptName: string,
+	cwd: string,
+): { runner: string; args: string[] } {
+	const distPath = path.join(cwd, "../../dist", scriptName);
+	const tsxPath = path.join(__dirname, scriptName);
+	if (existsSync(distPath)) {
+		return { runner: process.execPath, args: [distPath] };
+	}
+	return { runner: TSX_BIN, args: [tsxPath] };
+}
+
 // ─── Retry Queue ────────────────────────────────────────────────────────────
 
 interface RetryEntry {
@@ -338,15 +356,16 @@ export class Dispatcher {
 			// Non-fatal — inbox notification is best-effort
 		}
 
-		const scriptPath = path.resolve(__dirname, "run-task.ts");
-		const args = [scriptPath, taskId];
-
+		const taskArgs: string[] = [taskId];
 		if (this.config.execution.agentTeams) {
-			args.push("--agent-teams");
+			taskArgs.push("--agent-teams");
 		}
 
+		const { runner, args } = resolveScript("run-task.ts", __dirname);
+		args.push(...taskArgs);
+
 		try {
-			const child = spawn(TSX_BIN, args, {
+			const child = spawn(runner, args, {
 				cwd: getWorkspaceDir(this.workspaceId),
 				detached: true,
 				stdio: "ignore",
@@ -647,10 +666,13 @@ export class Dispatcher {
 							changed = true;
 						}
 
-						const scriptPath = path.resolve(__dirname, "run-task.ts");
+						const { runner, args: baseArgs } = resolveScript(
+							"run-task.ts",
+							__dirname,
+						);
 						for (const task of toSpawn) {
-							const args = [
-								scriptPath,
+							const spawnArgs = [
+								...baseArgs,
 								task.id as string,
 								"--source",
 								"project-run-chain",
@@ -658,10 +680,10 @@ export class Dispatcher {
 								projectRun.id,
 							];
 							if (this.config.execution.agentTeams) {
-								args.push("--agent-teams");
+								spawnArgs.push("--agent-teams");
 							}
 							try {
-								const child = spawn(TSX_BIN, args, {
+								const child = spawn(runner, spawnArgs, {
 									cwd: getWorkspaceDir(this.workspaceId),
 									detached: true,
 									stdio: "ignore",

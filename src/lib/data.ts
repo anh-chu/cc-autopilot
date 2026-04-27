@@ -43,14 +43,35 @@ function filePath(name: string): string {
 	return path.join(getWorkspaceDataDir(_currentWorkspaceId), name);
 }
 
-// Artifacts directory containing seed templates for new workspaces.
-// process.cwd() is always  root in both dev and production.
-const ARTIFACTS_DIR = path.join(
-	process.cwd(),
-	"artifacts",
-	"workspaces",
-	"default",
-);
+// Get base directory for artifacts resolution.
+// Priority: MC_INSTALL_DIR env var > __dirname-based > process.cwd() fallback.
+function getBaseDir(): string {
+	// CLI wrapper sets MC_INSTALL_DIR when installed as npm package
+	if (process.env.MC_INSTALL_DIR) {
+		return process.env.MC_INSTALL_DIR;
+	}
+	// __dirname-relative: up from lib/ to package root
+	const packageRoot = path.resolve(__dirname, "..", "..");
+	if (existsSync(path.join(packageRoot, "artifacts"))) {
+		return packageRoot;
+	}
+	// Fallback for dev compatibility (pnpm dev)
+	return process.cwd();
+}
+
+// Lazy-initialized artifacts directory.
+let _artifactsDir: string | undefined;
+function getArtifactsDir(): string {
+	if (!_artifactsDir) {
+		_artifactsDir = path.join(
+			getBaseDir(),
+			"artifacts",
+			"workspaces",
+			"default",
+		);
+	}
+	return _artifactsDir;
+}
 
 async function seedFile(
 	dest: string,
@@ -88,18 +109,18 @@ export async function ensureWorkspaceDir(workspaceId: string): Promise<void> {
 		{ name: "decisions.json", fallback: { decisions: [] } },
 		{
 			name: "agents.json",
-			artifact: path.join(ARTIFACTS_DIR, "agents.json"),
+			artifact: path.join(getArtifactsDir(), "agents.json"),
 			fallback: { agents: [] },
 		},
 		{
 			name: "skills-library.json",
-			artifact: path.join(ARTIFACTS_DIR, "skills-library.json"),
+			artifact: path.join(getArtifactsDir(), "skills-library.json"),
 			fallback: { skills: [] },
 		},
 		{ name: "active-runs.json", fallback: { runs: [] } },
 		{
 			name: "daemon-config.json",
-			artifact: path.join(ARTIFACTS_DIR, "daemon-config.json"),
+			artifact: path.join(getArtifactsDir(), "daemon-config.json"),
 			fallback: {},
 		},
 	];
@@ -110,7 +131,7 @@ export async function ensureWorkspaceDir(workspaceId: string): Promise<void> {
 	);
 
 	// Copy CLAUDE.md from artifacts if available
-	const claudeMdSrc = path.join(ARTIFACTS_DIR, "CLAUDE.md");
+	const claudeMdSrc = path.join(getArtifactsDir(), "CLAUDE.md");
 	const claudeMdDest = path.join(wsDir, "CLAUDE.md");
 	try {
 		await readFile(claudeMdDest, "utf-8");
@@ -122,7 +143,7 @@ export async function ensureWorkspaceDir(workspaceId: string): Promise<void> {
 
 	// Copy .claude/ (commands + skills) from artifacts if available.
 	// These are workspace-scoped and included in spawned agent prompts.
-	const claudeDirSrc = path.join(ARTIFACTS_DIR, ".claude");
+	const claudeDirSrc = path.join(getArtifactsDir(), ".claude");
 	const claudeDirDest = path.join(wsDir, ".claude");
 	if (existsSync(claudeDirSrc) && !existsSync(claudeDirDest)) {
 		await cp(claudeDirSrc, claudeDirDest, { recursive: true });

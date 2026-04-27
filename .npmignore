@@ -1,0 +1,34 @@
+# Safety net: primary inclusion control is via "files" field in package.json.
+# This .npmignore ensures nothing unwanted slips through if "files" is misconfigured.
+# Keep this file in sync with package.json "files" when making changes.
+
+# Test and development
+__tests__/
+.vscode/
+.idea/
+
+# Code quality and auxiliary tools
+.codesight/
+.github/
+.claude/
+.cursorrules
+
+# Documentation and planning (not needed in published package)
+DESIGN.md
+plans/
+
+# Configuration files not needed at runtime
+lefthook.yml
+vitest.config.ts
+tsconfig.json
+
+# Environment files (secrets should never be published)
+.env*
+!.env.example
+
+# Source/compiled separation
+# src/ is compiled into dist/ or standalone/ — not needed in published package
+src/
+
+# Scripts that are not shipped in dist/
+scripts/

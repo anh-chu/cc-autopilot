@@ -2,6 +2,7 @@ import type { NextConfig } from "next";
 
 // Permanent redirects for renamed routes
 const nextConfig: NextConfig = {
+	output: "standalone",
 	redirects: async () => [
 		{ source: "/daemon", destination: "/autopilot", permanent: true },
 		// /goals and /objectives both redirect to /initiatives since objectives was renamed

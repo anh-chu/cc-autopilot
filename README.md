@@ -19,6 +19,27 @@ A self-hosted task manager that runs your work through AI agents. You add tasks,
 
 Runs entirely on your machine. Data in `~/.cmc/`. No cloud.
 
+## Quick Start with `npx mission-control`
+
+```bash
+npx mission-control dev     # Start dev server at localhost:3000
+npx mission-control start  # Start production server
+npx mission-control stop    # Stop production server
+npx mission-control status  # Show running services
+npx mission-control version # Show version
+```
+
+**Requirements**
+- Node.js >= 18
+- [Claude CLI](https://docs.anthropic.com/en/docs/claude-code) (required for agent execution)
+  - Install: `npm install -g @anthropic-ai/claude-code`
+  - Run `claude` once to authenticate
+
+**Configuration**
+- `MC_API_TOKEN` — optional auth token for API endpoints (not required for local use)
+- `CMC_DATA_DIR` — data directory (default: `~/.cmc/`)
+- `PORT` — server port (default: `3000`)
+
 ---
 
 ## The Mental Model

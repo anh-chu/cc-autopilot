@@ -2,10 +2,19 @@
 	"name": "mission-control",
 	"version": "0.15.0",
 	"license": "AGPL-3.0-only",
-	"private": true,
+	"type": "module",
+	"bin": {
+		"mctl": "./bin/cli.js",
+		"mission-control": "./bin/cli.js"
+	},
 	"scripts": {
 		"dev": "next dev",
 		"build": "next build",
+		"build:daemon": "tsx scripts/build-daemon.ts",
+		"build:cli": "tsx scripts/build-cli.ts",
+		"build:all": "pnpm build && pnpm build:daemon && pnpm build:cli && pnpm copy:standalone-assets",
+		"copy:standalone-assets": "tsx scripts/copy-standalone-assets.ts",
+		"prepublishOnly": "pnpm build:all",
 		"start": "next start",
 		"lint": "next lint",
 		"test": "vitest run",
@@ -17,6 +26,20 @@
 		"daemon:start": "npx tsx scripts/daemon/index.ts start",
 		"daemon:stop": "npx tsx scripts/daemon/index.ts stop",
 		"daemon:status": "npx tsx scripts/daemon/index.ts status"
+	},
+	"files": [
+		"bin/cli.js",
+		"dist/",
+		".next/standalone/",
+		".next/static/",
+		"public/",
+		"artifacts/",
+		"package.json",
+		"README.md",
+		"LICENSE"
+	],
+	"engines": {
+		"node": ">=18.0.0"
 	},
 	"dependencies": {
 		"@anthropic-ai/claude-agent-sdk": "^0.2.114",
