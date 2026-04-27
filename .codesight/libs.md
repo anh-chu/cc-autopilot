@@ -42,6 +42,13 @@
   - function validateBinary: (binary) => boolean
   - function buildSafeEnv: (opts?) => Record<string, string>
 - `scripts/daemon/spawn-utils.ts` — function extractSummary: (stdout) => string
+- `scripts/daemon/warm-sdk.ts`
+  - function appendStreamEvent: (streamFile, event) => void
+  - function buildSdkOptions: (opts) => void
+  - function consumeStream: (stream, streamFile) => Promise<
+  - function runWithSdk: (opts) => Promise<
+  - function preheatSdk: (opts) => Promise<void>
+  - function getWarmHandle: (expectedKey) => WarmQuery | null
 - `scripts/daemon/workspace-env.ts` — function getWorkspaceEnv: (workspaceId) => Record<string, string>
 - `src/hooks/use-active-runs.ts` — function useActiveRuns: () => void
 - `src/hooks/use-agent-stream.ts` — function useAgentStream: (runId) => UseAgentStreamReturn, interface StreamLine

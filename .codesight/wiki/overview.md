@@ -6,26 +6,26 @@
 
 ## Scale
 
-100 API routes · 96 UI components · 37 library files · 3 middleware layers · 21 environment variables
+77 API routes · 70 UI components · 42 library files · 2 middleware layers · 21 environment variables
 
 ## Subsystems
 
-- **[Route](./route.md)** — 100 routes — touches: cache, auth, queue, ai, upload
+- **[Route](./route.md)** — 77 routes — touches: cache, db, ai, auth, queue
 
-**UI:** 96 components (react) — see [ui.md](./ui.md)
+**UI:** 70 components (react) — see [ui.md](./ui.md)
 
-**Libraries:** 37 files — see [libraries.md](./libraries.md)
+**Libraries:** 42 files — see [libraries.md](./libraries.md)
 
 ## High-Impact Files
 
 Changes to these files have the widest blast radius across the codebase:
 
-- `src/lib/types.ts` — imported by **68** files
-- `src/lib/utils.ts` — imported by **56** files
-- `src/lib/paths.ts` — imported by **49** files
-- `src/components/ui/button.tsx` — imported by **45** files
-- `src/components/ui/badge.tsx` — imported by **31** files
-- `src/components/breadcrumb-nav.tsx` — imported by **31** files
+- `src/lib/types.ts` — imported by **57** files
+- `src/lib/utils.ts` — imported by **51** files
+- `src/lib/paths.ts` — imported by **41** files
+- `src/components/ui/button.tsx` — imported by **36** files
+- `src/components/breadcrumb-nav.tsx` — imported by **24** files
+- `src/components/ui/badge.tsx` — imported by **24** files
 
 ## Required Environment Variables
 
@@ -44,4 +44,4 @@ Changes to these files have the widest blast radius across the codebase:
 - _...9 more_
 
 ---
-_Back to [index.md](./index.md) · Generated 2026-04-24_
+_Back to [index.md](./index.md) · Generated 2026-04-27_

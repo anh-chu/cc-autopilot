@@ -2,15 +2,15 @@
 
 > **Navigation aid.** Route list and file locations extracted via AST. Read the source files listed below before implementing or modifying this subsystem.
 
-The Route subsystem handles **100 routes** and touches: cache, auth, queue, ai.
+The Route subsystem handles **77 routes** and touches: cache, db, ai, auth, queue.
 
 ## Routes
 
-- `GET` `/api/activity-log` → out: { data, events, meta, filtered, returned, limit, offset } [cache]
+- `GET` `/api/activity-log` → out: { data, events, meta } [cache]
   `src/app/api/activity-log/route.ts`
-- `POST` `/api/activity-log` → out: { data, events, meta, filtered, returned, limit, offset } [cache]
+- `POST` `/api/activity-log` → out: { data, events, meta } [cache]
   `src/app/api/activity-log/route.ts`
-- `DELETE` `/api/activity-log` → out: { data, events, meta, filtered, returned, limit, offset } [cache]
+- `DELETE` `/api/activity-log` → out: { data, events, meta } [cache]
   `src/app/api/activity-log/route.ts`
 - `GET` `/api/agents` → out: { data, agents, meta, filtered, returned, limit, offset } [cache]
   `src/app/api/agents/route.ts`
@@ -30,27 +30,15 @@ The Route subsystem handles **100 routes** and touches: cache, auth, queue, ai.
   `src/app/api/brain-dump/route.ts`
 - `DELETE` `/api/brain-dump` → out: { data, entries, meta, filtered, returned, limit, offset } [cache]
   `src/app/api/brain-dump/route.ts`
-- `GET` `/api/checkpoints/export` → out: { error }
-  `src/app/api/checkpoints/export/route.ts`
-- `POST` `/api/checkpoints/import` → out: { error }
-  `src/app/api/checkpoints/import/route.ts`
-- `POST` `/api/checkpoints/load` → out: { error }
-  `src/app/api/checkpoints/load/route.ts`
-- `POST` `/api/checkpoints/new` → out: { ok }
-  `src/app/api/checkpoints/new/route.ts`
-- `GET` `/api/checkpoints` → out: { error, details }
-  `src/app/api/checkpoints/route.ts`
-- `POST` `/api/checkpoints` → out: { error, details }
-  `src/app/api/checkpoints/route.ts`
-- `DELETE` `/api/checkpoints` → out: { error, details }
-  `src/app/api/checkpoints/route.ts`
+- `GET` `/api/claude/slash-commands` → out: { commands } [db, cache, ai]
+  `src/app/api/claude/slash-commands/route.ts`
 - `GET` `/api/daemon` → out: { status, config, isRunning } [auth]
   `src/app/api/daemon/route.ts`
 - `POST` `/api/daemon` → out: { status, config, isRunning } [auth]
   `src/app/api/daemon/route.ts`
 - `PUT` `/api/daemon` → out: { status, config, isRunning } [auth]
   `src/app/api/daemon/route.ts`
-- `GET` `/api/dashboard` [cache]
+- `GET` `/api/dashboard` → out: { stats } [cache]
   `src/app/api/dashboard/route.ts`
 - `GET` `/api/decisions` → out: { data, decisions, meta, filtered, returned, limit, offset } [cache, queue]
   `src/app/api/decisions/route.ts`
@@ -62,27 +50,13 @@ The Route subsystem handles **100 routes** and touches: cache, auth, queue, ai.
   `src/app/api/decisions/route.ts`
 - `POST` `/api/emergency-stop` → out: { ok, results }
   `src/app/api/emergency-stop/route.ts`
-- `GET` `/api/goals` → out: { data, goals, meta, filtered, returned, limit, offset } [cache]
-  `src/app/api/goals/route.ts`
-- `POST` `/api/goals` → out: { data, goals, meta, filtered, returned, limit, offset } [cache]
-  `src/app/api/goals/route.ts`
-- `PUT` `/api/goals` → out: { data, goals, meta, filtered, returned, limit, offset } [cache]
-  `src/app/api/goals/route.ts`
-- `DELETE` `/api/goals` → out: { data, goals, meta, filtered, returned, limit, offset } [cache]
-  `src/app/api/goals/route.ts`
-- `POST` `/api/inbox/respond` → out: { error }
-  `src/app/api/inbox/respond/route.ts`
-- `GET` `/api/inbox/respond/status` → out: { runs }
-  `src/app/api/inbox/respond/status/route.ts`
-- `POST` `/api/inbox/respond/stop` → out: { error }
-  `src/app/api/inbox/respond/stop/route.ts`
-- `GET` `/api/inbox` → out: { data, messages, meta, filtered, returned, limit, offset } [cache]
+- `GET` `/api/inbox` → out: { data, messages, meta } [cache]
   `src/app/api/inbox/route.ts`
-- `POST` `/api/inbox` → out: { data, messages, meta, filtered, returned, limit, offset } [cache]
+- `POST` `/api/inbox` → out: { data, messages, meta } [cache]
   `src/app/api/inbox/route.ts`
-- `PUT` `/api/inbox` → out: { data, messages, meta, filtered, returned, limit, offset } [cache]
+- `PUT` `/api/inbox` → out: { data, messages, meta } [cache]
   `src/app/api/inbox/route.ts`
-- `DELETE` `/api/inbox` → out: { data, messages, meta, filtered, returned, limit, offset } [cache]
+- `DELETE` `/api/inbox` → out: { data, messages, meta } [cache]
   `src/app/api/inbox/route.ts`
 - `GET` `/api/initiatives` → out: { data, meta, filtered, returned, limit, offset } [cache]
   `src/app/api/initiatives/route.ts`
@@ -156,18 +130,6 @@ The Route subsystem handles **100 routes** and touches: cache, auth, queue, ai.
   `src/app/api/tasks/route.ts`
 - `POST` `/api/upload` → out: { error } [upload]
   `src/app/api/upload/route.ts`
-- `POST` `/api/ventures/[id]/run` params(id) → out: { error, missionId } [queue]
-  `src/app/api/ventures/[id]/run/route.ts`
-- `POST` `/api/ventures/[id]/stop` params(id) → out: { error }
-  `src/app/api/ventures/[id]/stop/route.ts`
-- `GET` `/api/ventures` → out: { data, projects, meta, filtered, returned, limit, offset } [cache]
-  `src/app/api/ventures/route.ts`
-- `POST` `/api/ventures` → out: { data, projects, meta, filtered, returned, limit, offset } [cache]
-  `src/app/api/ventures/route.ts`
-- `PUT` `/api/ventures` → out: { data, projects, meta, filtered, returned, limit, offset } [cache]
-  `src/app/api/ventures/route.ts`
-- `DELETE` `/api/ventures` → out: { data, projects, meta, filtered, returned, limit, offset } [cache]
-  `src/app/api/ventures/route.ts`
 - `GET` `/api/wiki/content` → out: { error }
   `src/app/api/wiki/content/route.ts`
 - `PUT` `/api/wiki/content` → out: { error }
@@ -176,24 +138,16 @@ The Route subsystem handles **100 routes** and touches: cache, auth, queue, ai.
   `src/app/api/wiki/file/route.ts`
 - `POST` `/api/wiki/folder` → out: { error }
   `src/app/api/wiki/folder/route.ts`
-- `POST` `/api/wiki/generate` → out: { runId, pid, workspaceId, startedAt }
+- `POST` `/api/wiki/generate` → out: { runId, workspaceId, startedAt, via } [auth]
   `src/app/api/wiki/generate/route.ts`
-- `POST` `/api/wiki/init` → out: { error }
+- `POST` `/api/wiki/init` → out: { error } [cache]
   `src/app/api/wiki/init/route.ts`
 - `POST` `/api/wiki/move` → out: { error }
   `src/app/api/wiki/move/route.ts`
-- `GET` `/api/wiki/prompt` → out: { content, isDefault }
-  `src/app/api/wiki/prompt/route.ts`
-- `PUT` `/api/wiki/prompt` → out: { content, isDefault }
-  `src/app/api/wiki/prompt/route.ts`
 - `GET` `/api/wiki` → out: { error }
   `src/app/api/wiki/route.ts`
 - `DELETE` `/api/wiki` → out: { error }
   `src/app/api/wiki/route.ts`
-- `GET` `/api/wiki/run-stream` → out: { error }
-  `src/app/api/wiki/run-stream/route.ts`
-- `GET` `/api/wiki/runs` → out: { runs }
-  `src/app/api/wiki/runs/route.ts`
 - `POST` `/api/wiki/upload` → out: { error }
   `src/app/api/wiki/upload/route.ts`
 - `GET` `/api/workspaces` → out: { error }
@@ -214,19 +168,11 @@ Read these before implementing or modifying this subsystem:
 - `src/app/api/agents/route.ts`
 - `src/app/api/brain-dump/automate/route.ts`
 - `src/app/api/brain-dump/route.ts`
-- `src/app/api/checkpoints/export/route.ts`
-- `src/app/api/checkpoints/import/route.ts`
-- `src/app/api/checkpoints/load/route.ts`
-- `src/app/api/checkpoints/new/route.ts`
-- `src/app/api/checkpoints/route.ts`
+- `src/app/api/claude/slash-commands/route.ts`
 - `src/app/api/daemon/route.ts`
 - `src/app/api/dashboard/route.ts`
 - `src/app/api/decisions/route.ts`
 - `src/app/api/emergency-stop/route.ts`
-- `src/app/api/goals/route.ts`
-- `src/app/api/inbox/respond/route.ts`
-- `src/app/api/inbox/respond/status/route.ts`
-- `src/app/api/inbox/respond/stop/route.ts`
 - `src/app/api/inbox/route.ts`
 - `src/app/api/initiatives/route.ts`
 - `src/app/api/logs/app/route.ts`
@@ -249,19 +195,13 @@ Read these before implementing or modifying this subsystem:
 - `src/app/api/tasks/bulk/route.ts`
 - `src/app/api/tasks/route.ts`
 - `src/app/api/upload/route.ts`
-- `src/app/api/ventures/[id]/run/route.ts`
-- `src/app/api/ventures/[id]/stop/route.ts`
-- `src/app/api/ventures/route.ts`
 - `src/app/api/wiki/content/route.ts`
 - `src/app/api/wiki/file/route.ts`
 - `src/app/api/wiki/folder/route.ts`
 - `src/app/api/wiki/generate/route.ts`
 - `src/app/api/wiki/init/route.ts`
 - `src/app/api/wiki/move/route.ts`
-- `src/app/api/wiki/prompt/route.ts`
 - `src/app/api/wiki/route.ts`
-- `src/app/api/wiki/run-stream/route.ts`
-- `src/app/api/wiki/runs/route.ts`
 - `src/app/api/wiki/upload/route.ts`
 - `src/app/api/workspaces/route.ts`
 - `src/app/uploads/[filename]/route.ts`

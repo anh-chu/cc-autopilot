@@ -17,7 +17,7 @@
 ## Other Routes
 
 - `POST` `/api/brain-dump/automate` → out: { error }
-- `GET` `/api/claude/slash-commands` → out: { commands } [auth, ai]
+- `GET` `/api/claude/slash-commands` → out: { commands } [db, cache, ai]
 - `GET` `/api/dashboard` → out: { stats } [cache]
 - `POST` `/api/emergency-stop` → out: { ok, results }
 - `GET` `/api/logs/app` → out: { lines, error }
@@ -44,14 +44,10 @@
 - `PUT` `/api/wiki/content` → out: { error }
 - `GET` `/api/wiki/file` → out: { error } [cache]
 - `POST` `/api/wiki/folder` → out: { error }
-- `POST` `/api/wiki/generate` → out: { runId, pid, workspaceId, startedAt } [auth]
-- `POST` `/api/wiki/init` → out: { error }
+- `POST` `/api/wiki/generate` → out: { runId, workspaceId, startedAt, via } [auth]
+- `POST` `/api/wiki/init` → out: { error } [cache]
 - `POST` `/api/wiki/move` → out: { error }
-- `GET` `/api/wiki/prompt` → out: { content, isDefault }
-- `PUT` `/api/wiki/prompt` → out: { content, isDefault }
 - `GET` `/api/wiki` → out: { error }
 - `DELETE` `/api/wiki` → out: { error }
-- `GET` `/api/wiki/run-stream` → out: { error }
-- `GET` `/api/wiki/runs` → out: { runs }
 - `POST` `/api/wiki/upload` → out: { error }
 - `GET` `/uploads/[filename]` params(filename) → out: { error } [cache, upload]
