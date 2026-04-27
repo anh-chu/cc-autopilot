@@ -7,14 +7,13 @@ import {
 	DragOverlay,
 	type DragStartEvent,
 	PointerSensor,
-	useDraggable,
 	useDroppable,
 	useSensor,
 	useSensors,
 } from "@dnd-kit/core";
 import { Plus, Users, X } from "lucide-react";
 import { useParams, useRouter } from "next/navigation";
-import { useCallback, useState } from "react";
+import { useState } from "react";
 import { BreadcrumbNav } from "@/components/breadcrumb-nav";
 import { CreateTaskDialog } from "@/components/create-task-dialog";
 import { ProjectRunProgress } from "@/components/mission-progress";
@@ -36,62 +35,7 @@ import type { EisenhowerQuadrant, KanbanStatus, Task } from "@/lib/types";
 import { getQuadrant, valuesFromQuadrant } from "@/lib/types";
 import { cn } from "@/lib/utils";
 import { useActiveRunsContext as useActiveRuns } from "@/providers/active-runs-provider";
-
-function DraggableTask({
-	task,
-	onClick,
-	isRunning,
-	onRun,
-	pendingDecisionTaskIds,
-	onStatusChange,
-	onDuplicate,
-	onDelete,
-}: {
-	task: Task;
-	onClick: () => void;
-	isRunning?: boolean;
-	onRun?: (taskId: string) => void;
-	pendingDecisionTaskIds?: Set<string>;
-	onStatusChange?: (taskId: string, status: KanbanStatus) => void;
-	onDuplicate?: (task: Task) => void;
-	onDelete?: (taskId: string) => void;
-}) {
-	const { attributes, listeners, setNodeRef, transform, isDragging } =
-		useDraggable({ id: task.id });
-	const style = transform
-		? { transform: `translate(${transform.x}px, ${transform.y}px)` }
-		: undefined;
-	const dndListeners = listeners as
-		| Record<string, (e: React.PointerEvent) => void>
-		| undefined;
-	const handlePointerDown = useCallback(
-		(e: React.PointerEvent) => {
-			if (e.button !== 0) return;
-			dndListeners?.onPointerDown?.(e);
-		},
-		[dndListeners],
-	);
-	return (
-		<div
-			ref={setNodeRef}
-			style={style}
-			onPointerDown={handlePointerDown}
-			{...attributes}
-		>
-			<TaskCard
-				task={task}
-				isDragging={isDragging}
-				onClick={onClick}
-				isRunning={isRunning}
-				onRun={onRun}
-				pendingDecisionTaskIds={pendingDecisionTaskIds}
-				onStatusChange={onStatusChange}
-				onDuplicate={onDuplicate}
-				onDelete={onDelete}
-			/>
-		</div>
-	);
-}
+import { DraggableTaskCard } from "./board-view";
 
 function DroppableZone({
 	id,
@@ -148,7 +92,7 @@ function DroppableZone({
 					</p>
 				)}
 				{tasks.map((t) => (
-					<DraggableTask
+					<DraggableTaskCard
 						key={t.id}
 						task={t}
 						onClick={() => onTaskClick(t)}
@@ -279,17 +223,6 @@ export function ProjectDetailPage({
 		if (getQuadrant(task) === targetQ) return;
 		const { importance, urgency } = valuesFromQuadrant(targetQ);
 		await updateTask(task.id, { importance, urgency });
-	}
-
-	async function _handleKanbanDragEnd(event: DragEndEvent) {
-		setActiveTask(null);
-		const { active, over } = event;
-		if (!over) return;
-		const task = tasks.find((t) => t.id === active.id);
-		if (!task) return;
-		const targetStatus = over.id as KanbanStatus;
-		if (task.kanban === targetStatus) return;
-		await updateTask(task.id, { kanban: targetStatus });
 	}
 
 	const handleCreateTask = async (data: TaskFormData) => {
@@ -426,6 +359,7 @@ export function ProjectDetailPage({
 									{agent?.name ?? memberId}
 								</span>
 								<button
+									type="button"
 									onClick={async () => {
 										const newMembers = (project.teamMembers ?? []).filter(
 											(m) => m !== memberId,
@@ -452,6 +386,7 @@ export function ProjectDetailPage({
 							const AgentIcon = getAgentIcon(agent.id, agent.icon);
 							return (
 								<button
+									type="button"
 									key={agent.id}
 									onClick={async () => {
 										const newMembers = [

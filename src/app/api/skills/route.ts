@@ -1,10 +1,14 @@
 import { NextResponse } from "next/server";
 import { getAgents, getSkillsLibrary, mutateSkillsLibrary } from "@/lib/data";
+import {
+	CACHE_HEADERS,
+	paginateItems,
+	parsePaginationParams,
+} from "@/lib/paginate";
 import { syncAgentCommand, syncSkillFile } from "@/lib/sync-commands";
 import type { SkillDefinition } from "@/lib/types";
 import { generateId } from "@/lib/utils";
 import {
-	DEFAULT_LIMIT,
 	skillCreateSchema,
 	skillUpdateSchema,
 	validateBody,
@@ -29,32 +33,13 @@ export async function GET(request: Request) {
 	}
 
 	// Pagination
-	const limitParam = searchParams.get("limit");
-	const offsetParam = searchParams.get("offset");
-	const totalFiltered = skills.length;
-	const limit = limitParam
-		? Math.max(1, parseInt(limitParam, 10) || 50)
-		: DEFAULT_LIMIT;
-	const offset = Math.max(0, parseInt(offsetParam ?? "0", 10));
-	skills = skills.slice(offset, offset + limit);
+	const pagination = parsePaginationParams(searchParams);
+	const paginated = paginateItems(skills, pagination, total);
+	skills = paginated.data;
 
 	return NextResponse.json(
-		{
-			data: skills,
-			skills,
-			meta: {
-				total,
-				filtered: totalFiltered,
-				returned: skills.length,
-				limit,
-				offset,
-			},
-		},
-		{
-			headers: {
-				"Cache-Control": "private, max-age=2, stale-while-revalidate=5",
-			},
-		},
+		{ data: skills, skills, meta: paginated.meta },
+		{ headers: CACHE_HEADERS },
 	);
 }
 

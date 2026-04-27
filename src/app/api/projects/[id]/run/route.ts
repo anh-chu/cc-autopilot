@@ -1,23 +1,11 @@
-import { spawn } from "child_process";
-import { existsSync, readFileSync, writeFileSync } from "fs";
+import { spawn } from "node:child_process";
+import path from "node:path";
 import { NextResponse } from "next/server";
-import path from "path";
+import { readJSON, writeJSON } from "@/lib/json-io";
 import { DATA_DIR } from "@/lib/paths";
+import { isProcessAlive } from "@/lib/process-utils";
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
-
-function readJSON<T>(file: string): T | null {
-	try {
-		if (!existsSync(file)) return null;
-		return JSON.parse(readFileSync(file, "utf-8")) as T;
-	} catch {
-		return null;
-	}
-}
-
-function writeJSON(file: string, data: unknown): void {
-	writeFileSync(file, JSON.stringify(data, null, 2), "utf-8");
-}
 
 interface TaskEntry {
 	id: string;
@@ -58,19 +46,6 @@ interface MissionEntry {
 interface DecisionEntry {
 	taskId: string | null;
 	status: string;
-}
-
-/**
- * Check if a PID is still alive.
- */
-function isProcessAlive(pid: number): boolean {
-	if (pid <= 0) return true; // PID 0 = just started, assume alive
-	try {
-		process.kill(pid, 0);
-		return true;
-	} catch {
-		return false;
-	}
 }
 
 // ─── POST: Run all eligible tasks in a project (creates a mission) ──────────
@@ -161,7 +136,7 @@ export async function POST(
 
 	for (const run of runsData?.runs ?? []) {
 		if (run.status === "running") {
-			if (isProcessAlive(run.pid)) {
+			if (isProcessAlive(run.pid, true)) {
 				liveRunningTaskIds.add(run.taskId);
 				liveRunningCount++;
 			}

@@ -1,9 +1,11 @@
-import { spawn } from "child_process";
-import { existsSync, readFileSync } from "fs";
+import { spawn } from "node:child_process";
+import { existsSync, readFileSync } from "node:fs";
+import path from "node:path";
 import { NextResponse } from "next/server";
-import path from "path";
 import { getDaemonConfig, mutateDaemonConfig } from "@/lib/data";
+import { readJSON } from "@/lib/json-io";
 import { DATA_DIR } from "@/lib/paths";
+import { isProcessAlive } from "@/lib/process-utils";
 import { daemonConfigUpdateSchema, validateBody } from "@/lib/validations";
 
 const STATUS_FILE = path.join(DATA_DIR, "daemon-status.json");
@@ -11,29 +13,11 @@ const PID_FILE = path.join(DATA_DIR, "daemon.pid");
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
-function readJSON(file: string): unknown {
-	try {
-		if (!existsSync(file)) return null;
-		return JSON.parse(readFileSync(file, "utf-8"));
-	} catch {
-		return null;
-	}
-}
-
-function isProcessRunning(pid: number): boolean {
-	try {
-		process.kill(pid, 0);
-		return true;
-	} catch {
-		return false;
-	}
-}
-
 function getPid(): number | null {
 	try {
 		if (!existsSync(PID_FILE)) return null;
-		const pid = parseInt(readFileSync(PID_FILE, "utf-8").trim());
-		return isNaN(pid) ? null : pid;
+		const pid = parseInt(readFileSync(PID_FILE, "utf-8").trim(), 10);
+		return Number.isNaN(pid) ? null : pid;
 	} catch {
 		return null;
 	}
@@ -61,7 +45,7 @@ export async function GET() {
 
 	// Verify daemon is actually running (PID check)
 	const pid = getPid();
-	const isRunning = pid !== null && isProcessRunning(pid);
+	const isRunning = pid !== null && isProcessAlive(pid);
 	const statusObj = status as Record<string, unknown>;
 
 	if (!isRunning && statusObj.status === "running") {
@@ -86,7 +70,7 @@ export async function POST(request: Request) {
 
 		if (action === "start") {
 			const pid = getPid();
-			if (pid && isProcessRunning(pid)) {
+			if (pid && isProcessAlive(pid)) {
 				return NextResponse.json(
 					{ error: `Daemon is already running (PID: ${pid})` },
 					{ status: 409 },
@@ -123,7 +107,7 @@ export async function POST(request: Request) {
 
 		if (action === "stop") {
 			const pid = getPid();
-			if (!pid || !isProcessRunning(pid)) {
+			if (!pid || !isProcessAlive(pid)) {
 				return NextResponse.json({ message: "Daemon is not running" });
 			}
 

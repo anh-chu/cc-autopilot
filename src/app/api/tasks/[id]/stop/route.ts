@@ -1,12 +1,23 @@
 import { NextResponse } from "next/server";
 import path from "path";
+import { readJSON, writeJSON } from "@/lib/json-io";
 import { DATA_DIR } from "@/lib/paths";
-import {
-	type RunEntry,
-	readJSON,
-	type TaskEntry,
-	writeJSON,
-} from "../../shared";
+
+interface TaskEntry {
+	id: string;
+	kanban: string;
+	updatedAt?: string;
+	[key: string]: unknown;
+}
+
+interface RunEntry {
+	id: string;
+	taskId: string;
+	status: string;
+	pid: number;
+	completedAt?: string | null;
+	error?: string | null;
+}
 
 /**
  * Kill a process tree.

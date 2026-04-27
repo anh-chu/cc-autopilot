@@ -1,20 +1,7 @@
-import { existsSync, readFileSync, writeFileSync } from "fs";
+import path from "node:path";
 import { NextResponse } from "next/server";
-import path from "path";
+import { readJSON, writeJSON } from "@/lib/json-io";
 import { DATA_DIR } from "@/lib/paths";
-
-function readJSON<T>(file: string): T | null {
-	try {
-		if (!existsSync(file)) return null;
-		return JSON.parse(readFileSync(file, "utf-8")) as T;
-	} catch {
-		return null;
-	}
-}
-
-function writeJSON(file: string, data: unknown): void {
-	writeFileSync(file, JSON.stringify(data, null, 2), "utf-8");
-}
 
 interface RunEntry {
 	id: string;

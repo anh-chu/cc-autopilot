@@ -6,12 +6,16 @@ import {
 	mutateSkillsLibrary,
 	mutateTasks,
 } from "@/lib/data";
+import {
+	CACHE_HEADERS,
+	paginateItems,
+	parsePaginationParams,
+} from "@/lib/paginate";
 import { syncAgentCommand } from "@/lib/sync-commands";
 import type { AgentDefinition } from "@/lib/types";
 import {
 	agentCreateSchema,
 	agentUpdateSchema,
-	DEFAULT_LIMIT,
 	validateBody,
 } from "@/lib/validations";
 import { applyWorkspaceContext } from "@/lib/workspace-context";
@@ -37,32 +41,13 @@ export async function GET(request: Request) {
 	}
 
 	// Pagination
-	const limitParam = searchParams.get("limit");
-	const offsetParam = searchParams.get("offset");
-	const totalFiltered = agents.length;
-	const limit = limitParam
-		? Math.max(1, parseInt(limitParam, 10) || 50)
-		: DEFAULT_LIMIT;
-	const offset = Math.max(0, parseInt(offsetParam ?? "0", 10));
-	agents = agents.slice(offset, offset + limit);
+	const pagination = parsePaginationParams(searchParams);
+	const paginated = paginateItems(agents, pagination, total);
+	agents = paginated.data;
 
 	return NextResponse.json(
-		{
-			data: agents,
-			agents,
-			meta: {
-				total,
-				filtered: totalFiltered,
-				returned: agents.length,
-				limit,
-				offset,
-			},
-		},
-		{
-			headers: {
-				"Cache-Control": "private, max-age=2, stale-while-revalidate=5",
-			},
-		},
+		{ data: agents, agents, meta: paginated.meta },
+		{ headers: CACHE_HEADERS },
 	);
 }
 

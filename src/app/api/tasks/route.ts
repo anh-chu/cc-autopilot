@@ -8,10 +8,14 @@ import {
 	mutateInitiatives,
 	mutateTasks,
 } from "@/lib/data";
+import {
+	CACHE_HEADERS,
+	paginateItems,
+	parsePaginationParams,
+} from "@/lib/paginate";
 import type { ActivityEvent, AgentRole, InboxMessage, Task } from "@/lib/types";
 import { generateId } from "@/lib/utils";
 import {
-	DEFAULT_LIMIT,
 	taskCreateSchema,
 	taskUpdateSchema,
 	validateBody,
@@ -280,22 +284,10 @@ export async function GET(request: Request) {
 	}
 
 	// Pagination
-	const limitParam = searchParams.get("limit");
-	const offsetParam = searchParams.get("offset");
-	const totalFiltered = tasks.length;
-	const limit = limitParam
-		? Math.max(1, parseInt(limitParam, 10) || 50)
-		: DEFAULT_LIMIT;
-	const offset = Math.max(0, parseInt(offsetParam ?? "0", 10));
-	tasks = tasks.slice(offset, offset + limit);
-
-	const meta = {
-		total: allTasks.length,
-		filtered: totalFiltered,
-		returned: tasks.length,
-		limit,
-		offset,
-	};
+	const pagination = parsePaginationParams(searchParams);
+	const paginated = paginateItems(tasks, pagination, allTasks.length);
+	tasks = paginated.data;
+	const { meta } = paginated;
 
 	// Sparse field selection
 	if (fields) {
@@ -310,21 +302,13 @@ export async function GET(request: Request) {
 		});
 		return NextResponse.json(
 			{ data: sparse, tasks: sparse, meta },
-			{
-				headers: {
-					"Cache-Control": "private, max-age=2, stale-while-revalidate=5",
-				},
-			},
+			{ headers: CACHE_HEADERS },
 		);
 	}
 
 	return NextResponse.json(
 		{ data: tasks, tasks, meta },
-		{
-			headers: {
-				"Cache-Control": "private, max-age=2, stale-while-revalidate=5",
-			},
-		},
+		{ headers: CACHE_HEADERS },
 	);
 }
 

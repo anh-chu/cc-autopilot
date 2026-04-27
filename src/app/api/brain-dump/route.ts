@@ -1,11 +1,15 @@
 import { NextResponse } from "next/server";
 import { getBrainDump, mutateBrainDump } from "@/lib/data";
+import {
+	CACHE_HEADERS,
+	paginateItems,
+	parsePaginationParams,
+} from "@/lib/paginate";
 import type { BrainDumpEntry } from "@/lib/types";
 import { generateId } from "@/lib/utils";
 import {
 	brainDumpCreateSchema,
 	brainDumpUpdateSchema,
-	DEFAULT_LIMIT,
 	validateBody,
 } from "@/lib/validations";
 
@@ -27,32 +31,13 @@ export async function GET(request: Request) {
 	}
 
 	// Pagination
-	const limitParam = searchParams.get("limit");
-	const offsetParam = searchParams.get("offset");
-	const totalFiltered = entries.length;
-	const limit = limitParam
-		? Math.max(1, parseInt(limitParam, 10) || 50)
-		: DEFAULT_LIMIT;
-	const offset = Math.max(0, parseInt(offsetParam ?? "0", 10));
-	entries = entries.slice(offset, offset + limit);
+	const pagination = parsePaginationParams(searchParams);
+	const paginated = paginateItems(entries, pagination, total);
+	entries = paginated.data;
 
 	return NextResponse.json(
-		{
-			data: entries,
-			entries,
-			meta: {
-				total,
-				filtered: totalFiltered,
-				returned: entries.length,
-				limit,
-				offset,
-			},
-		},
-		{
-			headers: {
-				"Cache-Control": "private, max-age=2, stale-while-revalidate=5",
-			},
-		},
+		{ data: entries, entries, meta: paginated.meta },
+		{ headers: CACHE_HEADERS },
 	);
 }
 

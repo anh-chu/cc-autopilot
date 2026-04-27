@@ -1,8 +1,10 @@
-import { spawn } from "child_process";
-import { existsSync, readFileSync, writeFileSync } from "fs";
+import { spawn } from "node:child_process";
+import { existsSync, readFileSync, writeFileSync } from "node:fs";
+import path from "node:path";
 import { NextResponse } from "next/server";
-import path from "path";
+import { readJSON } from "@/lib/json-io";
 import { DATA_DIR } from "@/lib/paths";
+import { isProcessAlive } from "@/lib/process-utils";
 
 export const dynamic = "force-dynamic";
 
@@ -56,26 +58,6 @@ interface DecisionEntry {
 	status: string;
 }
 
-function readJSON<T>(filename: string): T | null {
-	try {
-		const filePath = path.join(DATA_DIR, filename);
-		if (!existsSync(filePath)) return null;
-		return JSON.parse(readFileSync(filePath, "utf-8")) as T;
-	} catch {
-		return null;
-	}
-}
-
-function isProcessAlive(pid: number): boolean {
-	if (pid <= 0) return true;
-	try {
-		process.kill(pid, 0);
-		return true;
-	} catch {
-		return false;
-	}
-}
-
 // ─── Reconciliation ──────────────────────────────────────────────────────────
 
 const GRACE_PERIOD_MS = 30_000; // 30 seconds — give chain dispatch time before re-dispatching
@@ -88,10 +70,14 @@ const GRACE_PERIOD_MS = 30_000; // 30 seconds — give chain dispatch time befor
 function reconcileStuckMissions(missions: MissionEntry[]): boolean {
 	let changed = false;
 
-	const runsData = readJSON<{ runs: RunEntry[] }>("active-runs.json");
-	const tasksData = readJSON<{ tasks: TaskEntry[] }>("tasks.json");
+	const runsData = readJSON<{ runs: RunEntry[] }>(
+		path.join(DATA_DIR, "active-runs.json"),
+	);
+	const tasksData = readJSON<{ tasks: TaskEntry[] }>(
+		path.join(DATA_DIR, "tasks.json"),
+	);
 	const decisionsData = readJSON<{ decisions: DecisionEntry[] }>(
-		"decisions.json",
+		path.join(DATA_DIR, "decisions.json"),
 	);
 	if (!tasksData) return false;
 
@@ -106,13 +92,13 @@ function reconcileStuckMissions(missions: MissionEntry[]): boolean {
 	const configData = readJSON<{
 		concurrency: { maxParallelAgents: number };
 		execution: { agentTeams?: boolean };
-	}>("daemon-config.json");
+	}>(path.join(DATA_DIR, "daemon-config.json"));
 	const maxParallel = configData?.concurrency?.maxParallelAgents ?? 3;
 	const agentTeams = configData?.execution?.agentTeams ?? false;
 
 	// Count all currently live processes across all missions
 	const totalLiveProcesses = allRuns.filter(
-		(r) => r.status === "running" && isProcessAlive(r.pid),
+		(r) => r.status === "running" && isProcessAlive(r.pid, true),
 	).length;
 
 	for (const mission of missions) {
@@ -122,7 +108,9 @@ function reconcileStuckMissions(missions: MissionEntry[]): boolean {
 		const missionRuns = allRuns.filter(
 			(r) => r.missionId === mission.id && r.status === "running",
 		);
-		const hasLiveProcesses = missionRuns.some((r) => isProcessAlive(r.pid));
+		const hasLiveProcesses = missionRuns.some((r) =>
+			isProcessAlive(r.pid, true),
+		);
 
 		if (hasLiveProcesses) continue; // Mission is legitimately running
 
@@ -160,7 +148,7 @@ function reconcileStuckMissions(missions: MissionEntry[]): boolean {
 		// Filter to already-running task IDs (with liveness check)
 		const liveRunningTaskIds = new Set(
 			allRuns
-				.filter((r) => r.status === "running" && isProcessAlive(r.pid))
+				.filter((r) => r.status === "running" && isProcessAlive(r.pid, true))
 				.map((r) => r.taskId),
 		);
 

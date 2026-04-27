@@ -1,8 +1,28 @@
 import { spawn } from "child_process";
 import { NextResponse } from "next/server";
 import path from "path";
+import { readJSON } from "@/lib/json-io";
 import { DATA_DIR } from "@/lib/paths";
-import { type RunEntry, readJSON, type TaskEntry } from "../../shared";
+
+interface TaskEntry {
+	id: string;
+	kanban: string;
+	title?: string;
+	assignedTo?: string | null;
+	projectId?: string | null;
+	blockedBy?: string[];
+	updatedAt?: string;
+	[key: string]: unknown;
+}
+
+interface RunEntry {
+	id: string;
+	taskId: string;
+	status: string;
+	pid: number;
+	completedAt?: string | null;
+	error?: string | null;
+}
 
 // ─── POST: Run a single task ─────────────────────────────────────────────────
 

@@ -1,8 +1,12 @@
 import { NextResponse } from "next/server";
 import { getInitiatives, mutateInitiatives } from "@/lib/data";
+import {
+	CACHE_HEADERS,
+	paginateItems,
+	parsePaginationParams,
+} from "@/lib/paginate";
 import type { Initiative } from "@/lib/types";
 import {
-	DEFAULT_LIMIT,
 	initiativeCreateSchema,
 	initiativeUpdateSchema,
 	validateBody,
@@ -38,31 +42,13 @@ export async function GET(request: Request) {
 	}
 
 	// Pagination
-	const limitParam = searchParams.get("limit");
-	const offsetParam = searchParams.get("offset");
-	const totalFiltered = initiatives.length;
-	const limit = limitParam
-		? Math.max(1, parseInt(limitParam, 10) || 50)
-		: DEFAULT_LIMIT;
-	const offset = Math.max(0, parseInt(offsetParam ?? "0", 10));
-	initiatives = initiatives.slice(offset, offset + limit);
+	const pagination = parsePaginationParams(searchParams);
+	const paginated = paginateItems(initiatives, pagination, total);
+	initiatives = paginated.data;
 
 	return NextResponse.json(
-		{
-			data: initiatives,
-			meta: {
-				total,
-				filtered: totalFiltered,
-				returned: initiatives.length,
-				limit,
-				offset,
-			},
-		},
-		{
-			headers: {
-				"Cache-Control": "private, max-age=2, stale-while-revalidate=5",
-			},
-		},
+		{ data: initiatives, meta: paginated.meta },
+		{ headers: CACHE_HEADERS },
 	);
 }
 

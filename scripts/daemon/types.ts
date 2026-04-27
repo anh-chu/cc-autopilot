@@ -183,34 +183,6 @@ export interface ClaudeOutputMeta {
 	usage: ClaudeUsage | null;
 }
 
-// ─── Respond Run Tracking (inbox auto-respond chains) ───────────────────────
-
-export type RespondRunStatus = "running" | "completed" | "failed" | "stopped";
-
-import type { PrunableEntry } from "./runs-registry";
-
-export interface RespondRunEntry extends PrunableEntry {
-	id: string;
-	messageId: string;
-	agentId: string;
-	threadSubject: string;
-	pid: number;
-	status: RespondRunStatus;
-	continuationIndex: number;
-	maxContinuations: number;
-	stopped: boolean; // stop signal — prevents next continuation
-	startedAt: string;
-	completedAt: string | null;
-	costUsd: number | null;
-	numTurns: number | null;
-	usage: ClaudeUsage | null;
-	error: string | null;
-}
-
-export interface RespondRunsFile {
-	runs: RespondRunEntry[];
-}
-
 // ─── Log Levels ──────────────────────────────────────────────────────────────
 
 export type LogLevel = "DEBUG" | "INFO" | "WARN" | "ERROR" | "SECURITY";

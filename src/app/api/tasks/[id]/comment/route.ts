@@ -3,18 +3,10 @@ import { existsSync, readFileSync, unlinkSync, writeFileSync } from "fs";
 import { NextResponse } from "next/server";
 import path from "path";
 import { getWorkspaceDataDir } from "@/lib/data";
+import { readJSON } from "@/lib/json-io";
 import { getUploadsDir } from "@/lib/paths";
 import { generateId, parseAgentMentions } from "@/lib/utils";
 import { applyWorkspaceContext } from "@/lib/workspace-context";
-
-function readJSON<T>(file: string): T | null {
-	try {
-		if (!existsSync(file)) return null;
-		return JSON.parse(readFileSync(file, "utf-8")) as T;
-	} catch {
-		return null;
-	}
-}
 
 interface TaskEntry {
 	id: string;

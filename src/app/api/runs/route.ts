@@ -1,17 +1,6 @@
 import { NextResponse } from "next/server";
 import { getActiveRuns, mutateActiveRuns } from "@/lib/data";
-
-// ─── Helpers ─────────────────────────────────────────────────────────────────
-
-function isProcessAlive(pid: number): boolean {
-	if (pid <= 0) return false;
-	try {
-		process.kill(pid, 0);
-		return true;
-	} catch {
-		return false;
-	}
-}
+import { isProcessAlive } from "@/lib/process-utils";
 
 // ─── GET: Read active runs with PID liveness check ──────────────────────────
 

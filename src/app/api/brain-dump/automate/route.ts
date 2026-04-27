@@ -1,19 +1,10 @@
-import { spawn } from "child_process";
-import { existsSync, readFileSync } from "fs";
+import { spawn } from "node:child_process";
+import path from "node:path";
 import { NextResponse } from "next/server";
-import path from "path";
+import { readJSON } from "@/lib/json-io";
 import { DATA_DIR } from "@/lib/paths";
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
-
-function readJSON<T>(file: string): T | null {
-	try {
-		if (!existsSync(file)) return null;
-		return JSON.parse(readFileSync(file, "utf-8")) as T;
-	} catch {
-		return null;
-	}
-}
 
 interface BrainDumpEntry {
 	id: string;
