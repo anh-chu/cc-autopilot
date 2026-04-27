@@ -181,13 +181,50 @@ export default function DocumentsPage() {
 	const [chatSending, setChatSending] = useState(false);
 	const [slashMenuOpen, setSlashMenuOpen] = useState(false);
 	const [slashQuery, setSlashQuery] = useState("");
+	const [claudeCommands, setClaudeCommands] = useState<
+		{ name: string; description: string; argumentHint?: string }[]
+	>([]);
+
+	useEffect(() => {
+		fetch("/api/claude/slash-commands")
+			.then(
+				(r) =>
+					r.json() as Promise<{
+						commands: {
+							name: string;
+							description: string;
+							argumentHint?: string;
+						}[];
+					}>,
+			)
+			.then((d) => setClaudeCommands(d.commands ?? []))
+			.catch(() => {});
+	}, []);
+
+	const allSlashCommands = useMemo(() => {
+		type Cmd = { command: string; description: string; argumentHint?: string };
+		const appCmds: Cmd[] = SKILLS.map((s) => ({
+			command: s.command,
+			description: s.description,
+		}));
+		const seen = new Set(appCmds.map((s) => s.command));
+		const sdkCmds: Cmd[] = claudeCommands
+			.filter((c) => !seen.has(`/${c.name}`))
+			.map((c) => ({
+				command: `/${c.name}`,
+				description: c.description,
+				argumentHint: c.argumentHint,
+			}));
+		return [...appCmds, ...sdkCmds];
+	}, [claudeCommands]);
+
 	const matchingSkills = useMemo(() => {
 		if (!slashMenuOpen) return [];
 		const q = slashQuery.toLowerCase();
-		return SKILLS.filter(
-			(s) => s.command.includes(q) || s.label.toLowerCase().includes(q),
+		return allSlashCommands.filter(
+			(s) => s.command.includes(q) || s.description.toLowerCase().includes(q),
 		);
-	}, [slashMenuOpen, slashQuery]);
+	}, [slashMenuOpen, slashQuery, allSlashCommands]);
 	const displayStreamEvents = useMemo(
 		() => prepareConsoleLines(streamEvents),
 		[streamEvents],

@@ -1,25 +1,45 @@
-import { query, type SlashCommand } from "@anthropic-ai/claude-agent-sdk";
+import { type SlashCommand, startup } from "@anthropic-ai/claude-agent-sdk";
 import { NextResponse } from "next/server";
 
-export async function GET() {
-	let commands: SlashCommand[] = [];
+let cachedCommands: SlashCommand[] | null = null;
+let cacheExpiry = 0;
+const CACHE_TTL = 60 * 60 * 1000; // 1 hour
 
-	const q = query({
-		prompt: "__init_probe__",
-		options: { maxTurns: 1 },
-	});
+async function getCommands(): Promise<SlashCommand[]> {
+	const now = Date.now();
+	if (cachedCommands && now < cacheExpiry) {
+		return cachedCommands;
+	}
+
+	let commands: SlashCommand[] = [];
+	const warm = await startup({ options: { maxTurns: 1 } });
+	const q = warm.query("__init_probe__");
 
 	try {
-		// Advance past system/init so the session is initialized
 		for await (const message of q) {
 			if (message.type === "system" && message.subtype === "init") {
 				commands = await q.supportedCommands();
 				break;
 			}
 		}
-	} catch {
-		// ignore
+	} finally {
+		q.close();
 	}
 
-	return NextResponse.json({ commands });
+	cachedCommands = commands;
+	cacheExpiry = now + CACHE_TTL;
+	return commands;
+}
+
+export async function GET() {
+	try {
+		const commands = await getCommands();
+		return NextResponse.json(
+			{ commands },
+			{ headers: { "Cache-Control": "public, max-age=3600" } },
+		);
+	} catch {
+		// Return empty on failure — non-critical
+		return NextResponse.json({ commands: [] });
+	}
 }
