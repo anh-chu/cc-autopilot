@@ -45,7 +45,6 @@
 - **TaskContextMenuContent** [client] — props: task, onOpen, onStatusChange, onDuplicate, onRun, onDelete — `src/components/context-menus/task-context-menu.tsx`
 - **CreateTaskDialog** [client] — props: open, onOpenChange, projects, onSubmit, defaultValues — `src/components/create-task-dialog.tsx`
 - **DecisionDialog** [client] — props: open, onOpenChange, decision, onAnswered — `src/components/decision-dialog.tsx`
-- **EisenhowerSummary** [client] — props: tasks — `src/components/eisenhower-summary.tsx`
 - **EmptyState** — props: Icon, title, description, actionLabel, onAction, className, compact — `src/components/empty-state.tsx`
 - **ErrorState** — props: message, onRetry, className, compact — `src/components/error-state.tsx`
 - **KeyboardShortcuts** [client] — props: onCreateTask — `src/components/keyboard-shortcuts.tsx`

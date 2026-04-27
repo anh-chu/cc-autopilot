@@ -4,10 +4,7 @@
   - function readActiveRuns: (filePath) => void
   - function writeActiveRuns: (filePath, data) => void
   - interface ActiveRunEntry
-- `scripts/daemon/config.ts`
-  - function loadConfig: (workspaceId) => DaemonConfig
-  - function saveConfig: (config, workspaceId) => void
-  - function getConfigPath: (workspaceId) => string
+- `scripts/daemon/config.ts` — function loadConfig: (workspaceId) => DaemonConfig, function saveConfig: (config, workspaceId) => void
 - `scripts/daemon/data-io.ts` — function readJSON: (filePath) => T | null
 - `scripts/daemon/dispatcher.ts` — class Dispatcher
 - `scripts/daemon/health.ts` — class HealthMonitor
@@ -25,14 +22,7 @@
   - interface SessionRecord
   - interface RecoveryResult
 - `scripts/daemon/runner.ts` — function parseClaudeOutput: (stdout) => ClaudeOutputMeta, class AgentRunner
-- `scripts/daemon/runs-registry.ts`
-  - function readJsonFile: (filePath, defaultValue) => T
-  - function writeJsonFile: (filePath, data) => void
-  - function atomicWriteJson: (filePath, data) => void
-  - function pruneOldEntries: (entries, maxAgeMs) => T[]
-  - function findEntryById: (filePath, id, defaultValue) => T | null
-  - function updateEntryById: (filePath, id, updates, defaultValue) => boolean
-  - _...1 more_
+- `scripts/daemon/runs-registry.ts` — function readJsonFile: (filePath, defaultValue) => T, function atomicWriteJson: (filePath, data) => void
 - `scripts/daemon/scheduler.ts` — class Scheduler
 - `scripts/daemon/security.ts`
   - function validatePathWithinWorkspace: (filePath, workspaceRoot) => boolean
@@ -81,6 +71,7 @@
   - function ensureDocMaintainerAgentForWorkspace: (workspaceId) => Promise<void>
   - function getTasks: () => Promise<TasksFile>
   - _...36 more_
+- `src/lib/json-io.ts` — function readJSON: (file) => T | null, function writeJSON: (file, data) => void
 - `src/lib/log-reader.ts`
   - function isAllowedLogPath: (filePath) => boolean
   - function scrubLogLines: (lines) => string[]
@@ -102,6 +93,7 @@
   - function getWikiDir: (workspaceId) => string
   - function getDefaultWikiDir: (workspaceId) => string
   - const DATA_DIR: string
+- `src/lib/process-utils.ts` — function isProcessAlive: (pid, assumeAliveIfZero) => boolean
 - `src/lib/scheduled-jobs.ts`
   - function scheduleUploadsCleanup: () => void
   - function scheduleLogCleanup: () => void

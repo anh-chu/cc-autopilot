@@ -2,9 +2,9 @@
 
 > **Stack:** next-app | none | react | typescript
 
-> 77 routes | 0 models | 70 components | 42 lib files | 21 env vars | 1 middleware | 0% test coverage
-> **Token savings:** this file is ~6,300 tokens. Without it, AI exploration would cost ~85,800 tokens. **Saves ~79,500 tokens per conversation.**
-> **Last scanned:** 2026-04-27 17:02 — re-run after significant changes
+> 77 routes | 0 models | 69 components | 44 lib files | 21 env vars | 1 middleware | 0% test coverage
+> **Token savings:** this file is ~6,200 tokens. Without it, AI exploration would cost ~86,000 tokens. **Saves ~79,800 tokens per conversation.**
+> **Last scanned:** 2026-04-27 17:38 — re-run after significant changes
 
 ---
 
@@ -111,7 +111,6 @@
 - **TaskContextMenuContent** [client] — props: task, onOpen, onStatusChange, onDuplicate, onRun, onDelete — `src/components/context-menus/task-context-menu.tsx`
 - **CreateTaskDialog** [client] — props: open, onOpenChange, projects, onSubmit, defaultValues — `src/components/create-task-dialog.tsx`
 - **DecisionDialog** [client] — props: open, onOpenChange, decision, onAnswered — `src/components/decision-dialog.tsx`
-- **EisenhowerSummary** [client] — props: tasks — `src/components/eisenhower-summary.tsx`
 - **EmptyState** — props: Icon, title, description, actionLabel, onAction, className, compact — `src/components/empty-state.tsx`
 - **ErrorState** — props: message, onRetry, className, compact — `src/components/error-state.tsx`
 - **KeyboardShortcuts** [client] — props: onCreateTask — `src/components/keyboard-shortcuts.tsx`
@@ -145,10 +144,7 @@
   - function readActiveRuns: (filePath) => void
   - function writeActiveRuns: (filePath, data) => void
   - interface ActiveRunEntry
-- `scripts/daemon/config.ts`
-  - function loadConfig: (workspaceId) => DaemonConfig
-  - function saveConfig: (config, workspaceId) => void
-  - function getConfigPath: (workspaceId) => string
+- `scripts/daemon/config.ts` — function loadConfig: (workspaceId) => DaemonConfig, function saveConfig: (config, workspaceId) => void
 - `scripts/daemon/data-io.ts` — function readJSON: (filePath) => T | null
 - `scripts/daemon/dispatcher.ts` — class Dispatcher
 - `scripts/daemon/health.ts` — class HealthMonitor
@@ -166,14 +162,7 @@
   - interface SessionRecord
   - interface RecoveryResult
 - `scripts/daemon/runner.ts` — function parseClaudeOutput: (stdout) => ClaudeOutputMeta, class AgentRunner
-- `scripts/daemon/runs-registry.ts`
-  - function readJsonFile: (filePath, defaultValue) => T
-  - function writeJsonFile: (filePath, data) => void
-  - function atomicWriteJson: (filePath, data) => void
-  - function pruneOldEntries: (entries, maxAgeMs) => T[]
-  - function findEntryById: (filePath, id, defaultValue) => T | null
-  - function updateEntryById: (filePath, id, updates, defaultValue) => boolean
-  - _...1 more_
+- `scripts/daemon/runs-registry.ts` — function readJsonFile: (filePath, defaultValue) => T, function atomicWriteJson: (filePath, data) => void
 - `scripts/daemon/scheduler.ts` — class Scheduler
 - `scripts/daemon/security.ts`
   - function validatePathWithinWorkspace: (filePath, workspaceRoot) => boolean
@@ -222,6 +211,7 @@
   - function ensureDocMaintainerAgentForWorkspace: (workspaceId) => Promise<void>
   - function getTasks: () => Promise<TasksFile>
   - _...36 more_
+- `src/lib/json-io.ts` — function readJSON: (file) => T | null, function writeJSON: (file, data) => void
 - `src/lib/log-reader.ts`
   - function isAllowedLogPath: (filePath) => boolean
   - function scrubLogLines: (lines) => string[]
@@ -243,6 +233,7 @@
   - function getWikiDir: (workspaceId) => string
   - function getDefaultWikiDir: (workspaceId) => string
   - const DATA_DIR: string
+- `src/lib/process-utils.ts` — function isProcessAlive: (pid, assumeAliveIfZero) => boolean
 - `src/lib/scheduled-jobs.ts`
   - function scheduleUploadsCleanup: () => void
   - function scheduleLogCleanup: () => void
@@ -343,7 +334,7 @@
 
 ## Most Imported Files (change these carefully)
 
-- `src/lib/types.ts` — imported by **57** files
+- `src/lib/types.ts` — imported by **55** files
 - `src/lib/utils.ts` — imported by **51** files
 - `src/lib/paths.ts` — imported by **40** files
 - `src/components/ui/button.tsx` — imported by **36** files
@@ -352,21 +343,21 @@
 - `src/lib/data.ts` — imported by **17** files
 - `src/lib/workspace-context.ts` — imported by **16** files
 - `src/hooks/use-data.ts` — imported by **14** files
-- `scripts/daemon/logger.ts` — imported by **13** files
 - `src/components/ui/input.tsx` — imported by **13** files
 - `src/lib/api-client.ts` — imported by **13** files
-- `src/components/ui/card.tsx` — imported by **12** files
+- `scripts/daemon/logger.ts` — imported by **12** files
+- `src/components/ui/card.tsx` — imported by **11** files
 - `src/components/ui/tip.tsx` — imported by **11** files
 - `src/components/error-state.tsx` — imported by **9** files
 - `src/lib/toast.ts` — imported by **9** files
 - `src/components/skeletons.tsx` — imported by **9** files
 - `src/components/ui/textarea.tsx` — imported by **9** files
+- `src/lib/json-io.ts` — imported by **8** files
 - `src/providers/active-runs-provider.tsx` — imported by **8** files
-- `scripts/daemon/security.ts` — imported by **7** files
 
 ## Import Map (who imports what)
 
-- `src/lib/types.ts` ← `__tests__/data.test.ts`, `src/app/activity/page.tsx`, `src/app/api/activity-log/route.ts`, `src/app/api/agents/route.ts`, `src/app/api/brain-dump/route.ts` +52 more
+- `src/lib/types.ts` ← `__tests__/data.test.ts`, `src/app/activity/page.tsx`, `src/app/api/activity-log/route.ts`, `src/app/api/agents/route.ts`, `src/app/api/brain-dump/route.ts` +50 more
 - `src/lib/utils.ts` ← `src/app/api/activity-log/route.ts`, `src/app/api/brain-dump/route.ts`, `src/app/api/decisions/route.ts`, `src/app/api/inbox/route.ts`, `src/app/api/projects/route.ts` +46 more
 - `src/lib/paths.ts` ← `scripts/cleanup-uploads.ts`, `scripts/daemon/config.ts`, `scripts/daemon/dispatcher.ts`, `scripts/daemon/health.ts`, `scripts/daemon/index.ts` +35 more
 - `src/components/ui/button.tsx` ← `src/app/activity/page.tsx`, `src/app/autopilot/page.tsx`, `src/app/brain-dump/page.tsx`, `src/app/crew/[id]/edit/page.tsx`, `src/app/crew/[id]/page.tsx` +31 more
@@ -375,7 +366,7 @@
 - `src/lib/data.ts` ← `__tests__/seeding.test.ts`, `src/app/api/activity-log/route.ts`, `src/app/api/brain-dump/route.ts`, `src/app/api/daemon/route.ts`, `src/app/api/emergency-stop/route.ts` +12 more
 - `src/lib/workspace-context.ts` ← `src/app/api/agents/route.ts`, `src/app/api/initiatives/route.ts`, `src/app/api/runs/stream/route.ts`, `src/app/api/sidebar/route.ts`, `src/app/api/tasks/[id]/comment/route.ts` +11 more
 - `src/hooks/use-data.ts` ← `src/app/activity/page.tsx`, `src/app/brain-dump/page.tsx`, `src/app/crew/[id]/edit/page.tsx`, `src/app/crew/new/page.tsx`, `src/app/crew/page.tsx` +9 more
-- `scripts/daemon/logger.ts` ← `scripts/daemon/config.ts`, `scripts/daemon/dispatcher.ts`, `scripts/daemon/health.ts`, `scripts/daemon/index.ts`, `scripts/daemon/prompt-builder.ts` +8 more
+- `src/components/ui/input.tsx` ← `src/app/activity/page.tsx`, `src/app/autopilot/page.tsx`, `src/app/crew/[id]/page.tsx`, `src/app/initiatives/page.tsx`, `src/app/logs/page.tsx` +8 more
 
 ---
 

@@ -21,8 +21,9 @@ export function parsePaginationParams(
 ): PaginationParams {
 	const limitParam = searchParams.get("limit");
 	const offsetParam = searchParams.get("offset");
+	const parsedLimit = limitParam ? parseInt(limitParam, 10) : NaN;
 	const limit = limitParam
-		? Math.max(1, parseInt(limitParam, 10) || DEFAULT_LIMIT)
+		? Math.max(1, Number.isNaN(parsedLimit) ? 50 : parsedLimit)
 		: DEFAULT_LIMIT;
 	const offset = Math.max(0, parseInt(offsetParam ?? "0", 10));
 	return { limit, offset };
