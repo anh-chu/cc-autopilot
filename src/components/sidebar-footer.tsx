@@ -1,7 +1,7 @@
 "use client";
 
 import { AlertTriangle, Circle, OctagonX } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -24,6 +24,7 @@ import {
 	TooltipContent,
 	TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { useDaemon } from "@/hooks/use-daemon";
 import { apiFetch } from "@/lib/api-client";
 import { showError, showSuccess } from "@/lib/toast";
 import { cn } from "@/lib/utils";
@@ -32,15 +33,7 @@ interface SidebarFooterProps {
 	collapsed: boolean;
 }
 
-interface ServerStatus {
-	mode: "pm2" | "terminal";
-	uptimeSeconds: number;
-	pid: number;
-}
-
-function formatUptime(seconds: number): string {
-	if (seconds < 60) return `${seconds}s`;
-	const minutes = Math.floor(seconds / 60);
+function formatUptime(minutes: number): string {
 	if (minutes < 60) return `${minutes}m`;
 	const hours = Math.floor(minutes / 60);
 	const remainingMinutes = minutes % 60;
@@ -48,21 +41,10 @@ function formatUptime(seconds: number): string {
 }
 
 export function SidebarFooter({ collapsed }: SidebarFooterProps) {
-	const [serverStatus, setServerStatus] = useState<ServerStatus | null>(null);
 	const [killDialogOpen, setKillDialogOpen] = useState(false);
 	const [killLoading, setKillLoading] = useState(false);
 
-	// Fetch server mode once on mount (PM2 mode doesn't change at runtime)
-	useEffect(() => {
-		apiFetch("/api/server-status")
-			.then((res) => (res.ok ? res.json() : null))
-			.then((data) => {
-				if (data) setServerStatus(data as ServerStatus);
-			})
-			.catch(() => {});
-	}, []);
-
-	const isPm2 = serverStatus?.mode === "pm2";
+	const { status: daemonStatus, start, stop } = useDaemon();
 
 	async function handleEmergencyStop() {
 		setKillLoading(true);
@@ -88,80 +70,90 @@ export function SidebarFooter({ collapsed }: SidebarFooterProps) {
 				<TooltipTrigger asChild>
 					<PopoverTrigger asChild>
 						<button
-							className="flex items-center justify-center h-8 w-8 rounded-sm hover:bg-accent transition-colors"
-							aria-label="Server mode"
+							type="button"
+							className="flex items-center justify-center h-8 w-8 rounded-sm hover:bg-muted transition-colors"
+							aria-label="Daemon status"
 						>
 							<Circle
 								className={cn(
 									"h-2.5 w-2.5 fill-current",
-									isPm2
-										? "text-accent animate-pulse"
-										: "text-muted-foreground",
+									daemonStatus.status === "running"
+										? "text-success animate-pulse"
+										: daemonStatus.status === "starting"
+											? "text-warning animate-pulse"
+											: "text-muted-foreground",
 								)}
 							/>
 						</button>
 					</PopoverTrigger>
 				</TooltipTrigger>
 				<TooltipContent side={collapsed ? "right" : "top"}>
-					{isPm2 ? "Always-on (PM2)" : "Terminal mode"}
+					{daemonStatus.status === "running"
+						? "Daemon running"
+						: daemonStatus.status === "starting"
+							? "Daemon starting"
+							: "Daemon stopped"}
 				</TooltipContent>
 			</Tooltip>
 			<PopoverContent side="top" align="start" className="w-72">
 				<div className="space-y-3">
 					<div className="flex items-center justify-between">
-						<h4 className="text-sm font-normal">Server Mode</h4>
+						<h4 className="text-sm font-normal">Daemon Status</h4>
 						<Badge
 							className={cn(
-								isPm2
-									? "bg-accent-soft text-accent border-accent/25"
-									: "bg-muted text-muted-foreground border-muted",
+								daemonStatus.status === "running"
+									? "bg-success-soft text-success border-success/25"
+									: daemonStatus.status === "starting"
+										? "bg-warning-soft text-warning border-warning/25"
+										: "bg-muted text-muted-foreground border-muted",
 							)}
 						>
-							{isPm2 ? "Always-on (PM2)" : "Terminal"}
+							{daemonStatus.status === "running"
+								? "Running"
+								: daemonStatus.status === "starting"
+									? "Starting"
+									: "Stopped"}
 						</Badge>
 					</div>
 
-					{serverStatus && (
+					{daemonStatus.status === "running" && (
 						<div className="text-xs text-muted-foreground space-y-1">
-							<p>Uptime: {formatUptime(serverStatus.uptimeSeconds)}</p>
+							<p>
+								Active Sessions:{" "}
+								<strong className="text-foreground">
+									{daemonStatus.activeSessions.length}
+								</strong>
+							</p>
+							<p>
+								Tasks Completed:{" "}
+								<strong className="text-foreground">
+									{daemonStatus.stats.tasksCompleted}
+								</strong>
+							</p>
+							<p>
+								Uptime:{" "}
+								<strong className="text-foreground">
+									{formatUptime(daemonStatus.stats.uptimeMinutes)}
+								</strong>
+							</p>
 						</div>
 					)}
 
-					<p className="text-xs text-muted-foreground">
-						{isPm2
-							? "Running continuously with auto-restart. The server persists across terminal sessions and restarts on crashes."
-							: "Running in a terminal session. The server stops when the terminal closes. Use PM2 for always-on operation."}
-					</p>
-
 					<Separator />
 
-					<div className="space-y-2">
-						<p className="text-xs font-normal">Server Management</p>
-						<p className="text-xs text-muted-foreground">
-							For continuous operation, run with PM2. The server auto-restarts
-							on crashes.
-						</p>
-						<div className="space-y-1.5">
-							<p className="text-[10px] text-muted-foreground/60 uppercase tracking-wider font-normal">
-								Always-on mode (PM2)
-							</p>
-							<code className="block text-xs bg-muted px-2 py-1 rounded-sm font-mono">
-								pm2 start ecosystem.config.js
-							</code>
-							<p className="text-[10px] text-muted-foreground/60 uppercase tracking-wider font-normal mt-2">
-								Terminal mode
-							</p>
-							<code className="block text-xs bg-muted px-2 py-1 rounded-sm font-mono">
-								pnpm dev
-							</code>
-							<p className="text-[10px] text-muted-foreground/60 uppercase tracking-wider font-normal mt-2">
-								Stop PM2 server
-							</p>
-							<code className="block text-xs bg-muted px-2 py-1 rounded-sm font-mono">
-								pm2 stop mission-control
-							</code>
-						</div>
-					</div>
+					<Button
+						className="w-full"
+						variant={
+							daemonStatus.status === "running" ? "destructive" : "default"
+						}
+						size="sm"
+						onClick={() =>
+							daemonStatus.status === "running" ? stop() : start()
+						}
+						disabled={daemonStatus.status === "starting"}
+					>
+						{daemonStatus.status === "running" ? "Stop Daemon" : "Start Daemon"}
+					</Button>
 				</div>
 			</PopoverContent>
 		</Popover>
@@ -171,6 +163,7 @@ export function SidebarFooter({ collapsed }: SidebarFooterProps) {
 		<Tooltip>
 			<TooltipTrigger asChild>
 				<button
+					type="button"
 					className="flex items-center justify-center h-8 w-8 rounded-sm text-destructive hover:text-destructive hover:bg-destructive/10 transition-colors"
 					onClick={() => setKillDialogOpen(true)}
 					aria-label="Emergency Stop"
