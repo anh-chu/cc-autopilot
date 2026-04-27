@@ -1,4 +1,5 @@
 #!/usr/bin/env tsx
+
 /**
  * run-wiki-generate.ts
  * Background script: run selected agent for wiki generation in workspace wiki dir.
@@ -11,6 +12,7 @@
  *     [--agent-id doc-maintainer]
  */
 
+import { query, type SDKMessage } from "@anthropic-ai/claude-agent-sdk";
 import {
 	appendFileSync,
 	existsSync,
@@ -19,7 +21,6 @@ import {
 	writeFileSync,
 } from "fs";
 import path from "path";
-import { query, type SDKMessage } from "@anthropic-ai/claude-agent-sdk";
 import {
 	DOC_MAINTAINER_AGENT_ID,
 	DOC_MAINTAINER_AGENT_INSTRUCTIONS,
@@ -44,6 +45,7 @@ const runId = getArg("run-id") ?? `wiki_${Date.now()}`;
 const workspaceId =
 	getArg("workspace-id") ?? process.env.CMC_WORKSPACE_ID ?? "default";
 const promptOverride = getArg("prompt-override") ?? null;
+const resumeSessionId = getArg("session-id") ?? null;
 const selectedAgentId = getArg("agent-id") ?? DOC_MAINTAINER_AGENT_ID;
 const selectedModel = getArg("model") ?? "";
 
@@ -107,6 +109,8 @@ export interface WikiRunRecord {
 	exitCode: number | null;
 	error: string | null;
 	pid: number;
+	/** Session ID for resuming this run */
+	sessionId?: string;
 }
 
 function writeRun(record: WikiRunRecord): void {
@@ -145,56 +149,20 @@ function buildPrompt(agentInstruction: string): string {
 }
 
 function normalizeSdkMessage(msg: SDKMessage): unknown[] {
-	const out: unknown[] = [msg];
-	if (msg.type !== "stream_event") return out;
-
-	const event = msg.event as unknown as Record<string, unknown>;
-	if (event.type === "content_block_delta") {
-		const delta = (event.delta ?? {}) as Record<string, unknown>;
-		if (
-			delta.type === "text_delta" &&
-			typeof delta.text === "string" &&
-			delta.text
-		) {
-			out.push({
-				type: "assistant",
-				session_id: msg.session_id,
-				message: {
-					content: [{ type: "text", text: delta.text }],
-				},
-			});
-		}
-	}
-
-	if (event.type === "content_block_start") {
-		const block = (event.content_block ?? {}) as Record<string, unknown>;
-		if (block.type === "tool_use") {
-			out.push({
-				type: "assistant",
-				session_id: msg.session_id,
-				message: {
-					content: [
-						{
-							type: "tool_use",
-							id:
-								typeof block.id === "string" ? block.id : `tool_${Date.now()}`,
-							name: typeof block.name === "string" ? block.name : "tool",
-							input:
-								typeof block.input === "object" && block.input !== null
-									? block.input
-									: {},
-						},
-					],
-				},
-			});
-		}
-	}
-
-	return out;
+	// Only emit the raw SDK message — don't synthesize assistant entries
+	// from stream_event deltas. The SDK already emits consolidated
+	// assistant messages (with includePartialMessages: true) which contain
+	// the final text/tool_use blocks. Synthesizing from deltas caused
+	// duplicate rendering (incremental chunks + final message).
+	return [msg];
 }
 
-async function runWithSdk(prompt: string, pluginPath: string): Promise<number> {
+async function runWithSdk(
+	prompt: string,
+	pluginPath: string,
+): Promise<{ exitCode: number; sessionId: string | null }> {
 	let exitCode = 1;
+	let sessionId: string | null = null;
 
 	for await (const msg of query({
 		prompt,
@@ -207,6 +175,8 @@ async function runWithSdk(prompt: string, pluginPath: string): Promise<number> {
 			maxTurns: 30,
 			permissionMode: "bypassPermissions",
 			allowDangerouslySkipPermissions: true,
+			persistSession: true,
+			...(resumeSessionId ? { resume: resumeSessionId } : {}),
 			env: {
 				...process.env,
 				WIKI_PATH: wikiDir,
@@ -216,12 +186,20 @@ async function runWithSdk(prompt: string, pluginPath: string): Promise<number> {
 		},
 	})) {
 		for (const evt of normalizeSdkMessage(msg)) appendStreamEvent(evt);
+		// Capture session_id from SDK messages
+		if (
+			!sessionId &&
+			"session_id" in msg &&
+			typeof msg.session_id === "string"
+		) {
+			sessionId = msg.session_id;
+		}
 		if (msg.type === "result") {
 			exitCode = msg.subtype === "success" && !msg.is_error ? 0 : 1;
 		}
 	}
 
-	return exitCode;
+	return { exitCode, sessionId };
 }
 
 async function runWithCliFallback(prompt: string): Promise<number> {
@@ -306,8 +284,11 @@ async function main(): Promise<void> {
 
 	const prompt = buildPrompt(agentInstruction);
 	let exitCode = 1;
+	let sessionId: string | null = null;
 	try {
-		exitCode = await runWithSdk(prompt, pluginPath);
+		const result = await runWithSdk(prompt, pluginPath);
+		exitCode = result.exitCode;
+		sessionId = result.sessionId;
 	} catch (err) {
 		appendStreamEvent({
 			type: "system",
@@ -325,6 +306,7 @@ async function main(): Promise<void> {
 	record.exitCode = exitCode;
 	record.error = exitCode !== 0 ? "Wiki generation failed" : null;
 	record.completedAt = new Date().toISOString();
+	record.sessionId = sessionId ?? undefined;
 	writeRun(record);
 
 	logger.info(

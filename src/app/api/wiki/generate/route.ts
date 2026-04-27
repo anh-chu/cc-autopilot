@@ -9,13 +9,18 @@ export async function POST(request: Request) {
 	try {
 		const workspaceId = await applyWorkspaceContext();
 
-		let body: { promptOverride?: string; agentId?: string; model?: string } =
-			{};
+		let body: {
+			promptOverride?: string;
+			agentId?: string;
+			model?: string;
+			sessionId?: string;
+		} = {};
 		try {
 			body = (await request.json()) as {
 				promptOverride?: string;
 				agentId?: string;
 				model?: string;
+				sessionId?: string;
 			};
 		} catch {
 			// body is optional
@@ -50,6 +55,10 @@ export async function POST(request: Request) {
 
 		if (body.model?.trim()) {
 			args.push("--model", body.model.trim());
+		}
+
+		if (body.sessionId?.trim()) {
+			args.push("--session-id", body.sessionId.trim());
 		}
 
 		try {

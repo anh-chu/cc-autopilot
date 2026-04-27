@@ -1,5 +1,27 @@
 "use client";
 
+function WorkingIndicator() {
+	return (
+		<div className="flex items-center gap-1.5 py-2 px-1">
+			{[0, 1, 2].map((i) => (
+				<span
+					key={i}
+					className="block h-1.5 w-1.5 rounded-full bg-muted-foreground"
+					style={{
+						animation: `workingDot 1.2s ease-in-out ${i * 0.16}s infinite`,
+					}}
+				/>
+			))}
+			<style>{`
+				@keyframes workingDot {
+					0%, 60%, 100% { opacity: 0.3; transform: translateY(0); }
+					30% { opacity: 1; transform: translateY(-4px); }
+				}
+			`}</style>
+		</div>
+	);
+}
+
 import {
 	AlertCircle,
 	Check,
@@ -57,6 +79,7 @@ interface WikiRunRecord {
 	exitCode: number | null;
 	error: string | null;
 	pid: number;
+	sessionId?: string;
 }
 
 const DOC_MAINTAINER_AGENT_ID = "doc-maintainer";
@@ -162,6 +185,7 @@ export default function DocumentsPage() {
 	);
 	const [selectedModel, setSelectedModel] = useState("sonnet");
 	const [streamCursor, setStreamCursor] = useState(0);
+	const streamCursorRef = useRef(0);
 	const [chatInput, setChatInput] = useState("");
 	const [chatSending, setChatSending] = useState(false);
 	const [slashMenuOpen, setSlashMenuOpen] = useState(false);
@@ -405,6 +429,7 @@ export default function DocumentsPage() {
 			setActiveRunId(data.runId);
 			setStreamRunId(data.runId);
 			setStreamEvents([]);
+			streamCursorRef.current = 0;
 			setStreamCursor(0);
 			setRunMessage(`Run ${data.runId} started. PID ${data.pid}.`);
 			await loadRuns();
@@ -461,28 +486,41 @@ export default function DocumentsPage() {
 
 	useEffect(() => {
 		if (!streamRunId) return;
+		let cancelled = false;
 		let done = false;
+		let fetching = false;
+		const ac = new AbortController();
 		const id = setInterval(async () => {
-			if (done) return;
+			if (done || fetching || cancelled) return;
+			fetching = true;
 			try {
 				const res = await fetch(
-					`/api/wiki/run-stream?runId=${encodeURIComponent(streamRunId)}&since=${streamCursor}`,
+					`/api/wiki/run-stream?runId=${encodeURIComponent(streamRunId)}&since=${streamCursorRef.current}`,
+					{ signal: ac.signal },
 				);
-				if (!res.ok) return;
+				if (cancelled || !res.ok) return;
 				const data: { events: StreamLine[]; next: number } = await res.json();
+				if (cancelled) return;
 				if (data.events.length > 0) {
 					setStreamEvents((prev) => [...prev, ...data.events]);
 					if (data.events.some((e) => e.type === "result")) done = true;
 				}
 				if (typeof data.next === "number") {
+					streamCursorRef.current = data.next;
 					setStreamCursor(data.next);
 				}
 			} catch {
 				// ignore stream polling errors
+			} finally {
+				fetching = false;
 			}
 		}, 600);
-		return () => clearInterval(id);
-	}, [streamRunId, streamCursor]);
+		return () => {
+			cancelled = true;
+			ac.abort();
+			clearInterval(id);
+		};
+	}, [streamRunId]);
 
 	const handleChatSend = useCallback(async () => {
 		const msg = chatInput.trim();
@@ -498,6 +536,13 @@ export default function DocumentsPage() {
 			const expandedMsg = skill
 				? `${skill.longDescription}${extra ? `\n\n${extra}` : ""}`
 				: msg;
+
+			// Find sessionId from most recent completed run
+			const run = streamRunId
+				? wikiRuns.find((r) => r.id === streamRunId)
+				: wikiRuns[0];
+			const sessionId = run?.sessionId;
+
 			const res = await fetch("/api/wiki/generate", {
 				method: "POST",
 				headers: { "Content-Type": "application/json" },
@@ -505,6 +550,7 @@ export default function DocumentsPage() {
 					agentId: selectedAgentId,
 					model: selectedModel,
 					promptOverride: expandedMsg,
+					...(sessionId ? { sessionId } : {}),
 				}),
 			});
 			if (!res.ok) {
@@ -512,7 +558,9 @@ export default function DocumentsPage() {
 				throw new Error(e.error ?? "Failed to start run");
 			}
 			const data = (await res.json()) as { runId: string };
-			setStreamEvents([]);
+			// Don't clear stream events — keep previous conversation visible
+			// and append new run's events on top
+			streamCursorRef.current = 0;
 			setStreamCursor(0);
 			setStreamRunId(data.runId);
 			setActiveRunId(data.runId);
@@ -522,7 +570,15 @@ export default function DocumentsPage() {
 		} finally {
 			setChatSending(false);
 		}
-	}, [chatInput, chatSending, selectedAgentId, selectedModel, loadRuns]);
+	}, [
+		chatInput,
+		chatSending,
+		selectedAgentId,
+		selectedModel,
+		loadRuns,
+		streamRunId,
+		wikiRuns,
+	]);
 
 	const handleInitWiki = useCallback(async () => {
 		setInitingWiki(true);
@@ -1196,6 +1252,7 @@ export default function DocumentsPage() {
 										className="w-full text-left rounded-sm border bg-background px-3 py-2 text-xs space-y-1 cursor-pointer hover:bg-muted/50 transition-colors"
 										onClick={() => {
 											setStreamEvents([]);
+											streamCursorRef.current = 0;
 											setStreamCursor(0);
 											setStreamRunId(run.id);
 										}}
@@ -1250,10 +1307,12 @@ export default function DocumentsPage() {
 						</Button>
 					</div>
 					<div className="flex-1 overflow-auto p-4 min-h-0">
-						{displayStreamEvents.length === 0 ? (
-							<p className="text-sm text-muted-foreground">
-								Waiting for Claude output...
-							</p>
+						{displayStreamEvents.length === 0 && activeRunId ? (
+							<div className="flex items-center gap-2 text-sm text-muted-foreground">
+								<WorkingIndicator /> Waiting for Claude output...
+							</div>
+						) : displayStreamEvents.length === 0 ? (
+							<p className="text-sm text-muted-foreground">No output yet.</p>
 						) : (
 							<div className="space-y-1">
 								{displayStreamEvents.map((line, i) => {
@@ -1262,6 +1321,7 @@ export default function DocumentsPage() {
 										<StreamEntry key={`evt_${i}_${line.type}`} line={line} />
 									);
 								})}
+								{activeRunId && <WorkingIndicator />}
 							</div>
 						)}
 					</div>
