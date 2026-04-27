@@ -46,6 +46,7 @@ import remarkGfm from "remark-gfm";
 import { prepareConsoleLines, StreamEntry } from "@/components/agent-console";
 import { BreadcrumbNav } from "@/components/breadcrumb-nav";
 import { ConfirmDialog } from "@/components/confirm-dialog";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
@@ -175,7 +176,6 @@ export default function DocumentsPage() {
 		(a) => a.id === DOC_MAINTAINER_AGENT_ID,
 	);
 	const [selectedModel, setSelectedModel] = useState("sonnet");
-	const [streamCursor, setStreamCursor] = useState(0);
 	const streamCursorRef = useRef(0);
 	const [chatInput, setChatInput] = useState("");
 	const [chatSending, setChatSending] = useState(false);
@@ -399,7 +399,6 @@ export default function DocumentsPage() {
 				}
 				if (typeof data.next === "number") {
 					streamCursorRef.current = data.next;
-					setStreamCursor(data.next);
 				}
 			} catch {
 				// ignore stream polling errors
@@ -453,7 +452,6 @@ export default function DocumentsPage() {
 			// Don't clear stream events — keep previous conversation visible
 			// and append new run's events on top
 			streamCursorRef.current = 0;
-			setStreamCursor(0);
 			setStreamRunId(data.runId);
 			setActiveRunId(data.runId);
 			await loadRuns();
@@ -845,35 +843,15 @@ export default function DocumentsPage() {
 			<Card className="flex flex-col w-72 shrink-0 overflow-hidden">
 				<div className="flex items-center justify-between px-3 py-2 border-b bg-muted shrink-0">
 					<BreadcrumbNav items={[{ label: "Documents" }]} />
-					<div className="flex gap-1">
-						<Button
-							size="sm"
-							variant="ghost"
-							className="h-7 w-7 p-0"
-							title="New root folder"
-							onClick={() => {
-								setNewFolderParent("");
-								setNewFolderName("");
-								setFolderError(null);
-							}}
-						>
-							<FolderPlus className="h-3.5 w-3.5" />
-						</Button>
-						<Button
-							size="sm"
-							variant="ghost"
-							className="h-7 w-7 p-0"
-							title="Upload to root"
-							onClick={() => triggerUpload("")}
-							disabled={uploading}
-						>
-							{uploading ? (
-								<Loader2 className="h-3.5 w-3.5 animate-spin" />
-							) : (
-								<Upload className="h-3.5 w-3.5" />
-							)}
-						</Button>
-					</div>
+					<Button
+						size="sm"
+						variant="outline"
+						onClick={handleInitWiki}
+						disabled={initingWiki || running}
+					>
+						{initingWiki ? <Loader2 className="h-3 w-3 animate-spin" /> : null}
+						Sync
+					</Button>
 				</div>
 
 				{uploadError && (
@@ -950,267 +928,41 @@ export default function DocumentsPage() {
 						renderNodes(roots)
 					)}
 				</div>
-			</Card>
 
-			{/* Wiki generation */}
-			<Card className="flex flex-col w-96 shrink-0 overflow-hidden">
-				<div className="flex items-center justify-between px-3 py-2 border-b bg-muted shrink-0">
-					<div>
-						<p className="text-sm font-normal">Generate Wiki</p>
-						<p className="text-xs text-muted-foreground">Wiki generation</p>
-					</div>
-					<div className="flex gap-1">
-						<Button
-							size="sm"
-							variant="outline"
-							onClick={handleInitWiki}
-							disabled={initingWiki || running}
-						>
-							{initingWiki ? (
-								<Loader2 className="h-3 w-3 animate-spin" />
-							) : null}
-							Init/Sync
-						</Button>
-
-						<Button
-							size="sm"
-							variant="ghost"
-							className="h-7 w-7 p-0"
-							title="Reload runs"
-							onClick={() => void loadRuns()}
-							disabled={runsLoading}
-						>
-							<RefreshCw className="h-3.5 w-3.5" />
-						</Button>
-					</div>
-				</div>
-
-				<div className="flex-1 overflow-auto p-3 min-h-0 space-y-4">
-					<p className="text-[11px] text-muted-foreground">
-						Init/Sync keeps llm-wiki-pm plugin current and lets plugin own wiki
-						scaffold. Run processes docs and updates pages.
-					</p>
-					{runError && (
-						<div className="rounded-sm border border-destructive/30 bg-destructive-soft px-3 py-2 text-xs text-destructive">
-							{runError}
-						</div>
-					)}
-					{runMessage && (
-						<div className="rounded-sm border border-primary/30 bg-primary-soft px-3 py-2 text-xs text-primary">
-							{runMessage}
-						</div>
-					)}
-
-					<div className="space-y-2">
-						<p className="text-xs font-normal uppercase tracking-wide text-muted-foreground">
-							Agent
-						</p>
-						<select
-							className="w-full h-8 rounded-sm border bg-background px-2 text-xs"
-							value={selectedAgentId}
-							onChange={(e) => setSelectedAgentId(e.target.value)}
-						>
-							{!hasDocMaintainer ? (
-								<option value={DOC_MAINTAINER_AGENT_ID}>Doc Maintainer</option>
-							) : null}
-							{runAgents.map((agent) => (
-								<option key={agent.id} value={agent.id}>
-									{agent.name}
-								</option>
-							))}
-						</select>
-						<p className="text-[11px] text-muted-foreground">
-							Default Doc Maintainer follows plugin skill only.
-						</p>
-					</div>
-
-					<div className="space-y-2">
-						<p className="text-xs font-normal uppercase tracking-wide text-muted-foreground">
-							Model
-						</p>
-						<select
-							className="w-full h-8 rounded-sm border bg-background px-2 text-xs"
-							value={selectedModel}
-							onChange={(e) => setSelectedModel(e.target.value)}
-						>
-							<option value="haiku">haiku</option>
-							<option value="sonnet">sonnet</option>
-							<option value="opus">opus</option>
-						</select>
-						<p className="text-[11px] text-muted-foreground">
-							Model override for this run.
-						</p>
-					</div>
-
-					<div className="space-y-2">
-						<div className="flex items-center justify-between">
-							<p className="text-xs font-normal uppercase tracking-wide text-muted-foreground">
-								Recent runs
-							</p>
-							<span className="text-[11px] text-muted-foreground">
-								{runsLoading ? "Loading" : `${wikiRuns.length} total`}
-							</span>
-						</div>
-						<div className="space-y-2">
-							{wikiRuns.length === 0 ? (
-								<p className="text-xs text-muted-foreground">No runs yet.</p>
-							) : (
-								wikiRuns.slice(0, 5).map((run) => (
-									<button
-										key={run.id}
-										type="button"
-										className="w-full text-left rounded-sm border bg-background px-3 py-2 text-xs space-y-1 cursor-pointer hover:bg-muted/50 transition-colors"
-										onClick={() => {
-											setStreamEvents([]);
-											streamCursorRef.current = 0;
-											setStreamCursor(0);
-											setStreamRunId(run.id);
-										}}
-									>
-										<div className="flex items-center justify-between gap-2">
-											<span className="font-normal truncate" title={run.id}>
-												{run.id}
-											</span>
-											<span className="uppercase text-[10px] text-muted-foreground">
-												{run.status}
-											</span>
-										</div>
-										<p className="text-[11px] text-muted-foreground">
-											{new Date(run.startedAt).toLocaleString()}
-										</p>
-										<p
-											className="text-[11px] text-muted-foreground truncate"
-											title={run.error ?? ""}
-										>
-											{run.agentId ?? DOC_MAINTAINER_AGENT_ID} ·{" "}
-											{run.model ?? "default"} · Exit: {run.exitCode ?? "-"}
-										</p>
-									</button>
-								))
-							)}
-						</div>
-					</div>
-				</div>
-			</Card>
-
-			{/* File viewer / editor */}
-			{streamRunId ? (
-				<Card className="flex-1 flex flex-col overflow-hidden min-w-0">
-					<div className="flex items-center justify-between px-4 py-2 border-b bg-muted shrink-0">
-						<div className="min-w-0">
-							<p className="text-sm font-normal">Claude Run Stream</p>
-							<p
-								className="text-xs text-muted-foreground truncate"
-								title={streamRunId}
-							>
-								{streamRunId}
-							</p>
-						</div>
-						<Button
-							size="sm"
-							variant="ghost"
-							onClick={() => setStreamRunId(null)}
-						>
-							Close
-						</Button>
-					</div>
-					<div className="flex-1 overflow-auto p-4 min-h-0">
-						{displayStreamEvents.length === 0 && activeRunId ? (
-							<div className="flex items-center gap-2 text-sm text-muted-foreground">
-								<WorkingIndicator /> Waiting for Claude output...
-							</div>
-						) : displayStreamEvents.length === 0 ? (
-							<p className="text-sm text-muted-foreground">No output yet.</p>
+				{/* Footer: new folder + upload */}
+				<div className="flex items-center justify-end gap-1 px-3 py-2 border-t bg-muted shrink-0">
+					<Button
+						size="sm"
+						variant="ghost"
+						className="h-7 w-7 p-0"
+						title="New root folder"
+						onClick={() => {
+							setNewFolderParent("");
+							setNewFolderName("");
+							setFolderError(null);
+						}}
+					>
+						<FolderPlus className="h-3.5 w-3.5" />
+					</Button>
+					<Button
+						size="sm"
+						variant="ghost"
+						className="h-7 w-7 p-0"
+						title="Upload to root"
+						onClick={() => triggerUpload("")}
+						disabled={uploading}
+					>
+						{uploading ? (
+							<Loader2 className="h-3.5 w-3.5 animate-spin" />
 						) : (
-							<div className="space-y-1">
-								{displayStreamEvents.map((line, i) => {
-									return (
-										// biome-ignore lint/suspicious/noArrayIndexKey: stream events are append-only
-										<StreamEntry key={`evt_${i}_${line.type}`} line={line} />
-									);
-								})}
-								{activeRunId && <WorkingIndicator />}
-							</div>
+							<Upload className="h-3.5 w-3.5" />
 						)}
-					</div>
-					{/* Chat input */}
-					<div className="border-t shrink-0">
-						{/* Slash command menu */}
-						{slashMenuOpen && matchingSkills.length > 0 && (
-							<div className="border-b bg-popover max-h-48 overflow-y-auto">
-								<p className="px-3 py-1.5 text-[10px] uppercase tracking-wide text-muted-foreground border-b">
-									AI Skills
-								</p>
-								{matchingSkills.map((skill) => (
-									<button
-										key={skill.command}
-										type="button"
-										className="flex items-center gap-2 w-full px-3 py-2 text-left hover:bg-accent/50 transition-colors"
-										onMouseDown={(e) => {
-											e.preventDefault();
-											// Replace the last "/" line with the command
-											const lines = chatInput.split("\n");
-											lines[lines.length - 1] = skill.command;
-											setChatInput(lines.join("\n"));
-											setSlashMenuOpen(false);
-											setSlashQuery("");
-										}}
-									>
-										<code className="text-xs font-mono text-primary shrink-0">
-											{skill.command}
-										</code>
-										<span className="text-xs text-muted-foreground truncate">
-											{skill.description}
-										</span>
-									</button>
-								))}
-							</div>
-						)}
-						<div className="p-3 flex gap-2">
-							<textarea
-								className="flex-1 resize-none rounded-sm border bg-background px-3 py-2 text-xs placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring min-h-[60px]"
-								placeholder="Follow-up instructions... (Ctrl+Enter to send)"
-								value={chatInput}
-								onChange={(e) => {
-									const val = e.target.value;
-									setChatInput(val);
-									// Open slash menu when typing "/" at start or after newline
-									const lastLine = val.split("\n").pop() ?? "";
-									if (lastLine.startsWith("/")) {
-										setSlashMenuOpen(true);
-										setSlashQuery(lastLine.slice(1));
-									} else {
-										setSlashMenuOpen(false);
-										setSlashQuery("");
-									}
-								}}
-								onKeyDown={(e) => {
-									if (slashMenuOpen && e.key === "Escape") {
-										e.preventDefault();
-										setSlashMenuOpen(false);
-										return;
-									}
-									if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) {
-										e.preventDefault();
-										setSlashMenuOpen(false);
-										void handleChatSend();
-									}
-								}}
-								disabled={chatSending}
-							/>
-							<Button
-								size="sm"
-								variant="default"
-								onClick={() => void handleChatSend()}
-								disabled={!chatInput.trim() || chatSending}
-								className="self-end"
-							>
-								{chatSending ? "Sending..." : "Send"}
-							</Button>
-						</div>
-					</div>
-				</Card>
-			) : openFile ? (
+					</Button>
+				</div>
+			</Card>
+
+			{/* Right panel */}
+			{openFile ? (
 				<Card className="flex-1 flex flex-col overflow-hidden min-w-0">
 					<div className="flex items-center justify-between px-4 py-2 border-b bg-muted shrink-0">
 						<div className="flex items-center gap-2 min-w-0">
@@ -1429,16 +1181,11 @@ export default function DocumentsPage() {
 				</Card>
 			) : (
 				<Card className="flex-1 flex flex-col overflow-hidden min-w-0">
+					{/* Shared header: agent, model, init/sync */}
 					<div className="flex items-center justify-between px-4 py-2 border-b bg-muted shrink-0">
-						<div>
-							<p className="text-sm font-normal">New Run</p>
-							<p className="text-xs text-muted-foreground">
-								Type a message to start
-							</p>
-						</div>
 						<div className="flex items-center gap-2">
 							<select
-								className="h-7 rounded-sm border bg-background px-2 text-xs"
+								className="h-7 rounded-sm border bg-secondary px-2 text-xs"
 								value={selectedAgentId}
 								onChange={(e) => setSelectedAgentId(e.target.value)}
 							>
@@ -1454,7 +1201,7 @@ export default function DocumentsPage() {
 								))}
 							</select>
 							<select
-								className="h-7 rounded-sm border bg-background px-2 text-xs"
+								className="h-7 rounded-sm border bg-secondary px-2 text-xs"
 								value={selectedModel}
 								onChange={(e) => setSelectedModel(e.target.value)}
 							>
@@ -1464,10 +1211,126 @@ export default function DocumentsPage() {
 							</select>
 						</div>
 					</div>
-					<div className="flex-1 flex items-center justify-center text-muted-foreground text-sm">
-						<p>Send a message below to start a new wiki generation run.</p>
-					</div>
+
+					{/* Error/message banners */}
+					{(runError || runMessage) && (
+						<div className="px-4 pt-3 space-y-2">
+							{runError && (
+								<div className="rounded-sm border border-destructive/30 bg-destructive-soft px-3 py-2 text-xs text-destructive">
+									{runError}
+								</div>
+							)}
+							{runMessage && (
+								<div className="rounded-sm border border-primary/30 bg-primary-soft px-3 py-2 text-xs text-primary">
+									{runMessage}
+								</div>
+							)}
+						</div>
+					)}
+
+					{/* Body: stream viewer or recent runs */}
+					{streamRunId ? (
+						<>
+							{/* Run sub-header */}
+							<div className="flex items-center justify-between px-4 py-2 border-b shrink-0">
+								<p
+									className="text-xs text-muted-foreground truncate"
+									title={streamRunId}
+								>
+									{streamRunId}
+								</p>
+								<Button
+									size="sm"
+									variant="ghost"
+									onClick={() => setStreamRunId(null)}
+								>
+									Close
+								</Button>
+							</div>
+							{/* Stream content */}
+							<div className="flex-1 overflow-auto p-4 min-h-0">
+								{displayStreamEvents.length === 0 && activeRunId ? (
+									<div className="flex items-center gap-2 text-sm text-muted-foreground">
+										<WorkingIndicator /> Waiting for Claude output...
+									</div>
+								) : displayStreamEvents.length === 0 ? (
+									<p className="text-sm text-muted-foreground">
+										No output yet.
+									</p>
+								) : (
+									<div className="space-y-1">
+										{displayStreamEvents.map((line, i) => (
+											// biome-ignore lint/suspicious/noArrayIndexKey: stream events are append-only
+											<StreamEntry key={`evt_${i}_${line.type}`} line={line} />
+										))}
+										{activeRunId && <WorkingIndicator />}
+									</div>
+								)}
+							</div>
+						</>
+					) : (
+						/* Fresh state: recent runs */
+						<div className="flex-1 overflow-auto p-4 min-h-0">
+							<div className="flex items-center justify-between mb-3">
+								<p className="text-xs font-normal uppercase tracking-wide text-muted-foreground">
+									Recent Runs
+								</p>
+								<Button
+									size="sm"
+									variant="ghost"
+									className="h-7 w-7 p-0"
+									onClick={() => void loadRuns()}
+									disabled={runsLoading}
+								>
+									<RefreshCw className="h-3.5 w-3.5" />
+								</Button>
+							</div>
+							<div className="space-y-2">
+								{wikiRuns.length === 0 ? (
+									<p className="text-xs text-muted-foreground">No runs yet.</p>
+								) : (
+									wikiRuns.slice(0, 5).map((run) => (
+										<button
+											key={run.id}
+											type="button"
+											className="w-full text-left rounded-sm border bg-background px-3 py-2 text-xs space-y-1 cursor-pointer hover:bg-muted/50 transition-colors"
+											onClick={() => {
+												setStreamEvents([]);
+												streamCursorRef.current = 0;
+												setStreamRunId(run.id);
+											}}
+										>
+											<div className="flex items-center justify-between gap-2">
+												<span className="font-normal truncate" title={run.id}>
+													{run.id}
+												</span>
+												<Badge
+													variant="outline"
+													className="text-[10px] uppercase shrink-0"
+												>
+													{run.status}
+												</Badge>
+											</div>
+											<p className="text-[11px] text-muted-foreground">
+												{new Date(run.startedAt).toLocaleString()}
+											</p>
+											<p
+												className="text-[11px] text-muted-foreground truncate"
+												title={run.error ?? ""}
+											>
+												{run.agentId ?? DOC_MAINTAINER_AGENT_ID} ·{" "}
+												{run.model ?? "default"} · Exit: {run.exitCode ?? "-"}
+											</p>
+										</button>
+									))
+								)}
+							</div>
+						</div>
+					)}
+
+					{/* Chat input (always visible) */}
 					<div className="border-t shrink-0">
+						{/* Slash command menu */}
 						{slashMenuOpen && matchingSkills.length > 0 && (
 							<div className="border-b bg-popover max-h-48 overflow-y-auto">
 								<p className="px-3 py-1.5 text-[10px] uppercase tracking-wide text-muted-foreground border-b">
@@ -1500,7 +1363,11 @@ export default function DocumentsPage() {
 						<div className="p-3 flex gap-2">
 							<textarea
 								className="flex-1 resize-none rounded-sm border bg-background px-3 py-2 text-xs placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring min-h-[60px]"
-								placeholder="Describe what to generate... (Ctrl+Enter to send)"
+								placeholder={
+									streamRunId
+										? "Follow-up instructions... (Ctrl+Enter to send)"
+										: "Describe what to generate... (Ctrl+Enter to send)"
+								}
 								value={chatInput}
 								onChange={(e) => {
 									const val = e.target.value;
@@ -1541,7 +1408,6 @@ export default function DocumentsPage() {
 					</div>
 				</Card>
 			)}
-
 			<input
 				ref={fileInputRef}
 				type="file"
