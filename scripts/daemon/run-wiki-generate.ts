@@ -109,14 +109,8 @@ function appendStreamEvent(event: unknown): void {
 	appendFileSync(streamFile, `${JSON.stringify(event)}\n`, "utf-8");
 }
 
-function buildPrompt(
-	agentInstruction: string,
-	message?: string | null,
-): string {
-	if (message) {
-		return [agentInstruction.trim(), message].filter(Boolean).join("\n\n");
-	}
-	return agentInstruction.trim();
+function buildPrompt(message?: string | null): string {
+	return message?.trim() || "Run wiki maintenance.";
 }
 
 function normalizeSdkMessage(msg: SDKMessage): unknown[] {
@@ -131,6 +125,7 @@ function normalizeSdkMessage(msg: SDKMessage): unknown[] {
 async function runWithSdk(
 	prompt: string,
 	pluginPath: string,
+	agentInstruction: string,
 ): Promise<{ exitCode: number; sessionId: string | null }> {
 	let exitCode = 1;
 	let sessionId: string | null = null;
@@ -143,6 +138,11 @@ async function runWithSdk(
 			plugins: [{ type: "local", path: pluginPath }],
 			includePartialMessages: true,
 			...(selectedModel ? { model: selectedModel } : {}),
+			systemPrompt: {
+				type: "preset" as const,
+				preset: "claude_code" as const,
+				append: agentInstruction,
+			},
 			maxTurns: 30,
 			permissionMode: "bypassPermissions",
 			allowDangerouslySkipPermissions: true,
@@ -252,13 +252,11 @@ async function main(): Promise<void> {
 	}
 
 	const prompt =
-		resumeSessionId && userMessage
-			? userMessage
-			: buildPrompt(agentInstruction, userMessage);
+		resumeSessionId && userMessage ? userMessage : buildPrompt(userMessage);
 	let exitCode = 1;
 	let sessionId: string | null = null;
 	try {
-		const result = await runWithSdk(prompt, pluginPath);
+		const result = await runWithSdk(prompt, pluginPath, agentInstruction);
 		exitCode = result.exitCode;
 		sessionId = result.sessionId;
 	} catch (err) {
