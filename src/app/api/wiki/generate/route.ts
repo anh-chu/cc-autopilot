@@ -30,14 +30,12 @@ export async function POST(request: Request) {
 		const cwd = process.cwd();
 		const scriptPath = path.resolve(
 			cwd,
-			"scripts",
+			"dist",
 			"daemon",
-			"run-wiki-generate.ts",
+			"run-wiki-generate.mjs",
 		);
 
 		const args: string[] = [
-			"--import",
-			"tsx",
 			scriptPath,
 			"--run-id",
 			runId,

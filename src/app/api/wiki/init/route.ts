@@ -1,3 +1,5 @@
+import { existsSync, readFileSync, writeFileSync } from "node:fs";
+import path from "node:path";
 import { NextResponse } from "next/server";
 import { initWikiDir } from "@/lib/data";
 import { getWikiDir, getWorkspaceDir } from "@/lib/paths";
@@ -8,6 +10,39 @@ import {
 } from "@/lib/wiki-plugin";
 import { applyWorkspaceContext } from "@/lib/workspace-context";
 
+const UPDATE_DEBOUNCE_MS = 60 * 60 * 1000; // 1 hour
+
+function shouldUpdatePlugin(wikiDir: string): boolean {
+	const stampFile = path.join(wikiDir, ".plugin-update-ts");
+	if (!existsSync(stampFile)) return true;
+	try {
+		const ts = Number(readFileSync(stampFile, "utf-8").trim());
+		return Date.now() - ts > UPDATE_DEBOUNCE_MS;
+	} catch {
+		return true;
+	}
+}
+
+function markPluginUpdated(wikiDir: string): void {
+	try {
+		writeFileSync(
+			path.join(wikiDir, ".plugin-update-ts"),
+			String(Date.now()),
+			"utf-8",
+		);
+	} catch {
+		// best-effort
+	}
+}
+
+function cachePluginPath(wikiDir: string, installPath: string): void {
+	try {
+		writeFileSync(path.join(wikiDir, ".plugin-path"), installPath, "utf-8");
+	} catch {
+		// best-effort
+	}
+}
+
 export async function POST() {
 	try {
 		const workspaceId = await applyWorkspaceContext();
@@ -15,9 +50,12 @@ export async function POST() {
 
 		const wikiDir = getWikiDir(workspaceId);
 		const workspaceDir = getWorkspaceDir(workspaceId);
+		const doUpdate = shouldUpdatePlugin(wikiDir);
 		const plugin = ensureWikiPluginInstalledDetailed(workspaceDir, {
-			update: true,
+			update: doUpdate,
 		});
+		if (doUpdate) markPluginUpdated(wikiDir);
+		cachePluginPath(wikiDir, plugin.installPath);
 		const bootstrap = ensureWikiBootstrappedFromPlugin(
 			wikiDir,
 			plugin.installPath,

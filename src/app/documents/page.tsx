@@ -378,39 +378,53 @@ export default function DocumentsPage() {
 
 	useEffect(() => {
 		if (!streamRunId) return;
-		let cancelled = false;
-		let done = false;
-		let fetching = false;
 		const ac = new AbortController();
-		const id = setInterval(async () => {
-			if (done || fetching || cancelled) return;
-			fetching = true;
+
+		(async () => {
 			try {
 				const res = await fetch(
 					`/api/wiki/run-stream?runId=${encodeURIComponent(streamRunId)}&since=${streamCursorRef.current}`,
 					{ signal: ac.signal },
 				);
-				if (cancelled || !res.ok) return;
-				const data: { events: StreamLine[]; next: number } = await res.json();
-				if (cancelled) return;
-				if (data.events.length > 0) {
-					setStreamEvents((prev) => [...prev, ...data.events]);
-					if (data.events.some((e) => e.type === "result")) done = true;
-				}
-				if (typeof data.next === "number") {
-					streamCursorRef.current = data.next;
+				if (!res.ok || !res.body) return;
+				const reader = res.body.getReader();
+				const decoder = new TextDecoder();
+				let buf = "";
+
+				while (true) {
+					const { done, value } = await reader.read();
+					if (done) break;
+					buf += decoder.decode(value, { stream: true });
+
+					// Parse SSE frames
+					const parts = buf.split("\n\n");
+					buf = parts.pop() ?? "";
+					for (const part of parts) {
+						const lines = part.split("\n");
+						let event = "message";
+						let data = "";
+						for (const line of lines) {
+							if (line.startsWith("event: ")) event = line.slice(7);
+							else if (line.startsWith("data: ")) data = line.slice(6);
+						}
+						if (event === "message" && data) {
+							try {
+								const parsed = JSON.parse(data) as StreamLine;
+								setStreamEvents((prev) => [...prev, parsed]);
+							} catch {
+								// ignore
+							}
+						} else if (event === "done") {
+							return;
+						}
+					}
 				}
 			} catch {
-				// ignore stream polling errors
-			} finally {
-				fetching = false;
+				// aborted or network error
 			}
-		}, 600);
-		return () => {
-			cancelled = true;
-			ac.abort();
-			clearInterval(id);
-		};
+		})();
+
+		return () => ac.abort();
 	}, [streamRunId]);
 
 	const handleChatSend = useCallback(async () => {

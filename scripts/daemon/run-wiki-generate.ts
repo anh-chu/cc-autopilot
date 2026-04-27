@@ -17,15 +17,9 @@ import path from "path";
 import {
 	DOC_MAINTAINER_AGENT_ID,
 	DOC_MAINTAINER_AGENT_INSTRUCTIONS,
-	ensureDocMaintainerAgentForWorkspace,
 	getWorkspaceDataDir,
-	initWikiDir,
 } from "../../src/lib/data";
 import { getWikiDir, getWorkspaceDir } from "../../src/lib/paths";
-import {
-	ensureWikiBootstrappedFromPlugin,
-	ensureWikiPluginInstalledDetailed,
-} from "../../src/lib/wiki-plugin";
 import { logger } from "./logger";
 import { AgentRunner } from "./runner";
 
@@ -197,12 +191,16 @@ async function main(): Promise<void> {
 		`Starting wiki generation run ${runId} for workspace ${workspaceId}`,
 	);
 
-	await initWikiDir(workspaceId);
-	await ensureDocMaintainerAgentForWorkspace(workspaceId);
 	const selectedAgent = readAgentConfig(workspaceId, selectedAgentId);
 	const agentId = selectedAgent?.id ?? DOC_MAINTAINER_AGENT_ID;
 	const agentInstruction =
 		selectedAgent?.instructions?.trim() || DOC_MAINTAINER_AGENT_INSTRUCTIONS;
+
+	// Read cached plugin path (written by /api/wiki/init on page open)
+	const pluginPath = readFileSync(
+		path.join(wikiDir, ".plugin-path"),
+		"utf-8",
+	).trim();
 
 	const record: WikiRunRecord = {
 		id: runId,
@@ -220,36 +218,6 @@ async function main(): Promise<void> {
 	mkdirSync(runsDir, { recursive: true });
 	writeFileSync(streamFile, "", "utf-8");
 	writeRun(record);
-
-	let pluginPath = "";
-	try {
-		const plugin = ensureWikiPluginInstalledDetailed(workspaceDir, {
-			update: true,
-		});
-		record.pluginStatus = plugin.status;
-		record.pluginVersion = plugin.version;
-		record.pluginUpdated = plugin.updated;
-		pluginPath = plugin.installPath;
-		const bootstrap = ensureWikiBootstrappedFromPlugin(
-			wikiDir,
-			pluginPath,
-			`Workspace ${workspaceId}`,
-			{ workspaceDir },
-		);
-		record.bootstrapStatus = bootstrap.status;
-		record.lockFile = bootstrap.lockFile ?? null;
-		record.coverageReport = bootstrap.coverageReport ?? null;
-		writeRun(record);
-	} catch (err) {
-		record.status = "failed";
-		record.pluginStatus = "missing";
-		record.error = `Plugin preflight failed: ${err instanceof Error ? err.message : String(err)}`;
-		record.completedAt = new Date().toISOString();
-		record.exitCode = 1;
-		writeRun(record);
-		logger.error("run-wiki-generate", record.error);
-		return;
-	}
 
 	const prompt =
 		resumeSessionId && userMessage ? userMessage : buildPrompt(userMessage);
