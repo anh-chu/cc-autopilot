@@ -313,6 +313,7 @@ export const agentCreateSchema = z.object({
 	skillIds: z.array(z.string().max(100)).max(50).optional().default([]),
 	status: agentStatusEnum.optional().default("active"),
 	backend: agentBackendEnum.optional().default("claude"),
+	model: z.string().max(100).optional(),
 	allowedTools: z
 		.array(z.string().min(1).max(200))
 		.max(100)
@@ -329,6 +330,7 @@ export const agentUpdateSchema = z.object({
 	skillIds: z.array(z.string().max(100)).max(50).optional(),
 	status: agentStatusEnum.optional(),
 	backend: agentBackendEnum.optional(),
+	model: z.string().max(100).optional(),
 	allowedTools: z.array(z.string().min(1).max(200)).max(100).optional(),
 });
 

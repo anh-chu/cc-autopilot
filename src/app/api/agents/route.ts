@@ -71,6 +71,7 @@ export async function POST(request: Request) {
 			instructions: body.instructions,
 			skillIds: body.skillIds,
 			status: body.status,
+			model: body.model,
 			createdAt: now,
 			updatedAt: now,
 		};

@@ -46,6 +46,7 @@ import remarkGfm from "remark-gfm";
 import { prepareConsoleLines, StreamEntry } from "@/components/agent-console";
 import { BreadcrumbNav } from "@/components/breadcrumb-nav";
 import { ConfirmDialog } from "@/components/confirm-dialog";
+import { ModelSelect } from "@/components/model-select";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -399,6 +400,14 @@ export default function DocumentsPage() {
 			setSelectedAgentId(DOC_MAINTAINER_AGENT_ID);
 		}
 	}, [runAgents, selectedAgentId]);
+
+	// Sync model when agent changes
+	useEffect(() => {
+		const agent = runAgents.find((a) => a.id === selectedAgentId);
+		if (agent?.model) {
+			setSelectedModel(agent.model);
+		}
+	}, [selectedAgentId, runAgents]);
 
 	useEffect(() => {
 		if (streamDone) {
@@ -1196,15 +1205,11 @@ export default function DocumentsPage() {
 									</option>
 								))}
 							</select>
-							<select
-								className="h-7 rounded-sm border bg-secondary px-2 text-xs"
+							<ModelSelect
 								value={selectedModel}
-								onChange={(e) => setSelectedModel(e.target.value)}
-							>
-								<option value="haiku">haiku</option>
-								<option value="sonnet">sonnet</option>
-								<option value="opus">opus</option>
-							</select>
+								onChange={setSelectedModel}
+								className="h-7 rounded-sm border bg-secondary px-2 text-xs"
+							/>
 						</div>
 					</div>
 

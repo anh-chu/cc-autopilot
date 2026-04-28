@@ -24,6 +24,7 @@ import {
 import { useEffect, useState } from "react";
 import { BreadcrumbNav } from "@/components/breadcrumb-nav";
 import { ConfirmDialog } from "@/components/confirm-dialog";
+import { ModelSelect } from "@/components/model-select";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -42,6 +43,7 @@ export interface AgentFormPayload {
 	instructions: string;
 	status: "active" | "inactive";
 	backend: "claude" | "codex";
+	model?: string;
 	allowedTools: string[];
 	skipPermissions: "inherit" | "on" | "off";
 	yolo: "inherit" | "on" | "off";
@@ -93,6 +95,7 @@ export function AgentForm({
 		instructions: "",
 		status: "active" as "active" | "inactive",
 		backend: "claude" as "claude" | "codex",
+		model: "",
 		skipPermissions: "inherit" as "inherit" | "on" | "off",
 		yolo: "inherit" as "inherit" | "on" | "off",
 	});
@@ -114,6 +117,7 @@ export function AgentForm({
 				instructions: initialData.instructions,
 				status: initialData.status,
 				backend: initialData.backend ?? "claude",
+				model: initialData.model ?? "",
 				skipPermissions: initialData.skipPermissions ?? "inherit",
 				yolo: initialData.yolo ?? "inherit",
 			});
@@ -172,6 +176,7 @@ export function AgentForm({
 
 				status: form.status,
 				backend: form.backend,
+				model: form.model,
 				allowedTools,
 				skipPermissions: form.skipPermissions,
 				yolo: form.yolo,
@@ -361,6 +366,18 @@ export function AgentForm({
 						{form.backend === "codex"
 							? "Uses OpenAI Codex CLI for task execution"
 							: "Uses Claude Code CLI for task execution (default)"}
+					</p>
+				</div>
+
+				{/* Model */}
+				<div className="space-y-2">
+					<Label htmlFor="model">Model</Label>
+					<ModelSelect
+						value={form.model}
+						onChange={(v) => setForm((prev) => ({ ...prev, model: v }))}
+					/>
+					<p className="text-xs text-muted-foreground">
+						LLM model for this agent. Leave empty to use default.
 					</p>
 				</div>
 

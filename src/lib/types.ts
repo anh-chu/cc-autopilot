@@ -65,6 +65,7 @@ export interface AgentDefinition {
 	skillIds: string[];
 	status: AgentStatus;
 	backend?: AgentBackend;
+	model?: string;
 	allowedTools?: string[];
 	skipPermissions?: "inherit" | "on" | "off";
 	yolo?: "inherit" | "on" | "off";
