@@ -20,6 +20,7 @@ export async function GET() {
 	const uptimeSeconds = Math.floor(process.uptime());
 
 	return NextResponse.json({
+		status: "ok",
 		version: getVersion(),
 		mode: isPm2 ? "pm2" : "terminal",
 		uptimeSeconds,

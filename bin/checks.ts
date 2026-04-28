@@ -90,7 +90,7 @@ export async function checkPortAvailable(
 		});
 
 		server.listen(port);
-	}).then((result) => result);
+	});
 }
 
 export function checkDataDirWritable(dataDir: string): boolean {
@@ -110,47 +110,3 @@ export function checkDataDirWritable(dataDir: string): boolean {
 	}
 }
 
-export async function runPreflightChecks(
-	options: { port?: number; dataDir?: string } = {},
-): Promise<boolean> {
-	const { port = 3000, dataDir = path.join(process.env.HOME || "", ".cmc") } =
-		options;
-
-	console.log("\n--- Preflight Checks ---\n");
-
-	// Critical check: Node version
-	if (!checkNodeVersion()) {
-		console.log(
-			`\n${colors.red}Critical check failed. Aborting.${colors.reset}\n`,
-		);
-		process.exit(1);
-	}
-
-	// Critical check: Claude CLI
-	if (!checkClaudeCLI()) {
-		console.log(
-			`\n${colors.red}Critical check failed. Aborting.${colors.reset}\n`,
-		);
-		process.exit(1);
-	}
-
-	// Check: Port available
-	const portAvailable = await checkPortAvailable(port);
-	if (!portAvailable) {
-		console.log(
-			`\n${colors.yellow}Port not available. You may need to stop another process or use a different port.${colors.reset}\n`,
-		);
-		// Not failing fast for port - it's a warning
-	}
-
-	// Check: Data dir writable
-	if (!checkDataDirWritable(dataDir)) {
-		console.log(
-			`\n${colors.red}Cannot write to data directory. Aborting.${colors.reset}\n`,
-		);
-		process.exit(1);
-	}
-
-	console.log("\n--- All checks passed ---\n");
-	return true;
-}

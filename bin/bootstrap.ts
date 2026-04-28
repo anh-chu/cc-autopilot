@@ -11,7 +11,7 @@ function getWorkspaceDir(workspaceId: string): string {
 	return path.join(DATA_DIR, "workspaces", workspaceId);
 }
 
-import { loadMigrations, type Migration } from "./migrations";
+import { loadMigrations } from "./migrations";
 
 const VERSION_FILE = ".version";
 
@@ -21,10 +21,10 @@ const VERSION_FILE = ".version";
  */
 export async function bootstrapDataDir(): Promise<void> {
 	ensureDataDir();
-	await writeVersion();
-	await ensureDefaultWorkspace();
-	await ensureLogsDir();
+	ensureDefaultWorkspace();
+	ensureLogsDir();
 	await runMigrationsIfNeeded();
+	writeVersion();
 }
 
 /**
@@ -49,7 +49,7 @@ function getCurrentVersion(): string {
 /**
  * Write the current version to ~/.cmc/.version.
  */
-async function writeVersion(): Promise<void> {
+function writeVersion(): void {
 	const versionPath = path.join(DATA_DIR, VERSION_FILE);
 	const currentVersion = getCurrentVersion();
 
@@ -70,7 +70,7 @@ async function writeVersion(): Promise<void> {
 /**
  * Ensure the default workspace exists with seed structure.
  */
-async function ensureDefaultWorkspace(): Promise<void> {
+function ensureDefaultWorkspace(): void {
 	const defaultWs = getWorkspaceDir("default");
 
 	// Seed files to create if they don't exist

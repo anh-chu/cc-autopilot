@@ -3,7 +3,7 @@
  * Next.js standalone does not include public/ or .next/static/,
  * so we copy them manually after build.
  */
-import { copyFileSync, cpSync, existsSync, mkdirSync, rmSync } from "node:fs";
+import { cpSync, existsSync, mkdirSync, rmSync } from "node:fs";
 import { join, resolve } from "node:path";
 
 const standaloneDir = resolve(".next/standalone");
