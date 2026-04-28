@@ -76,3 +76,4 @@ research/
 .pi-lens/
 babysitter-diagnostic-report.html
 dist/
+bin/cli.js
