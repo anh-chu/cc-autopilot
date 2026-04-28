@@ -80,11 +80,12 @@ function isProcessAlive(pid: number): boolean {
 
 // --- Server Functions ---
 
-function startServerProcess(args: string[], port: number): ChildProcess {
-	const proc = spawn("pnpm", args, {
+function startServerProcess(port: number): ChildProcess {
+	const serverScript = path.join(rootDir, ".next", "standalone", "server.js");
+	const proc = spawn(process.execPath, [serverScript], {
 		stdio: "inherit",
-		shell: true,
-		env: { ...process.env, PORT: String(port) },
+		shell: false,
+		env: { ...process.env, PORT: String(port), MC_INSTALL_DIR: rootDir },
 		cwd: rootDir,
 	});
 	return proc;
@@ -200,9 +201,11 @@ async function start(options: CliOptions = {}) {
 	// Start server in foreground or daemon mode
 	if (options.daemon) {
 		console.log(`Starting in daemon mode on port ${port}...`);
-		const pid = forkDaemon("pnpm", ["dev", "--", "-p", String(port)], {
+		const serverScript = path.join(rootDir, ".next", "standalone", "server.js");
+		const pid = forkDaemon(process.execPath, [serverScript], {
 			...process.env,
 			PORT: String(port),
+			MC_INSTALL_DIR: rootDir,
 		});
 
 		// Write PID file
@@ -220,17 +223,8 @@ async function start(options: CliOptions = {}) {
 	} else {
 		console.log(`Starting server on port ${port}...`);
 
-		const proc = startServerProcess(["dev", "--", "-p", String(port)], port);
+		const proc = startServerProcess(port);
 		let resolved = false;
-
-		proc.stdout?.on("data", (data: Buffer) => {
-			const output = data.toString();
-			if (!resolved && output.includes("Ready in")) {
-				resolved = true;
-				console.log(`\n✅ Server ready at http://localhost:${port}`);
-				console.log("   Press Ctrl+C to stop\n");
-			}
-		});
 
 		proc.on("error", (err) => {
 			if (!resolved) {
@@ -330,7 +324,12 @@ async function main() {
 	const options: CliOptions = {};
 	const portIndex = args.indexOf("--port");
 	if (portIndex !== -1 && args[portIndex + 1]) {
-		options.port = parseInt(args[portIndex + 1], 10);
+		const portArg = parseInt(args[portIndex + 1], 10);
+		if (!Number.isInteger(portArg) || portArg < 1 || portArg > 65535) {
+			console.error(`❌ Invalid port: ${args[portIndex + 1]}. Must be an integer between 1 and 65535.`);
+			process.exit(1);
+		}
+		options.port = portArg;
 	}
 
 	if (args.includes("--daemon")) {

@@ -40,7 +40,7 @@ async function buildDaemon() {
 			entryPoints: [srcPath],
 			bundle: true,
 			platform: "node",
-			target: "node20",
+			target: "node18",
 			format: "esm",
 			outfile: distPath,
 			external: ["@anthropic-ai/claude-agent-sdk", "tree-kill"],

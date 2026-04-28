@@ -28,7 +28,8 @@ function resolveScript(
 	scriptName: string,
 	cwd: string,
 ): { runner: string; args: string[] } {
-	const distPath = path.join(cwd, "../../dist", scriptName);
+	const distName = scriptName.replace(/\.ts$/, ".js");
+	const distPath = path.join(cwd, "../../dist", distName);
 	const tsxPath = path.join(__dirname, scriptName);
 	if (existsSync(distPath)) {
 		return { runner: process.execPath, args: [distPath] };
@@ -361,7 +362,7 @@ export class Dispatcher {
 			taskArgs.push("--agent-teams");
 		}
 
-		const { runner, args } = resolveScript("run-task.ts", __dirname);
+		const { runner, args } = resolveScript("run-task.js", __dirname);
 		args.push(...taskArgs);
 
 		try {
@@ -667,7 +668,7 @@ export class Dispatcher {
 						}
 
 						const { runner, args: baseArgs } = resolveScript(
-							"run-task.ts",
+							"run-task.js",
 							__dirname,
 						);
 						for (const task of toSpawn) {

@@ -198,15 +198,23 @@ export function scheduleLogCleanup() {
 // ─── Daemon Watchdog ─────────────────────────────────────────────────────────
 
 function spawnDaemon(): number | null {
-	const scriptPath = path.resolve(
-		getBaseDir(),
-		"scripts",
-		"daemon",
-		"index.ts",
-	);
+	const baseDir = getBaseDir();
+	const distPath = path.resolve(baseDir, "dist", "daemon.js");
+	if (existsSync(distPath)) {
+		const child = spawn(process.execPath, [distPath, "start"], {
+			cwd: process.cwd(),
+			detached: true,
+			stdio: "ignore",
+			shell: false,
+		});
+		child.unref();
+		return child.pid ?? null;
+	}
+	// Fallback: use tsx for development
+	const scriptPath = path.resolve(baseDir, "scripts", "daemon", "index.ts");
 	if (!existsSync(scriptPath)) {
 		console.error(
-			`[watchdog:daemon] daemon script not found at ${scriptPath}, skipping restart`,
+			`[watchdog:daemon] daemon not found at ${distPath} or ${scriptPath}, skipping restart`,
 		);
 		return null;
 	}

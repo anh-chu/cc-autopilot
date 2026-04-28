@@ -1,6 +1,9 @@
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
+import { fileURLToPath } from "node:url";
 import os from "os";
 import path from "path";
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 // Data directory constants (replicated from src/lib/paths.ts to avoid cross-module issues)
 const DATA_DIR: string = process.env.CMC_DATA_DIR
@@ -10,8 +13,6 @@ const DATA_DIR: string = process.env.CMC_DATA_DIR
 function getWorkspaceDir(workspaceId: string): string {
 	return path.join(DATA_DIR, "workspaces", workspaceId);
 }
-
-import { loadMigrations } from "./migrations";
 
 const VERSION_FILE = ".version";
 
@@ -23,7 +24,6 @@ export async function bootstrapDataDir(): Promise<void> {
 	ensureDataDir();
 	ensureDefaultWorkspace();
 	ensureLogsDir();
-	await runMigrationsIfNeeded();
 	writeVersion();
 }
 
@@ -41,7 +41,7 @@ function ensureDataDir(): void {
  * Read the current package version from package.json.
  */
 function getCurrentVersion(): string {
-	const pkgPath = path.join(process.cwd(), "package.json");
+	const pkgPath = path.join(__dirname, "..", "package.json");
 	const pkg = JSON.parse(readFileSync(pkgPath, "utf-8"));
 	return pkg.version;
 }
@@ -123,52 +123,6 @@ function getStoredVersion(): string | null {
 	} catch {
 		return null;
 	}
-}
-
-/**
- * If stored version differs from current, run migrations.
- */
-async function runMigrationsIfNeeded(): Promise<void> {
-	const currentVersion = getCurrentVersion();
-	const storedVersion = getStoredVersion();
-
-	// No stored version = fresh install, no migrations needed
-	if (!storedVersion) {
-		console.log(`[bootstrap] Fresh install, skipping migrations`);
-		return;
-	}
-
-	// Same version = already bootstrapped, no migrations
-	if (storedVersion === currentVersion) {
-		console.log(
-			`[bootstrap] Already at current version ${currentVersion}, skipping migrations`,
-		);
-		return;
-	}
-
-	console.log(
-		`[bootstrap] Running migrations: ${storedVersion} -> ${currentVersion}`,
-	);
-
-	// Load and run migrations
-	const migrationsDir = path.join(__dirname, "migrations");
-	const migrations = loadMigrations(migrationsDir);
-
-	for (const migration of migrations) {
-		const needsRun =
-			migration.version > storedVersion && migration.version <= currentVersion;
-
-		if (needsRun) {
-			console.log(`[bootstrap] Applying migration ${migration.version}...`);
-			await migration.up();
-			console.log(`[bootstrap] Applied migration ${migration.version}`);
-		}
-	}
-
-	// Update version file after migrations
-	const versionPath = path.join(DATA_DIR, VERSION_FILE);
-	writeFileSync(versionPath, currentVersion, "utf-8");
-	console.log(`[bootstrap] Version updated to ${currentVersion}`);
 }
 
 // Run if executed directly

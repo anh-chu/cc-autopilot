@@ -39,4 +39,15 @@ if (existsSync(staticDir)) {
 	console.log("No .next/static/ directory found, skipping");
 }
 
+
+// Remove internal dirs that should not ship in standalone output
+const dirsToRemove = [".git", ".codesight", ".github", ".claude", ".pi-lens", "plans", "src", "scripts"];
+for (const dir of dirsToRemove) {
+	const target = join(standaloneDir, dir);
+	if (existsSync(target)) {
+		rmSync(target, { recursive: true });
+		console.log(`Removed internal dir from standalone: ${dir}`);
+	}
+}
+
 console.log("Static assets copied successfully");

@@ -24,13 +24,12 @@ async function buildCli() {
 		entryPoints: [srcPath],
 		bundle: true,
 		platform: "node",
-		target: "node20",
+		target: "node18",
 		format: "esm",
 		outfile: distPath,
 		external: ["@anthropic-ai/claude-agent-sdk", "tree-kill"],
 		sourcemap: false,
 		minify: false,
-		banner: { js: "#!/usr/bin/env node" },
 	});
 
 	const stats = fs.statSync(distPath);
