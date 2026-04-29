@@ -79,9 +79,16 @@ function listPlugins(cwd: string): ListedPlugin[] {
 
 function getInstalledPlugin(cwd: string): ListedPlugin | null {
 	const plugins = listPlugins(cwd);
+	const normalizedCwd = path.resolve(cwd);
 	for (const plugin of plugins) {
 		if (plugin.id !== PKG) continue;
 		if (plugin.scope !== "project") continue;
+		// Must match THIS project — project-scoped plugins installed elsewhere can't be reused
+		if (
+			!plugin.projectPath ||
+			path.resolve(plugin.projectPath) !== normalizedCwd
+		)
+			continue;
 		if (plugin.installPath?.trim()) return plugin;
 	}
 	return null;
