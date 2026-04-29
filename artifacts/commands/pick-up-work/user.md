@@ -1,3 +1,10 @@
+---
+name: Pick Up Work
+command: /pick-up-work
+description: Pick up your next task
+longDescription: Checks inbox for new delegations, lists available tasks sorted by priority, and recommends the next task to work on.
+icon: PlayCircle
+---
 Check for new work assignments and pick up the highest-priority task:
 
 1. Read $MANDIO_DATA_DIR/workspaces/<id>/ai-context.md for current state

@@ -14,8 +14,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Tip } from "@/components/ui/tip";
-import type { Task } from "@/lib/types";
-import { SKILLS } from "@/lib/types";
+import type { CommandDefinition, Task } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
 interface CommandBarProps {
@@ -25,6 +24,7 @@ interface CommandBarProps {
 	isMobile?: boolean;
 	tasks?: Task[];
 	onTaskClick?: (task: Task) => void;
+	commands?: CommandDefinition[];
 }
 
 export function CommandBar({
@@ -34,6 +34,7 @@ export function CommandBar({
 	isMobile = false,
 	tasks = [],
 	onTaskClick,
+	commands = [],
 }: CommandBarProps) {
 	const [value, setValue] = useState("");
 	const [focused, setFocused] = useState(false);
@@ -46,8 +47,8 @@ export function CommandBar({
 	const matchingSkills = useMemo(() => {
 		if (!value.startsWith("/")) return [];
 		const query = value.trim().toLowerCase();
-		return SKILLS.filter((s) => s.command.startsWith(query));
-	}, [value]);
+		return commands.filter((s) => s.command.startsWith(query));
+	}, [value, commands]);
 
 	const matchingTasks = useMemo(() => {
 		const query = value.startsWith("?") ? value.slice(1).trim() : value.trim();
@@ -93,7 +94,7 @@ export function CommandBar({
 
 		// Intercept slash commands
 		if (trimmed.startsWith("/")) {
-			const matchedSkill = SKILLS.find(
+			const matchedSkill = commands.find(
 				(s) => s.command === trimmed || trimmed.startsWith(`${s.command} `),
 			);
 			if (matchedSkill) {
@@ -107,7 +108,7 @@ export function CommandBar({
 
 		onCapture(trimmed);
 		setValue("");
-	}, [value, onCapture]);
+	}, [value, onCapture, commands]);
 
 	const handleKeyDown = (e: React.KeyboardEvent) => {
 		if (e.key === "Enter" && !e.shiftKey) {

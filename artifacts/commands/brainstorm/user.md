@@ -1,3 +1,10 @@
+---
+name: Brainstorm
+command: /brainstorm
+description: Generate ideas on a topic
+longDescription: Generates at least 10 ideas on any topic, evaluates them by effort-to-impact ratio, and saves selected ideas to the brain dump.
+icon: Lightbulb
+---
 Brainstorm ideas about: $ARGUMENTS
 
 ## Setup

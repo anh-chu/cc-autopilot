@@ -1,3 +1,10 @@
+---
+name: Daily Plan
+command: /daily-plan
+description: Create your daily plan
+longDescription: Builds a focused daily plan from your inbox, tasks, pending decisions, brain dump, and upcoming milestone deadlines.
+icon: CalendarDays
+---
 Create my daily plan:
 
 1. Read $MANDIO_DATA_DIR/workspaces/<id>/ai-context.md for a quick snapshot of current state

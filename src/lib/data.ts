@@ -10,16 +10,23 @@ import {
 } from "node:fs/promises";
 import path from "node:path";
 import { Mutex } from "async-mutex";
+import { activateAllCommands, activateCommand } from "./command-activation";
+import { writeCommandFile } from "./command-files";
 import {
 	DATA_DIR,
+	getArtifactsCommandsDir,
 	getArtifactsSkillsDir,
 	getBaseDir,
 	getDefaultWikiDir,
+	getGlobalCommandDir,
+	getGlobalCommandsDir,
 	getGlobalSkillDir,
 	getGlobalSkillsDir,
 	getWikiDir,
 	getWikiPathFile,
+	getWorkspaceCommandsDir,
 	getWorkspaceDir,
+	MANDIO_COMMAND_PREFIX,
 } from "./paths";
 import { activateAllSkills, activateSkill } from "./skill-activation";
 import { writeSkillFile } from "./skill-files";
@@ -46,6 +53,7 @@ export const DOC_MAINTAINER_AGENT_INSTRUCTIONS =
 
 let _currentWorkspaceId = "default";
 const _migratedWorkspaces = new Set<string>();
+const _migratedCommandWorkspaces = new Set<string>();
 
 export function setCurrentWorkspace(id: string): void {
 	_currentWorkspaceId = id;
@@ -180,6 +188,9 @@ export async function ensureWorkspaceDir(workspaceId: string): Promise<void> {
 
 	// Seed and migrate global skills
 	await ensureSkillsMigrated(workspaceId);
+
+	// Seed and migrate global commands
+	await ensureCommandsMigrated(workspaceId);
 }
 
 // ─── Wiki bootstrap (plugin-first) ──────────────────────────────────────────
@@ -389,6 +400,124 @@ export async function getDaemonConfig(): Promise<Record<string, unknown>> {
 	} catch {
 		return { ...DEFAULT_DAEMON_CONFIG };
 	}
+}
+
+// ─── Global commands seeding and migration ──────────────────────────────────
+
+// Seed global commands directory from package artifacts.
+async function seedGlobalCommands(): Promise<void> {
+	const globalCommandsDir = getGlobalCommandsDir();
+	await mkdir(globalCommandsDir, { recursive: true });
+
+	const pkgCommandsSrc = getArtifactsCommandsDir();
+	if (!existsSync(pkgCommandsSrc)) return;
+
+	// Seed individual commands that are missing (not all-or-nothing)
+	const entries = await readdir(pkgCommandsSrc, { withFileTypes: true });
+	for (const entry of entries) {
+		if (!entry.isDirectory()) continue;
+		const dest = path.join(globalCommandsDir, entry.name);
+		if (existsSync(dest)) continue; // user already has this command
+		await cp(path.join(pkgCommandsSrc, entry.name), dest, { recursive: true });
+	}
+}
+
+// Migrate legacy .claude/commands/ dirs to global store and activate them.
+async function migrateCommandsToFiles(workspaceId: string): Promise<void> {
+	const wsCommandsDir = getWorkspaceCommandsDir(workspaceId);
+	if (!existsSync(wsCommandsDir)) return;
+
+	// Get agent IDs so we can skip agent persona dirs
+	const agentsPath = path.join(getWorkspaceDataDir(workspaceId), "agents.json");
+	let agentIds = new Set<string>();
+	try {
+		const raw = await readFile(agentsPath, "utf-8");
+		const parsed = JSON.parse(raw) as { agents: Array<{ id: string }> };
+		agentIds = new Set(parsed.agents.map((a) => a.id));
+	} catch {
+		// No agents file — proceed with empty set
+	}
+
+	const entries = await readdir(wsCommandsDir, { withFileTypes: true });
+	const migratedIds: string[] = [];
+
+	for (const entry of entries) {
+		if (!entry.isDirectory()) continue;
+		const name = entry.name;
+
+		// Skip agent persona dirs and already-migrated mandio- symlinks
+		if (agentIds.has(name) || name.startsWith(MANDIO_COMMAND_PREFIX)) continue;
+
+		// It's a slash command dir — migrate to global store
+		const srcDir = path.join(wsCommandsDir, name);
+		const userMdPath = path.join(srcDir, "user.md");
+		if (!existsSync(userMdPath)) continue;
+
+		const globalCmdDir = getGlobalCommandDir(name);
+		if (existsSync(globalCmdDir)) {
+			// Already in global store — still activate for this workspace
+			migratedIds.push(name);
+			continue;
+		}
+
+		// Read and write with frontmatter to global store
+		let raw: string;
+		try {
+			raw = await readFile(userMdPath, "utf-8");
+		} catch {
+			continue;
+		}
+
+		// Check if frontmatter already present (gray-matter will add if not)
+		const now = new Date().toISOString();
+		await writeCommandFile(globalCmdDir, {
+			id: name,
+			name,
+			command: name,
+			description: "",
+			longDescription: "",
+			icon: "Terminal",
+			content: raw,
+			createdAt: now,
+			updatedAt: now,
+		});
+		migratedIds.push(name);
+	}
+
+	// Activate migrated commands for this workspace
+	for (const id of migratedIds) {
+		await activateCommand(workspaceId, id);
+	}
+
+	// Also activate all seeded global commands
+	await activateAllCommands(workspaceId);
+}
+
+export async function ensureCommandsMigrated(
+	workspaceId: string,
+): Promise<void> {
+	if (_migratedCommandWorkspaces.has(workspaceId)) return;
+
+	const wsDir = getWorkspaceDataDir(workspaceId);
+	const sentinel = path.join(wsDir, ".commands-migrated");
+
+	// Seed global commands (per-command, skip existing)
+	await seedGlobalCommands();
+
+	// Run migration if sentinel doesn't exist yet
+	if (!existsSync(sentinel)) {
+		await migrateCommandsToFiles(workspaceId);
+		try {
+			await writeFile(sentinel, new Date().toISOString(), "utf-8");
+		} catch (err) {
+			console.warn(
+				`[data] Failed to write .commands-migrated sentinel for workspace ${workspaceId}:`,
+				err,
+			);
+		}
+	}
+
+	_migratedCommandWorkspaces.add(workspaceId);
 }
 
 // ─── Global skills seeding and migration ───────────────────────────────────

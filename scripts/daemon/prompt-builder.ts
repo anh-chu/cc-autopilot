@@ -1,6 +1,12 @@
-import { existsSync, readFileSync } from "node:fs";
+import { existsSync, lstatSync, readFileSync } from "node:fs";
 import path from "node:path";
-import { getGlobalSkillsDir, getWorkspaceDir } from "../../src/lib/paths";
+import {
+	getGlobalCommandDir,
+	getGlobalSkillsDir,
+	getWorkspaceCommandsDir,
+	getWorkspaceDir,
+	MANDIO_COMMAND_PREFIX,
+} from "../../src/lib/paths";
 import { listActivatedSkillsSync } from "../../src/lib/skill-activation";
 // Paths relative to project root
 import { readAllSkillsSync, SkillFileData } from "../../src/lib/skill-files";
@@ -448,17 +454,51 @@ export function buildTaskPrompt(
 
 /**
  * Build a prompt for a scheduled command (daily-plan, standup, etc.).
- * Reads the command file from .claude/commands/<command>/user.md.
+ * Reads the command file from three locations (fallback order):
+ * 1. Workspace symlinked location: <wsDir>/.claude/commands/mandio-<command>/user.md
+ * 2. Global command store: ~/.mandio/artifacts/commands/<command>/user.md
+ * 3. Legacy project location: <project>/.claude/commands/<command>/user.md (backward compat)
  */
-export function buildScheduledPrompt(command: string): string {
-	const cmdFile = path.join(COMMANDS_DIR, command, "user.md");
+export function buildScheduledPrompt(
+	command: string,
+	workspaceId: string = process.env.MANDIO_WORKSPACE_ID ?? "default",
+): string {
+	// 1. Try workspace symlinked location
+	const wsCommandsDir = getWorkspaceCommandsDir(workspaceId);
+	const linkedCmdFile = path.join(
+		wsCommandsDir,
+		`${MANDIO_COMMAND_PREFIX}${command}`,
+		"user.md",
+	);
 
+	if (existsSync(linkedCmdFile)) {
+		// Ensure it's not a broken symlink
+		try {
+			const stat = lstatSync(linkedCmdFile);
+			if (!stat.isSymbolicLink()) {
+				const content = readFileSync(linkedCmdFile, "utf-8");
+				return enforcePromptLimit(content);
+			}
+		} catch {
+			// proceed to fallback
+		}
+	}
+
+	// 2. Try global command store
+	const globalCmdFile = path.join(getGlobalCommandDir(command), "user.md");
+	if (existsSync(globalCmdFile)) {
+		const content = readFileSync(globalCmdFile, "utf-8");
+		return enforcePromptLimit(content);
+	}
+
+	// 3. Fallback: legacy project location (backward compat)
+	const cmdFile = path.join(COMMANDS_DIR, command, "user.md");
 	if (existsSync(cmdFile)) {
 		const content = readFileSync(cmdFile, "utf-8");
 		return enforcePromptLimit(content);
 	}
 
-	// Fallback: generic prompt
+	// Fallback: generic prompt if no command file found
 	logger.warn(
 		"prompt-builder",
 		`No command file found for /${command}, using generic prompt`,

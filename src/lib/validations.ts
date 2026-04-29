@@ -372,6 +372,34 @@ export const skillUpdateSchema = z.object({
 	tags: z.array(z.string().max(LIMITS.TAG)).max(LIMITS.MAX_TAGS).optional(),
 });
 
+// ─── Command schemas ───────────────────────────────────────────────────────────
+
+export const commandCreateSchema = z.object({
+	id: safeId.optional(),
+	name: z.string().min(1).max(200),
+	command: z
+		.string()
+		.min(2)
+		.max(50)
+		.regex(
+			/^\/[a-z0-9-]+$/,
+			"Command must start with / followed by lowercase alphanumeric with hyphens",
+		),
+	description: z.string().max(5000).optional().default(""),
+	longDescription: z.string().max(50000).optional().default(""),
+	icon: z.string().max(50).optional().default("Terminal"),
+	content: z.string().min(1).max(50000),
+});
+
+export const commandUpdateSchema = commandCreateSchema
+	.partial()
+	.extend({ id: safeId });
+
+export const commandActivateSchema = z.object({
+	commandId: safeId,
+	active: z.boolean(),
+});
+
 // ─── Daemon Config schemas ─────────────────────────────────────────────────────
 
 const scheduleEntrySchema = z.object({

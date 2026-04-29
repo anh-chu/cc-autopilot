@@ -53,8 +53,8 @@ import { Card } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
 import type { StreamLine } from "@/hooks/use-agent-stream";
 import { useAgentStream } from "@/hooks/use-agent-stream";
-import { useAgents } from "@/hooks/use-data";
-import { SKILLS } from "@/lib/types";
+import { useAgents, useCommands } from "@/hooks/use-data";
+import { useWorkspace } from "@/hooks/use-workspace";
 import { cn } from "@/lib/utils";
 
 interface TreeNode {
@@ -172,7 +172,9 @@ export default function DocumentsPage() {
 	const [selectedAgentId, setSelectedAgentId] = useState(
 		DOC_MAINTAINER_AGENT_ID,
 	);
+	const { currentId: workspaceId } = useWorkspace();
 	const { agents } = useAgents();
+	const { commands } = useCommands(workspaceId);
 	const runAgents = agents.filter((a) => a.status === "active");
 	const hasDocMaintainer = runAgents.some(
 		(a) => a.id === DOC_MAINTAINER_AGENT_ID,
@@ -213,7 +215,7 @@ export default function DocumentsPage() {
 
 	const allSlashCommands = useMemo(() => {
 		type Cmd = { command: string; description: string; argumentHint?: string };
-		const appCmds: Cmd[] = SKILLS.map((s) => ({
+		const appCmds: Cmd[] = commands.map((s) => ({
 			command: s.command,
 			description: s.description,
 		}));
@@ -226,7 +228,7 @@ export default function DocumentsPage() {
 				argumentHint: c.argumentHint,
 			}));
 		return [...appCmds, ...sdkCmds];
-	}, [claudeCommands]);
+	}, [commands, claudeCommands]);
 
 	const matchingSkills = useMemo(() => {
 		if (!slashMenuOpen) return [];
@@ -422,7 +424,7 @@ export default function DocumentsPage() {
 		setChatInput("");
 		try {
 			// Expand slash command to its full description
-			const skill = SKILLS.find(
+			const skill = commands.find(
 				(s) => msg === s.command || msg.startsWith(`${s.command} `),
 			);
 			const extra = skill ? msg.slice(skill.command.length).trim() : "";
@@ -473,6 +475,7 @@ export default function DocumentsPage() {
 		loadRuns,
 		streamRunId,
 		wikiRuns,
+		commands,
 	]);
 
 	const handleInitWiki = useCallback(async () => {

@@ -1,3 +1,10 @@
+---
+name: Plan Feature
+command: /plan-feature
+description: Plan a new feature
+longDescription: Breaks down a feature into tasks with estimates, assignments, and dependencies; creates a milestone and all tasks in the workspace.
+icon: GitBranch
+---
 Plan the following feature: $ARGUMENTS
 
 ## Setup

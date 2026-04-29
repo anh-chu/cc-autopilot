@@ -1,3 +1,10 @@
+---
+name: Ship Feature
+command: /ship-feature
+description: Ship a feature end-to-end
+longDescription: Runs tests, typechecks, and lint; commits the code; marks the task done; posts a completion report; and updates milestone progress.
+icon: Rocket
+---
 Ship the feature: $ARGUMENTS
 
 1. Read $MANDIO_DATA_DIR/workspaces/<id>/ai-context.md for a quick snapshot of current state

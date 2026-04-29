@@ -104,87 +104,20 @@ export interface SkillsLibraryFile {
 	skills: LegacySkillDefinition[];
 }
 
-// ─── AI Skills (slash commands) ───────────────────────────────────────────────
+// ─── AI Commands (slash commands) ───────────────────────────────────────────
 
-export interface SkillInfo {
-	command: string;
-	label: string;
+export interface CommandDefinition {
+	id: string;
+	name: string;
+	command: string; // e.g. "/standup"
 	description: string;
 	longDescription: string;
+	icon: string;
+	content: string;
+	activated?: boolean;
+	createdAt: string;
+	updatedAt: string;
 }
-
-export const SKILLS: SkillInfo[] = [
-	{
-		command: "/standup",
-		label: "Daily Standup",
-		description: "Daily standup summary",
-		longDescription:
-			"Generates a standup report from git commits, in-progress tasks, inbox messages, and goal progress.",
-	},
-	{
-		command: "/daily-plan",
-		label: "Daily Plan",
-		description: "Create daily plan",
-		longDescription:
-			"Creates a focused daily plan with top priorities, quick capture triage, pending decisions, and time blocks.",
-	},
-	{
-		command: "/weekly-review",
-		label: "Weekly Review",
-		description: "Weekly review",
-		longDescription:
-			"Analyzes the week: tasks completed, goal progress, Eisenhower health, stale items, and next-week recommendations.",
-	},
-	{
-		command: "/brainstorm",
-		label: "Brainstorm",
-		description: "Brainstorm ideas",
-		longDescription:
-			"Generates 10-15 creative ideas from multiple angles: technical, marketing, UX, business model, and partnerships.",
-	},
-	{
-		command: "/research",
-		label: "Research",
-		description: "Research a topic",
-		longDescription:
-			"Researches a topic with web search, then saves structured findings to research/ with key insights and recommendations.",
-	},
-	{
-		command: "/plan-feature",
-		label: "Plan Feature",
-		description: "Plan a feature",
-		longDescription:
-			"Breaks a feature into tasks with subtasks, estimates, dependencies, and creates a milestone with linked tasks.",
-	},
-	{
-		command: "/ship-feature",
-		label: "Ship Feature",
-		description: "Ship a feature",
-		longDescription:
-			"Tests, lints, commits, updates task status, posts completion report to inbox, and logs activity.",
-	},
-	{
-		command: "/pick-up-work",
-		label: "Pick Up Work",
-		description: "Check for new assignments",
-		longDescription:
-			"Checks inbox for new delegations, reviews pending tasks, and picks up the highest-priority unblocked work.",
-	},
-	{
-		command: "/report",
-		label: "Report",
-		description: "Post a status report",
-		longDescription:
-			"Posts a status update or completion report to the inbox and logs the activity for the user to review.",
-	},
-	{
-		command: "/orchestrate",
-		label: "Orchestrate",
-		description: "Run all agents",
-		longDescription:
-			"Meta-command that reads pending tasks, groups them by agent, and spawns sub-agents to execute work using their full personas and skills.",
-	},
-];
 
 // ─── Subtasks ─────────────────────────────────────────────────────────────────
 

@@ -87,12 +87,14 @@ describe("ensureWorkspaceDir", () => {
 		const claudeDir = path.join(WS_DIR, ".claude");
 		expect(existsSync(claudeDir)).toBe(true);
 		expect(existsSync(path.join(claudeDir, "commands"))).toBe(true);
-		// Should have built-in workflow commands
+		// Commands are activated as mandio- prefixed symlinks
 		expect(
-			existsSync(path.join(claudeDir, "commands", "standup", "user.md")),
+			existsSync(path.join(claudeDir, "commands", "mandio-standup", "user.md")),
 		).toBe(true);
 		expect(
-			existsSync(path.join(claudeDir, "commands", "daily-plan", "user.md")),
+			existsSync(
+				path.join(claudeDir, "commands", "mandio-daily-plan", "user.md"),
+			),
 		).toBe(true);
 	});
 

@@ -1,3 +1,10 @@
+---
+name: Weekly Review
+command: /weekly-review
+description: Conduct your weekly review
+longDescription: Analyzes the past week's task completions, git commits, goal progress, and stale items; recommends priorities for next week.
+icon: BarChart3
+---
 Conduct my weekly review:
 
 1. Read $MANDIO_DATA_DIR/workspaces/<id>/ai-context.md for a quick snapshot of current state

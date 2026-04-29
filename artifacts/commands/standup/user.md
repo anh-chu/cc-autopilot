@@ -1,3 +1,10 @@
+---
+name: Daily Standup
+command: /standup
+description: Daily standup summary
+longDescription: Generates a standup report from git commits, in-progress tasks, inbox messages, and goal progress.
+icon: Terminal
+---
 Generate my daily standup by doing the following:
 
 1. Read $MANDIO_DATA_DIR/workspaces/<id>/ai-context.md for a quick snapshot of current state

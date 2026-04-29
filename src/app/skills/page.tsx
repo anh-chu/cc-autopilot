@@ -12,10 +12,9 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { Tip } from "@/components/ui/tip";
-import { useAgents, useSkills } from "@/hooks/use-data";
+import { useAgents, useCommands, useSkills } from "@/hooks/use-data";
 import { useWorkspace } from "@/hooks/use-workspace";
-import type { SkillDefinition } from "@/lib/types";
-import { SKILLS } from "@/lib/types";
+import type { CommandDefinition, SkillDefinition } from "@/lib/types";
 
 function CopyButton({ text }: { text: string }) {
 	const [copied, setCopied] = useState(false);
@@ -159,9 +158,17 @@ export default function SkillsPage() {
 		activate,
 		deactivate,
 	} = useSkills(workspaceId);
+	const {
+		commands,
+		activate: activateCommand,
+		deactivate: deactivateCommand,
+	} = useCommands(workspaceId);
 	const { agents } = useAgents();
 	const router = useRouter();
 	const [togglingIds, setTogglingIds] = useState<Set<string>>(new Set());
+	const [togglingCommandIds, setTogglingCommandIds] = useState<Set<string>>(
+		new Set(),
+	);
 
 	const getAgentNames = (agentIds: string[]) =>
 		agentIds.map((id) => agents.find((a) => a.id === id)?.name ?? id);
@@ -323,33 +330,101 @@ export default function SkillsPage() {
 
 			{/* AI Commands (slash commands) */}
 			<div className="rounded-sm border bg-card">
-				<div className="flex items-center gap-3 border-b px-5 py-4">
-					<div className="h-9 w-9 rounded-full bg-primary-soft flex items-center justify-center">
-						<Terminal className="h-4 w-4 text-primary" />
-					</div>
-					<div>
-						<h2 className="text-sm font-normal">AI Commands</h2>
-						<p className="text-xs text-muted-foreground">
-							Slash commands for Claude Code — type in the CLI to activate
-						</p>
-					</div>
-				</div>
-				<div className="divide-y">
-					{SKILLS.map((skill) => (
-						<div
-							key={skill.command}
-							className="flex items-center gap-3 px-5 py-2.5"
-						>
-							<code className="text-xs font-mono font-normal text-primary min-w-[130px]">
-								{skill.command}
-							</code>
-							<span className="text-xs text-muted-foreground flex-1">
-								{skill.longDescription}
-							</span>
-							<CopyButton text={skill.command} />
+				<div className="flex items-center justify-between border-b px-5 py-4">
+					<div className="flex items-center gap-3">
+						<div className="h-9 w-9 rounded-full bg-primary-soft flex items-center justify-center">
+							<Terminal className="h-4 w-4 text-primary" />
 						</div>
-					))}
+						<div>
+							<h2 className="text-sm font-normal">AI Commands</h2>
+							<p className="text-xs text-muted-foreground">
+								Slash commands for Claude Code — type in the CLI to activate
+							</p>
+						</div>
+					</div>
+					<Tip content="Create a new command">
+						<Button
+							size="sm"
+							variant="outline"
+							onClick={() => router.push("/commands/new")}
+							className="gap-1.5"
+						>
+							<Plus className="h-3.5 w-3.5" /> New Command
+						</Button>
+					</Tip>
 				</div>
+				{commands.length === 0 ? (
+					<div className="px-5 py-8 text-center text-xs text-muted-foreground">
+						No commands yet. Create one to get started.
+					</div>
+				) : (
+					<div className="divide-y">
+						{commands.map((cmd: CommandDefinition) => {
+							const isActive = cmd.activated === true;
+							const isToggling = togglingCommandIds.has(cmd.id);
+							const handleCommandToggle = async (e: React.MouseEvent) => {
+								e.preventDefault();
+								e.stopPropagation();
+								setTogglingCommandIds((prev) => new Set(prev).add(cmd.id));
+								try {
+									if (isActive) {
+										await deactivateCommand(cmd.id);
+									} else {
+										await activateCommand(cmd.id);
+									}
+								} finally {
+									setTogglingCommandIds((prev) => {
+										const next = new Set(prev);
+										next.delete(cmd.id);
+										return next;
+									});
+								}
+							};
+							return (
+								<div
+									key={cmd.id}
+									className={`flex items-center gap-3 px-5 py-2.5 ${
+										isActive ? "bg-primary-soft/20" : ""
+									}`}
+								>
+									<code className="text-xs font-mono font-normal text-primary min-w-[130px]">
+										{cmd.command}
+									</code>
+									<span className="text-xs text-muted-foreground flex-1">
+										{cmd.longDescription}
+									</span>
+									{isActive && (
+										<Badge
+											variant="outline"
+											className="text-[10px] px-1.5 py-0 border-primary/40 text-primary shrink-0"
+										>
+											Active
+										</Badge>
+									)}
+									<CopyButton text={cmd.command} />
+									<div
+										className="shrink-0"
+										onClick={handleCommandToggle}
+										role="button"
+										tabIndex={0}
+										onKeyDown={(e) =>
+											e.key === " " &&
+											handleCommandToggle(e as unknown as React.MouseEvent)
+										}
+									>
+										<Switch
+											checked={isActive}
+											disabled={isToggling}
+											aria-label={
+												isActive ? "Deactivate command" : "Activate command"
+											}
+										/>
+									</div>
+								</div>
+							);
+						})}
+					</div>
+				)}
 			</div>
 		</div>
 	);

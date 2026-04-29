@@ -128,3 +128,39 @@ export function getWorkspaceSkillLink(
 export function getArtifactsSkillsDir(): string {
 	return path.join(getBaseDir(), "artifacts", "skills");
 }
+
+/** Prefix applied to workspace-scoped command symlink names. */
+export const MANDIO_COMMAND_PREFIX = "mandio-";
+
+/** Global commands store: ~/.mandio/artifacts/commands/ */
+export function getGlobalCommandsDir(): string {
+	return path.join(DATA_DIR, "artifacts", "commands");
+}
+
+/** Single global command dir: ~/.mandio/artifacts/commands/<id>/ */
+export function getGlobalCommandDir(commandId: string): string {
+	assertSafeSkillId(commandId);
+	return path.join(getGlobalCommandsDir(), commandId);
+}
+
+/** Workspace command symlink target dir: <wsDir>/.claude/commands/ */
+export function getWorkspaceCommandsDir(workspaceId: string): string {
+	return path.join(getWorkspaceDir(workspaceId), ".claude", "commands");
+}
+
+/** Single workspace command symlink: <wsDir>/.claude/commands/mandio-<id>/ */
+export function getWorkspaceCommandLink(
+	workspaceId: string,
+	commandId: string,
+): string {
+	assertSafeSkillId(commandId);
+	return path.join(
+		getWorkspaceCommandsDir(workspaceId),
+		`${MANDIO_COMMAND_PREFIX}${commandId}`,
+	);
+}
+
+/** Package artifacts commands dir for seeding */
+export function getArtifactsCommandsDir(): string {
+	return path.join(getBaseDir(), "artifacts", "commands");
+}

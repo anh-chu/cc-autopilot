@@ -8,7 +8,9 @@ import { KeyboardShortcuts } from "@/components/keyboard-shortcuts";
 import { SearchDialog } from "@/components/search-dialog";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { useConnection } from "@/hooks/use-connection";
+import { useCommands } from "@/hooks/use-data";
 import { useSidebar } from "@/hooks/use-sidebar";
+import { useWorkspace } from "@/hooks/use-workspace";
 import { apiFetch } from "@/lib/api-client";
 import { showError, showSuccess } from "@/lib/toast";
 import { cn } from "@/lib/utils";
@@ -25,6 +27,8 @@ export function LayoutShell({ children }: LayoutShellProps) {
 	const router = useRouter();
 	const { tasks } = useSidebar();
 	const { online } = useConnection();
+	const { currentId: workspaceId } = useWorkspace();
+	const { commands } = useCommands(workspaceId);
 
 	// Detect mobile viewport and auto-close sidebar
 	useEffect(() => {
@@ -78,6 +82,7 @@ export function LayoutShell({ children }: LayoutShellProps) {
 					onToggleSidebar={() => setSidebarOpen(!sidebarOpen)}
 					isMobile={isMobile}
 					tasks={tasks}
+					commands={commands}
 					onTaskClick={() => {
 						// Navigate to Priority Matrix view which shows the task in context
 						router.push("/priority-matrix");

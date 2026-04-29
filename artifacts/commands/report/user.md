@@ -1,3 +1,10 @@
+---
+name: Post Report
+command: /report
+description: Post a status or completion report
+longDescription: Posts a progress update or completion report to the inbox, logs the activity event, and updates the task status.
+icon: FileText
+---
 Post a status update or completion report: $ARGUMENTS
 
 1. Read $MANDIO_DATA_DIR/workspaces/<id>/tasks.json to find the relevant task

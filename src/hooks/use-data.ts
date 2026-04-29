@@ -7,6 +7,7 @@ import type {
 	ActivityEvent,
 	AgentDefinition,
 	BrainDumpEntry,
+	CommandDefinition,
 	DecisionItem,
 	InboxMessage,
 	Initiative,
@@ -397,6 +398,51 @@ export function useSkills(workspaceId?: string) {
 	);
 
 	return { skills, refetch, ...rest, activate, deactivate };
+}
+
+export function useCommands(workspaceId?: string) {
+	const getQueryString = workspaceId
+		? `workspaceId=${encodeURIComponent(workspaceId)}`
+		: undefined;
+	const {
+		items: commands,
+		refetch,
+		...rest
+	} = useDataResource<CommandDefinition>(
+		"commands",
+		"commands",
+		"Command",
+		undefined,
+		getQueryString,
+	);
+
+	const activate = useCallback(
+		async (commandId: string) => {
+			if (!workspaceId) return;
+			await apiFetch("/api/commands/activate", {
+				method: "POST",
+				headers: { "Content-Type": "application/json" },
+				body: JSON.stringify({ commandId, workspaceId, active: true }),
+			});
+			await refetch();
+		},
+		[workspaceId, refetch],
+	);
+
+	const deactivate = useCallback(
+		async (commandId: string) => {
+			if (!workspaceId) return;
+			await apiFetch("/api/commands/activate", {
+				method: "POST",
+				headers: { "Content-Type": "application/json" },
+				body: JSON.stringify({ commandId, workspaceId, active: false }),
+			});
+			await refetch();
+		},
+		[workspaceId, refetch],
+	);
+
+	return { commands, refetch, ...rest, activate, deactivate };
 }
 
 export function useInitiatives() {
