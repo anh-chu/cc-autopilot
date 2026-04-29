@@ -168,7 +168,9 @@ function getEnabledStatus(
  *
  * @returns Promise<PluginInfo[]> Array of plugin information
  */
-export async function listInstalledPlugins(): Promise<PluginInfo[]> {
+export async function listInstalledPlugins(
+	projectDir?: string,
+): Promise<PluginInfo[]> {
 	// Read installed plugins registry
 	const installedPlugins = readJSONFile<InstalledPluginsFile>(
 		INSTALLED_PLUGINS_FILE,
@@ -194,6 +196,13 @@ export async function listInstalledPlugins(): Promise<PluginInfo[]> {
 		// Skip if install path doesn't exist
 		if (!pluginDir || !existsSync(pluginDir)) {
 			continue;
+		}
+
+		// Skip project-scoped plugins from other projects
+		if (entry.scope === "project" && entry.projectPath && projectDir) {
+			if (path.resolve(entry.projectPath) !== path.resolve(projectDir)) {
+				continue;
+			}
 		}
 
 		// Read plugin metadata
