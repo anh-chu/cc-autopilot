@@ -22,7 +22,7 @@ import { Button } from "@/components/ui/button";
 import { ContextMenu, ContextMenuTrigger } from "@/components/ui/context-menu";
 import { Tip } from "@/components/ui/tip";
 import { useDaemon } from "@/hooks/use-daemon";
-import { useAgents, useProjects, useTasks } from "@/hooks/use-data";
+import { useAgents, useTasks } from "@/hooks/use-data";
 import { getAgentIcon } from "@/lib/agent-icons";
 import { apiFetch } from "@/lib/api-client";
 import type { AgentDefinition } from "@/lib/types";
@@ -159,7 +159,6 @@ function AgentCard({
 export default function CrewPage() {
 	const { agents, loading, error: agentsError, refetch } = useAgents();
 	const { tasks, create: createTask } = useTasks();
-	const { projects } = useProjects();
 	const { config, updateConfig } = useDaemon();
 	const router = useRouter();
 	const [filter, setFilter] = useState<"all" | "active" | "inactive">("all");

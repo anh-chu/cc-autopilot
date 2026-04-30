@@ -21,7 +21,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
 import { Tip } from "@/components/ui/tip";
-import { useBrainDump, useProjects, useTasks } from "@/hooks/use-data";
+import { useBrainDump, useTasks } from "@/hooks/use-data";
 import { useProcessingEntries } from "@/hooks/use-processing-entries";
 import type { BrainDumpEntry } from "@/lib/types";
 
@@ -36,7 +36,6 @@ export default function BrainDumpPage() {
 		refetch,
 	} = useBrainDump();
 	const { create: createTask } = useTasks();
-	const { projects } = useProjects();
 	const [newContent, setNewContent] = useState("");
 	const [convertingEntry, setConvertingEntry] = useState<BrainDumpEntry | null>(
 		null,
