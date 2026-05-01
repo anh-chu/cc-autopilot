@@ -38,8 +38,8 @@ const mainLinks = [
 const workbenchLinks = [
 	{ href: "/map", label: "Map", icon: GitFork },
 	{ href: "/priority-matrix", label: "Tasks", icon: Grid2x2 },
-	{ href: "/crew", label: "Agents", icon: Users },
 	{ href: "/documents", label: "Documents", icon: FileText },
+	{ href: "/crew", label: "Agents", icon: Users },
 	{ href: "/skills", label: "Extensions", icon: Puzzle },
 ];
 
