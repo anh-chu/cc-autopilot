@@ -16,9 +16,9 @@ const shortcuts = [
 	{ key: "G H", label: "Go to Dashboard" },
 	{ key: "G E", label: "Go to Priority Matrix" },
 	{ key: "G K", label: "Go to Status Board" },
-	{ key: "G O", label: "Go to Objectives" },
+	{ key: "G O", label: "Go to Map" },
 	{ key: "G B", label: "Go to Quick Capture" },
-	{ key: "G P", label: "Go to Projects" },
+	{ key: "G P", label: "Go to Map" },
 	{ key: "G C", label: "Go to Agents" },
 	{ key: "G S", label: "Go to Skills" },
 	{ key: "G L", label: "Go to Automation" },
@@ -60,13 +60,13 @@ export function KeyboardShortcuts({ onCreateTask }: KeyboardShortcutsProps) {
 						router.push("/priority-matrix");
 						return;
 					case "o":
-						router.push("/initiatives");
+						router.push("/map");
 						return;
 					case "b":
 						router.push("/brain-dump");
 						return;
 					case "p":
-						router.push("/projects");
+						router.push("/map");
 						return;
 					case "c":
 						router.push("/crew");

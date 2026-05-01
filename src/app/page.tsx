@@ -769,7 +769,7 @@ export default function CommandCenterPage() {
 							<Plus className="h-3 w-3" /> New Project
 						</Button>
 						<Link
-							href="/projects"
+							href="/map"
 							className="text-xs text-muted-foreground hover:text-foreground"
 						>
 							View all →

@@ -113,7 +113,7 @@ export function SearchDialog() {
 				router.push("/priority-matrix");
 				break;
 			case "project":
-				router.push("/projects");
+				router.push("/map");
 				break;
 			case "braindump":
 				router.push("/brain-dump");
@@ -175,7 +175,7 @@ export function SearchDialog() {
 
 				{/* Projects */}
 				{sortedProjects.length > 0 && (
-					<CommandGroup heading="Projects">
+					<CommandGroup heading="Map">
 						{sortedProjects.map((project) => (
 							<CommandItem
 								key={project.id}
