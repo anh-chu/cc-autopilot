@@ -131,7 +131,7 @@ async function fetchDir(dir: string): Promise<TreeNode[]> {
 	}));
 }
 
-export default function DocumentsPage() {
+export default function BrainPage() {
 	const [roots, setRoots] = useState<TreeNode[]>([]);
 	const [rootLoaded, setRootLoaded] = useState(false);
 	const [rootLoading, setRootLoading] = useState(false);
@@ -165,6 +165,9 @@ export default function DocumentsPage() {
 	const [runError, setRunError] = useState<string | null>(null);
 	const [runMessage, setRunMessage] = useState<string | null>(null);
 	const [initingWiki, setInitingWiki] = useState(false);
+	const [wikiInitialized, setWikiInitialized] = useState(false);
+	const [pluginVersion, setPluginVersion] = useState<string | null>(null);
+	const [pluginJustUpdated, setPluginJustUpdated] = useState(false);
 
 	const [streamRunId, setStreamRunId] = useState<string | null>(null);
 	const [priorLines, setPriorLines] = useState<StreamLine[]>([]);
@@ -273,10 +276,24 @@ export default function DocumentsPage() {
 		rootLoadingRef.current = true;
 		setRootLoading(true);
 
-		fetchDir("")
-			.then((nodes) => {
+		Promise.all([
+			fetchDir(""),
+			fetch("/api/wiki/status")
+				.then(
+					(r) =>
+						r.json() as Promise<{ installed: boolean; version: string | null }>,
+				)
+				.catch(() => ({ installed: false, version: null })),
+		])
+			.then(([nodes, status]) => {
 				setRoots(nodes);
 				setRootLoaded(true);
+				if (status.installed) {
+					setWikiInitialized(true);
+					if (status.version) setPluginVersion(status.version);
+				} else if (nodes.length > 0) {
+					setWikiInitialized(true);
+				}
 			})
 			.catch(() => {
 				// fetch failed — allow retry on next mount
@@ -495,23 +512,29 @@ export default function DocumentsPage() {
 				bootstrapStatus?: "bootstrapped" | "already-initialized";
 				pluginVersion?: string | null;
 			} = await res.json();
-			const pluginPart =
-				data.pluginStatus === "installed"
-					? "plugin installed"
-					: data.pluginUpdated
-						? "plugin updated"
-						: "plugin ready";
-			const bootstrapPart =
-				data.bootstrapStatus === "bootstrapped"
-					? "wiki bootstrapped from plugin"
-					: "wiki already initialized";
-			const versionPart = data.pluginVersion ? `v${data.pluginVersion}` : "";
-			setRunMessage(
-				["Wiki synced", pluginPart, bootstrapPart, versionPart]
-					.filter(Boolean)
-					.join(" · "),
-			);
+			if (data.pluginVersion) setPluginVersion(data.pluginVersion);
+			setPluginJustUpdated(data.pluginUpdated ?? false);
+
+			const parts: string[] = [];
+			if (data.pluginStatus === "installed") {
+				parts.push("Plugin installed");
+			} else if (data.pluginUpdated) {
+				parts.push("Plugin updated");
+			} else {
+				parts.push("Plugin up to date");
+			}
+			if (data.bootstrapStatus === "bootstrapped") {
+				parts.push("wiki bootstrapped");
+			}
+			if (data.pluginVersion) parts.push(`v${data.pluginVersion}`);
+			setRunMessage(parts.join(" · "));
 			await loadRuns();
+			if (
+				data.bootstrapStatus === "bootstrapped" ||
+				data.bootstrapStatus === "already-initialized"
+			) {
+				setWikiInitialized(true);
+			}
 			await reloadDir("");
 		} catch (err) {
 			setRunError(
@@ -697,6 +720,7 @@ export default function DocumentsPage() {
 							? "bg-accent text-accent-foreground"
 							: "hover:bg-accent/50",
 						dragOverPath === node.path && "ring-2 ring-primary bg-primary-soft",
+						node.name.startsWith(".") && "opacity-40",
 					)}
 					style={{ paddingLeft: `${depth * 14 + 8}px` }}
 					onClick={() => {
@@ -849,16 +873,36 @@ export default function DocumentsPage() {
 			{/* Tree panel */}
 			<Card className="flex flex-col w-72 shrink-0 overflow-hidden">
 				<div className="flex items-center justify-between px-3 py-2 border-b bg-muted shrink-0">
-					<BreadcrumbNav items={[{ label: "Documents" }]} />
-					<Button
-						size="sm"
-						variant="outline"
-						onClick={handleInitWiki}
-						disabled={initingWiki || isConnected}
-					>
-						{initingWiki ? <Loader2 className="h-3 w-3 animate-spin" /> : null}
-						Sync
-					</Button>
+					<BreadcrumbNav items={[{ label: "Brain" }]} />
+					<div className="flex items-center gap-1">
+						<Button
+							size="sm"
+							variant="ghost"
+							className="h-7 w-7 p-0"
+							title="New root folder"
+							onClick={() => {
+								setNewFolderParent("");
+								setNewFolderName("");
+								setFolderError(null);
+							}}
+						>
+							<FolderPlus className="h-3.5 w-3.5" />
+						</Button>
+						<Button
+							size="sm"
+							variant="ghost"
+							className="h-7 w-7 p-0"
+							title="Upload to root"
+							onClick={() => triggerUpload("")}
+							disabled={uploading}
+						>
+							{uploading ? (
+								<Loader2 className="h-3.5 w-3.5 animate-spin" />
+							) : (
+								<Upload className="h-3.5 w-3.5" />
+							)}
+						</Button>
+					</div>
 				</div>
 
 				{uploadError && (
@@ -927,42 +971,70 @@ export default function DocumentsPage() {
 							<Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
 						</div>
 					) : roots.length === 0 ? (
-						<p className="px-4 py-6 text-xs text-muted-foreground text-center">
-							No files yet. Upload or create a folder.
-						</p>
+						<div className="flex flex-col items-center gap-3 px-4 py-8 text-center">
+							<div className="rounded-full bg-muted p-3">
+								<FileText className="h-6 w-6 text-muted-foreground" />
+							</div>
+							<div className="space-y-1">
+								<p className="text-sm font-medium">No files yet</p>
+								<p className="text-xs text-muted-foreground">
+									Get started by initializing or uploading files
+								</p>
+							</div>
+							<div className="flex flex-col gap-2 w-full max-w-[180px]">
+								<Button
+									size="sm"
+									variant="default"
+									className="w-full gap-1.5"
+									onClick={handleInitWiki}
+									disabled={initingWiki || isConnected}
+								>
+									{initingWiki ? (
+										<Loader2 className="h-3.5 w-3.5 animate-spin" />
+									) : (
+										<RefreshCw className="h-3.5 w-3.5" />
+									)}
+									Initialize Wiki Plugin
+								</Button>
+								<Button
+									size="sm"
+									variant="outline"
+									className="w-full gap-1.5"
+									onClick={() => triggerUpload("")}
+									disabled={uploading}
+								>
+									{uploading ? (
+										<Loader2 className="h-3.5 w-3.5 animate-spin" />
+									) : (
+										<Upload className="h-3.5 w-3.5" />
+									)}
+									Upload Files
+								</Button>
+							</div>
+						</div>
 					) : (
 						renderNodes(roots)
 					)}
 				</div>
 
-				{/* Footer: new folder + upload */}
-				<div className="flex items-center justify-end gap-1 px-3 py-2 border-t bg-muted shrink-0">
+				{/* Footer: plugin status + action */}
+				<div className="flex items-center justify-between gap-2 px-3 py-2 border-t bg-muted shrink-0">
+					{pluginVersion ? (
+						<span className="text-[11px] text-muted-foreground truncate">
+							v{pluginVersion}
+							{pluginJustUpdated ? " · just updated" : ""}
+						</span>
+					) : (
+						<span />
+					)}
 					<Button
 						size="sm"
-						variant="ghost"
-						className="h-7 w-7 p-0"
-						title="New root folder"
-						onClick={() => {
-							setNewFolderParent("");
-							setNewFolderName("");
-							setFolderError(null);
-						}}
+						variant="outline"
+						onClick={handleInitWiki}
+						disabled={initingWiki || isConnected}
 					>
-						<FolderPlus className="h-3.5 w-3.5" />
-					</Button>
-					<Button
-						size="sm"
-						variant="ghost"
-						className="h-7 w-7 p-0"
-						title="Upload to root"
-						onClick={() => triggerUpload("")}
-						disabled={uploading}
-					>
-						{uploading ? (
-							<Loader2 className="h-3.5 w-3.5 animate-spin" />
-						) : (
-							<Upload className="h-3.5 w-3.5" />
-						)}
+						{initingWiki ? <Loader2 className="h-3 w-3 animate-spin" /> : null}
+						{wikiInitialized ? "Check for Updates" : "Initialize Wiki Plugin"}
 					</Button>
 				</div>
 			</Card>

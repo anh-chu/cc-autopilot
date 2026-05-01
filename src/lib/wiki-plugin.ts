@@ -130,6 +130,18 @@ function resolveLintScript(pluginInstallPath: string): string {
 	return candidate;
 }
 
+export function getPluginStatus(cwd: string): {
+	installed: boolean;
+	version: string | null;
+} {
+	const plugin = getInstalledPlugin(cwd);
+	if (!plugin) return { installed: false, version: null };
+	return {
+		installed: true,
+		version: typeof plugin.version === "string" ? plugin.version : null,
+	};
+}
+
 export function ensureWikiPluginInstalledDetailed(
 	cwd: string,
 	options?: { update?: boolean },
@@ -230,13 +242,13 @@ export function ensureWikiBootstrappedFromPlugin(
 	domain: string,
 	options?: { workspaceDir?: string },
 ): WikiBootstrapResult {
-	const schemaPath = path.join(wikiDir, "SCHEMA.md");
+	const lockPath = path.join(wikiDir, ".wiki-lock");
 	const bootstrapScript = resolveBootstrapScript(pluginInstallPath);
-	if (existsSync(schemaPath)) {
+	if (existsSync(lockPath)) {
 		return {
 			status: "already-initialized",
 			scaffoldScript: bootstrapScript,
-			lockFile: resolveLockFile(wikiDir),
+			lockFile: lockPath,
 			coverageReport: resolveCoverageReport(wikiDir),
 		};
 	}
@@ -271,10 +283,6 @@ export function ensureWikiBootstrappedFromPlugin(
 			stdio: ["ignore", "pipe", "pipe"],
 		});
 	}
-	if (!existsSync(schemaPath)) {
-		throw new Error("Plugin bootstrap finished but SCHEMA.md missing");
-	}
-
 	return {
 		status: "bootstrapped",
 		scaffoldScript: bootstrapScript,
