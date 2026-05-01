@@ -329,6 +329,7 @@ export async function POST(request: Request) {
 			kanban: body.kanban,
 			projectId: body.projectId,
 			milestoneId: body.milestoneId,
+			initiativeId: body.initiativeId,
 			assignedTo: body.assignedTo,
 			collaborators: body.collaborators,
 			subtasks: body.subtasks,
@@ -343,6 +344,7 @@ export async function POST(request: Request) {
 			dueDate: null,
 			completedAt: null,
 			deletedAt: null,
+			mapPosition: body.mapPosition ?? undefined,
 		};
 		data.tasks.push(task);
 		return task;

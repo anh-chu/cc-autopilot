@@ -173,6 +173,7 @@ export interface Task {
 	updatedAt: string;
 	completedAt: string | null;
 	deletedAt: string | null;
+	mapPosition?: CanvasPosition;
 }
 
 export interface TasksFile {

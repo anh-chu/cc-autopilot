@@ -98,6 +98,11 @@ export const commentSchema = z.object({
 	attachments: z.array(commentAttachmentSchema).max(10).optional(),
 });
 
+const canvasPositionSchema = z.object({
+	x: z.number().finite(),
+	y: z.number().finite(),
+});
+
 // ─── Task schemas ──────────────────────────────────────────────────────────────
 
 export const taskCreateSchema = z.object({
@@ -151,6 +156,7 @@ export const taskCreateSchema = z.object({
 	dueDate: z.string().max(30).nullable().optional().default(null),
 	deletedAt: z.string().nullable().optional().default(null),
 	initiativeId: z.string().nullable().optional().default(null),
+	mapPosition: canvasPositionSchema.optional(),
 });
 
 export const taskUpdateSchema = z.object({
@@ -184,14 +190,10 @@ export const taskUpdateSchema = z.object({
 	dueDate: z.string().max(30).nullable().optional(),
 	deletedAt: z.string().nullable().optional(),
 	initiativeId: z.string().nullable().optional(),
+	mapPosition: canvasPositionSchema.optional(),
 });
 
 // ─── Project schemas ───────────────────────────────────────────────────────────
-
-const canvasPositionSchema = z.object({
-	x: z.number().finite(),
-	y: z.number().finite(),
-});
 
 export const projectCreateSchema = z.object({
 	name: z.string().min(1, "Name is required").max(LIMITS.TITLE),
