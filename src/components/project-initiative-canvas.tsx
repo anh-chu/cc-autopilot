@@ -790,7 +790,7 @@ type OffScreenDirection = "top" | "right" | "bottom" | "left";
 
 function OffScreenIndicators() {
 	const { getNodes, flowToScreenPosition } = useReactFlow();
-	const viewport = useStore((s) => ({
+	const _viewport = useStore((s) => ({
 		x: s.transform[0],
 		y: s.transform[1],
 		zoom: s.transform[2],

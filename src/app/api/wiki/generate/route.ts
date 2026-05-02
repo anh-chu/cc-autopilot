@@ -1,11 +1,4 @@
-import { spawn } from "node:child_process";
-import {
-	existsSync,
-	mkdirSync,
-	readFileSync,
-	renameSync,
-	writeFileSync,
-} from "node:fs";
+import { mkdirSync, renameSync, writeFileSync } from "node:fs";
 import path from "node:path";
 import { NextResponse } from "next/server";
 import {
@@ -13,7 +6,7 @@ import {
 	getWorkspaceDataDir,
 	mutateActiveRuns,
 } from "@/lib/data";
-import { DATA_DIR, getWikiDir } from "@/lib/paths";
+import { getWikiDir } from "@/lib/paths";
 import { applyWorkspaceContext } from "@/lib/workspace-context";
 
 interface WikiJobFile {
