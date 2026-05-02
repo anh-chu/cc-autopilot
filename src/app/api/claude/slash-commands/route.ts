@@ -1,5 +1,6 @@
 import { type SlashCommand, startup } from "@anthropic-ai/claude-agent-sdk";
 import { NextResponse } from "next/server";
+import { resolveClaudeExecutable } from "@/lib/claude-sdk";
 
 let cachedCommands: SlashCommand[] | null = null;
 let cacheExpiry = 0;
@@ -12,7 +13,10 @@ async function getCommands(): Promise<SlashCommand[]> {
 	}
 
 	let commands: SlashCommand[] = [];
-	const warm = await startup({ options: { maxTurns: 1 } });
+	const pathToClaudeCodeExecutable = resolveClaudeExecutable() ?? undefined;
+	const warm = await startup({
+		options: { maxTurns: 1, pathToClaudeCodeExecutable },
+	});
 	const q = warm.query("__init_probe__");
 
 	try {
@@ -26,8 +30,12 @@ async function getCommands(): Promise<SlashCommand[]> {
 		q.close();
 	}
 
-	cachedCommands = commands;
-	cacheExpiry = now + CACHE_TTL;
+	// Only cache non-empty results so a single bad cold start can't poison the
+	// cache for an hour.
+	if (commands.length > 0) {
+		cachedCommands = commands;
+		cacheExpiry = now + CACHE_TTL;
+	}
 	return commands;
 }
 
@@ -38,8 +46,8 @@ export async function GET() {
 			{ commands },
 			{ headers: { "Cache-Control": "public, max-age=3600" } },
 		);
-	} catch {
-		// Return empty on failure — non-critical
+	} catch (err) {
+		console.error("[claude/slash-commands] failed to load commands:", err);
 		return NextResponse.json({ commands: [] });
 	}
 }

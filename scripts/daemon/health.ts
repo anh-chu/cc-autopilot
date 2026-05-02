@@ -1,6 +1,5 @@
 import { existsSync, readFileSync, renameSync, writeFileSync } from "node:fs";
-import path from "node:path";
-import { getWorkspaceDir } from "../../src/lib/paths";
+import { DAEMON_STATUS_FILE } from "../../src/lib/paths";
 import { logger } from "./logger";
 import { scrubCredentials } from "./security";
 import type {
@@ -11,7 +10,7 @@ import type {
 	SessionHistoryEntry,
 } from "./types";
 
-const STATUS_FILE = path.join(getWorkspaceDir("default"), "daemon-status.json");
+const STATUS_FILE = DAEMON_STATUS_FILE;
 const MAX_HISTORY = 50;
 
 /**

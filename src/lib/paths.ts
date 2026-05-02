@@ -25,6 +25,19 @@ export const DATA_DIR: string = process.env.MANDIO_DATA_DIR
 	? path.resolve(process.env.MANDIO_DATA_DIR)
 	: path.join(os.homedir(), ".mandio");
 
+/**
+ * Process-global daemon paths.
+ *
+ * The daemon is one process per Mandio install (not per workspace), so its
+ * lifecycle files live at DATA_DIR root rather than under a workspace dir.
+ * Daemon writer and HTTP readers must both import from here to stay in sync.
+ */
+export const DAEMON_PID_FILE: string = path.join(DATA_DIR, "daemon.pid");
+export const DAEMON_STATUS_FILE: string = path.join(
+	DATA_DIR,
+	"daemon-status.json",
+);
+
 /** Returns the data directory for a specific workspace. */
 export function getWorkspaceDir(workspaceId: string): string {
 	return path.join(DATA_DIR, "workspaces", workspaceId);

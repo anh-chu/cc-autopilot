@@ -1,8 +1,7 @@
 import fs from "node:fs";
-import path from "node:path";
 import { NextResponse } from "next/server";
 import { mutateActivityLog } from "@/lib/data";
-import { DATA_DIR } from "@/lib/paths";
+import { DAEMON_PID_FILE } from "@/lib/paths";
 
 export async function POST() {
 	const results = {
@@ -12,7 +11,7 @@ export async function POST() {
 
 	// 1. Stop the daemon
 	try {
-		const pidPath = path.join(DATA_DIR, "daemon.pid");
+		const pidPath = DAEMON_PID_FILE;
 		if (fs.existsSync(pidPath)) {
 			const raw = fs.readFileSync(pidPath, "utf-8").trim();
 			const pid = parseInt(raw, 10);

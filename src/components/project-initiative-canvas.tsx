@@ -1397,11 +1397,17 @@ function ProjectInitiativeCanvasInner() {
 				NODE_WIDTHS[childType],
 			);
 
-			if (!parentChildren.has(parentId))
-				parentChildren.set(parentId, new Map());
-			const sideMap = parentChildren.get(parentId);
-			if (!sideMap.has(sides.source)) sideMap.set(sides.source, []);
-			sideMap?.get(sides.source)?.push({ childId, childType });
+			let sideMap = parentChildren.get(parentId);
+			if (!sideMap) {
+				sideMap = new Map();
+				parentChildren.set(parentId, sideMap);
+			}
+			let bucket = sideMap.get(sides.source);
+			if (!bucket) {
+				bucket = [];
+				sideMap.set(sides.source, bucket);
+			}
+			bucket.push({ childId, childType });
 		}
 
 		for (const init of activeInitiatives) {

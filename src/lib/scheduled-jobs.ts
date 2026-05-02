@@ -14,7 +14,7 @@ import {
 import { readdir, stat, unlink } from "node:fs/promises";
 import path from "node:path";
 import cron from "node-cron";
-import { DATA_DIR, getBaseDir } from "./paths";
+import { DAEMON_PID_FILE, DATA_DIR, getBaseDir } from "./paths";
 
 const GRACE_MS = 60 * 60 * 1000; // 1 hour
 const LOG_RETENTION_MS = 7 * 24 * 60 * 60 * 1000; // 7 days
@@ -217,7 +217,7 @@ function spawnDaemon(): number | null {
 }
 
 function isDaemonRunning(): boolean {
-	const pidFile = path.join(DATA_DIR, "daemon.pid");
+	const pidFile = DAEMON_PID_FILE;
 	if (!existsSync(pidFile)) return false;
 	try {
 		const pid = parseInt(readFileSync(pidFile, "utf-8").trim(), 10);

@@ -46,9 +46,22 @@ async function buildDaemon() {
 			external: ["@anthropic-ai/claude-agent-sdk", "tree-kill"],
 			sourcemap: false,
 			minify: false,
-			banner: file.src.includes("index")
-				? { js: "#!/usr/bin/env node" }
-				: undefined,
+			// ESM bundles can't `require()` natively. Inject a real `require` via
+			// createRequire so bundled CJS deps (gray-matter, etc.) keep working.
+			// The shebang stays on the daemon entry only.
+			banner: {
+				js: [
+					file.src.includes("index") ? "#!/usr/bin/env node" : "",
+					"import { createRequire as __mandioCreateRequire } from 'node:module';",
+					"import { fileURLToPath as __mandioFileURLToPath } from 'node:url';",
+					"import { dirname as __mandioDirname } from 'node:path';",
+					"const require = __mandioCreateRequire(import.meta.url);",
+					"const __filename = __mandioFileURLToPath(import.meta.url);",
+					"const __dirname = __mandioDirname(__filename);",
+				]
+					.filter(Boolean)
+					.join("\n"),
+			},
 		});
 
 		const stats = fs.statSync(distPath);

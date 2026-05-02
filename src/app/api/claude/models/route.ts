@@ -1,5 +1,6 @@
 import { type ModelInfo, startup } from "@anthropic-ai/claude-agent-sdk";
 import { NextResponse } from "next/server";
+import { resolveClaudeExecutable } from "@/lib/claude-sdk";
 
 let cachedModels: ModelInfo[] | null = null;
 let cacheExpiry = 0;
@@ -12,7 +13,10 @@ async function getModels(): Promise<ModelInfo[]> {
 	}
 
 	let models: ModelInfo[] = [];
-	const warm = await startup({ options: { maxTurns: 1 } });
+	const pathToClaudeCodeExecutable = resolveClaudeExecutable() ?? undefined;
+	const warm = await startup({
+		options: { maxTurns: 1, pathToClaudeCodeExecutable },
+	});
 	const q = warm.query("__init_probe__");
 
 	try {
@@ -26,8 +30,12 @@ async function getModels(): Promise<ModelInfo[]> {
 		q.close();
 	}
 
-	cachedModels = models;
-	cacheExpiry = now + CACHE_TTL;
+	// Only cache non-empty results so a single bad cold start can't poison the
+	// cache for an hour.
+	if (models.length > 0) {
+		cachedModels = models;
+		cacheExpiry = now + CACHE_TTL;
+	}
 	return models;
 }
 
@@ -38,8 +46,8 @@ export async function GET() {
 			{ models },
 			{ headers: { "Cache-Control": "public, max-age=3600" } },
 		);
-	} catch {
-		// Return empty on failure — non-critical
+	} catch (err) {
+		console.error("[claude/models] failed to load models:", err);
 		return NextResponse.json({ models: [] });
 	}
 }

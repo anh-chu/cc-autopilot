@@ -91,6 +91,21 @@ function startServerProcess(port: number): ChildProcess {
 	return proc;
 }
 
+function startMandioDaemon(env: NodeJS.ProcessEnv): number | null {
+	const daemonScript = path.join(rootDir, "dist", "daemon.js");
+	if (!fs.existsSync(daemonScript)) {
+		console.warn(
+			`⚠ Daemon bundle not found at ${daemonScript}. Run \`pnpm build:daemon\`.`,
+		);
+		return null;
+	}
+	const pid = forkDaemon(process.execPath, [daemonScript, "start"], {
+		...env,
+		MANDIO_INSTALL_DIR: rootDir,
+	});
+	return pid;
+}
+
 function killProcess(
 	pid: number,
 	signal: "SIGTERM" | "SIGKILL" = "SIGTERM",
@@ -206,23 +221,27 @@ async function start(options: CliOptions = {}) {
 	if (options.daemon) {
 		console.log(`Starting in daemon mode on port ${port}...`);
 		const serverScript = path.join(rootDir, ".next", "standalone", "server.js");
-		const pid = forkDaemon(process.execPath, [serverScript], {
+		const serverPid = forkDaemon(process.execPath, [serverScript], {
 			...process.env,
 			PORT: String(port),
 			MANDIO_INSTALL_DIR: rootDir,
 		});
 
-		// Write PID file
+		const daemonPid = startMandioDaemon(process.env) ?? undefined;
+
 		clearPidFile();
 		writePidFile({
-			pid,
-			serverPid: pid,
-			daemonPid: pid,
+			pid: serverPid,
+			serverPid,
+			daemonPid,
 			port,
 			startedAt: new Date().toISOString(),
 		});
 
-		console.log(`✓ Server started in background (PID: ${pid})`);
+		console.log(`✓ Server started in background (PID: ${serverPid})`);
+		if (daemonPid) {
+			console.log(`✓ Daemon started (PID: ${daemonPid})`);
+		}
 		console.log(`  Access at: http://localhost:${port}`);
 	} else {
 		console.log(`Starting server on port ${port}...`);
@@ -250,11 +269,16 @@ async function start(options: CliOptions = {}) {
 			console.warn("⚠ Server may not be ready yet");
 		}
 
-		// Write PID file
+		const daemonPid = startMandioDaemon(process.env) ?? undefined;
+		if (daemonPid) {
+			console.log(`✓ Daemon started (PID: ${daemonPid})`);
+		}
+
 		clearPidFile();
 		writePidFile({
 			pid: proc.pid as number,
 			serverPid: proc.pid as number,
+			daemonPid,
 			port,
 			startedAt: new Date().toISOString(),
 		});
@@ -272,11 +296,21 @@ async function stop() {
 
 	const stopped = await stopServer(pidInfo.pid);
 	if (stopped) {
-		clearPidFile();
 		console.log("✓ Server stopped");
 	} else {
 		console.log("⚠ Could not stop server, process may have already exited");
 	}
+
+	if (pidInfo.daemonPid && pidInfo.daemonPid !== pidInfo.serverPid) {
+		const daemonStopped = await killProcess(pidInfo.daemonPid, "SIGTERM");
+		if (daemonStopped) {
+			console.log("✓ Daemon stopped");
+		} else {
+			console.log("⚠ Could not stop daemon");
+		}
+	}
+
+	clearPidFile();
 }
 
 async function status() {

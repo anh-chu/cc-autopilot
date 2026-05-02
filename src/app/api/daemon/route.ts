@@ -4,12 +4,12 @@ import path from "node:path";
 import { NextResponse } from "next/server";
 import { getDaemonConfig, mutateDaemonConfig } from "@/lib/data";
 import { readJSON } from "@/lib/json-io";
-import { DATA_DIR } from "@/lib/paths";
+import { DAEMON_PID_FILE, DAEMON_STATUS_FILE } from "@/lib/paths";
 import { isProcessAlive } from "@/lib/process-utils";
 import { daemonConfigUpdateSchema, validateBody } from "@/lib/validations";
 
-const STATUS_FILE = path.join(DATA_DIR, "daemon-status.json");
-const PID_FILE = path.join(DATA_DIR, "daemon.pid");
+const STATUS_FILE = DAEMON_STATUS_FILE;
+const PID_FILE = DAEMON_PID_FILE;
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 

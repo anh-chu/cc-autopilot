@@ -11,6 +11,10 @@ const nextConfig: NextConfig = {
 	],
 	allowedDevOrigins: ["localhost", "devvm", "127.0.0.1"],
 	devIndicators: false,
+	// The Claude Agent SDK uses runtime path resolution and child processes.
+	// Bundling it via webpack/turbopack breaks model and slash-command discovery,
+	// so keep it as an external dependency at runtime.
+	serverExternalPackages: ["@anthropic-ai/claude-agent-sdk"],
 	experimental: {
 		optimizePackageImports: ["lucide-react"],
 	},

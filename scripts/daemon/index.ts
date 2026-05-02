@@ -1,4 +1,3 @@
-#!/usr/bin/env node
 import {
 	existsSync,
 	mkdirSync,
@@ -14,7 +13,12 @@ import {
 	DOC_MAINTAINER_AGENT_INSTRUCTIONS,
 	getWorkspaceDataDir,
 } from "../../src/lib/data";
-import { DATA_DIR, getWikiDir, getWorkspaceDir } from "../../src/lib/paths";
+import {
+	DAEMON_PID_FILE,
+	DATA_DIR,
+	getWikiDir,
+	getWorkspaceDir,
+} from "../../src/lib/paths";
 import { readActiveRuns, writeActiveRuns } from "./active-runs";
 import { loadConfig } from "./config";
 import { Dispatcher } from "./dispatcher";
@@ -32,7 +36,7 @@ import {
 } from "./warm-sdk";
 
 // ─── Constants ───────────────────────────────────────────────────────────────
-const PID_FILE = path.join(DATA_DIR, "daemon.pid");
+const PID_FILE = DAEMON_PID_FILE;
 
 // ─── Workspace Registry ──────────────────────────────────────────────────────
 

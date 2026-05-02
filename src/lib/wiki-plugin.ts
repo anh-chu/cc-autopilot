@@ -29,6 +29,7 @@ interface ListedPlugin {
 	installPath?: string;
 	projectPath?: string;
 	version?: string;
+	enabled?: boolean;
 }
 
 const REPO = "anh-chu/llm-wiki-pm";
@@ -166,6 +167,17 @@ export function ensureWikiPluginInstalledDetailed(
 		throw new Error(
 			"llm-wiki-pm installed but installPath not found via claude plugin list --json",
 		);
+	}
+
+	// Recent claude versions install plugins in a disabled state. Enable explicitly
+	// so slash commands and hooks become available without manual intervention.
+	if (plugin.enabled === false) {
+		try {
+			runClaude(`claude plugin enable ${PKG}`, cwd);
+			plugin = getInstalledPlugin(cwd) ?? plugin;
+		} catch {
+			// older claude versions don't have `plugin enable`; ignore
+		}
 	}
 
 	if (options?.update) {

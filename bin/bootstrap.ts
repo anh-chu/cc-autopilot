@@ -73,11 +73,14 @@ function writeVersion(): void {
 function ensureDefaultWorkspace(): void {
 	const defaultWs = getWorkspaceDir("default");
 
-	// Seed files to create if they don't exist
+	// Seed files to create if they don't exist.
+	// Shapes must match the readers in src/lib/data.ts.
 	const seedFiles: Record<string, unknown> = {
-		"tasks.json": [],
-		"projects.json": [],
-		"inbox.json": [],
+		"tasks.json": { tasks: [] },
+		"projects.json": { projects: [] },
+		"inbox.json": { messages: [] },
+		"brain-dump.json": { entries: [] },
+		"decisions.json": { decisions: [] },
 	};
 
 	for (const [filename, defaultContent] of Object.entries(seedFiles)) {
@@ -125,8 +128,13 @@ function _getStoredVersion(): string | null {
 	}
 }
 
-// Run if executed directly
-if (import.meta.url === `file://${process.argv[1]}`) {
+// Run if executed directly as a standalone script.
+// Guarded by an env flag so the bundled CLI (which inlines this file) never
+// triggers process.exit() from inside `mandio start`.
+if (
+	process.env.MANDIO_BOOTSTRAP_STANDALONE === "1" &&
+	import.meta.url === `file://${process.argv[1]}`
+) {
 	bootstrapDataDir()
 		.then(() => {
 			console.log("[bootstrap] Done");

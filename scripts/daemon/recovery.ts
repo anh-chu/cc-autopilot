@@ -1,5 +1,5 @@
 import path from "node:path";
-import { getWorkspaceDir } from "../../src/lib/paths";
+import { DAEMON_STATUS_FILE, getWorkspaceDir } from "../../src/lib/paths";
 import { logger } from "./logger";
 import { atomicWriteJson, readJsonFile } from "./runs-registry";
 
@@ -111,7 +111,8 @@ export function runCrashRecovery(
 
 	try {
 		const workspaceDir = getWorkspaceDir(workspaceId);
-		const statusFile = path.join(workspaceDir, "daemon-status.json");
+		// Status is process-global, lives at DATA_DIR root (see paths.ts).
+		const statusFile = DAEMON_STATUS_FILE;
 		const tasksFile = path.join(workspaceDir, "tasks.json");
 		const sessionRecoveryFile = path.join(
 			workspaceDir,

@@ -25,39 +25,6 @@ interface WikiJobFile {
 	message: string | null;
 }
 
-// ─── Daemon auto-start ────────────────────────────────────────────────────────
-
-const DAEMON_PID_FILE = path.join(DATA_DIR, "daemon.pid");
-
-function isDaemonRunning(): boolean {
-	try {
-		if (!existsSync(DAEMON_PID_FILE)) return false;
-		const pid = Number(readFileSync(DAEMON_PID_FILE, "utf-8").trim());
-		if (!Number.isFinite(pid) || pid <= 0) return false;
-		process.kill(pid, 0);
-		return true;
-	} catch {
-		return false;
-	}
-}
-
-function ensureDaemonRunning(): void {
-	if (isDaemonRunning()) return;
-	const daemonScript = path.resolve(
-		process.cwd(),
-		"scripts",
-		"daemon",
-		"index.ts",
-	);
-	const tsxBin = path.resolve(process.cwd(), "node_modules", ".bin", "tsx");
-	const child = spawn(tsxBin, [daemonScript, "start"], {
-		cwd: process.cwd(),
-		detached: true,
-		stdio: "ignore",
-	});
-	child.unref();
-}
-
 function writeJobFile(wikiDir: string, job: WikiJobFile): void {
 	const jobsDir = path.join(wikiDir, ".jobs");
 	mkdirSync(jobsDir, { recursive: true });
@@ -129,8 +96,8 @@ export async function POST(request: Request) {
 			return undefined;
 		});
 
-		// Ensure daemon is running, then write job file
-		ensureDaemonRunning();
+		// Daemon lifecycle is owned by `mandio start`/`mandio stop`. If the daemon
+		// isn't running, the job file will sit until something picks it up.
 		const job: WikiJobFile = {
 			runId,
 			workspaceId,
