@@ -448,3 +448,32 @@ Each task is single-file scope, fully specified, no architectural decisions rema
 - `/home/sil/ccmc-assistant-ui/scripts/daemon/security.ts` — Contains `validatePathWithinWorkspace` needed by the new `/api/chat` route for cwd validation.
 - `/home/sil/ccmc-assistant-ui/scripts/daemon/runner.ts` — Reference for Claude binary detection, session ID extraction, and spawn options. Not modified, but informs the provider config.
 - `/home/sil/ccmc-assistant-ui/src/app/api/runs/stream/route.ts` — Current SSE implementation. Reference for the `DaemonRunViewer` if we keep JSONL tailing for daemon runs.
+
+---
+
+## Migration Log
+
+| Phase | Commit | Outcome |
+|-------|--------|---------|
+| 0 | `d2e651b` | Smoke-test scaffold: deps, `/api/chat` route, `<AssistantThread>` (Thread+Composer primitives), `/test-chat` page. Worker discovered three plan deviations and documented inline (`toUIMessageStreamResponse`, `AssistantChatTransport({ api })`, `ThreadPrimitive` namespace). |
+| 1 | `44ac2e2` | Tool-call UIs for Read/Edit/Bash/Glob/Grep/Task/Write + fallback. `cwd/model/persona` forwarded via transport body. In-memory semaphore caps concurrent chats at 3 with 429 + Retry-After. |
+| 2-3-5 | `7e6ff91` | Server-side session id persistence (`src/lib/chat-sessions.ts`) keyed by workspaceId+context, atomic write. GET/POST `/api/chat` thread sessionId through `claudeCode` `sdkOptions.resume`. Mount points swapped: `documents/page.tsx` mounts `<AssistantThread>`, `autopilot/page.tsx` and `logs/page.tsx` swap to read-only `<DaemonRunViewer>`. Vitest coverage (api-chat, chat-sessions, tool-uis). Server resolves wikiDir from context to keep `node:fs` out of the client bundle. |
+| 4 | `3cd3168` | Deleted `agent-console.tsx`, `use-agent-stream.ts`, `test-chat/page.tsx`. `/api/runs/stream` kept alive — still tailed by `DaemonRunViewer`. |
+
+### Final verify
+- `pnpm tsc --noEmit` → 0 errors
+- `pnpm test --run` → 215/215 passing
+- `pnpm build` → ok (53/53 static pages, 38s)
+- `npx @biomejs/biome check` (chat surface) → 0 errors
+
+### Morning manual test
+1. `pnpm dev`
+2. Visit `/documents`, select an agent + model, send a message.
+3. Verify Claude Code response streams, tool calls render with the new collapsible cards.
+4. Refresh — follow-up message should resume the same Claude Code session (check `<workspaceDataDir>/chat-sessions.json`).
+5. Visit `/autopilot` and `/logs` while a daemon run is active — `<DaemonRunViewer>` tails `/api/runs/stream` read-only.
+
+### Known follow-ups
+- Tool-UI tests assert shape only (functions, count). Add render tests with @testing-library/react when needed.
+- Concurrent-chat 429 path is asserted in unit test; consider adding e2e once a Playwright harness exists.
+- `applyWorkspaceContext()` currently relies on cookies/headers; if multi-tab usage shows session crosstalk, accept `workspaceId` explicitly in the `/api/chat` body.
