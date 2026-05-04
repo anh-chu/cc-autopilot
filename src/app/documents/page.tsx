@@ -296,6 +296,22 @@ export default function BrainPage() {
 	}, [agentStreamLines]);
 	const [chatInput, setChatInput] = useState("");
 	const [chatSending, setChatSending] = useState(false);
+	// Message just submitted, shown optimistically until the stream produces its
+	// first event. Bridges the gap between Send click and first token arriving.
+	const [pendingMessage, setPendingMessage] = useState<string | null>(null);
+	const [pendingRunId, setPendingRunId] = useState<string | null>(null);
+	// Clear the optimistic pending message once the matching stream has any output.
+	useEffect(() => {
+		if (
+			pendingMessage &&
+			pendingRunId &&
+			streamRunId === pendingRunId &&
+			agentStreamLines.length > 0
+		) {
+			setPendingMessage(null);
+			setPendingRunId(null);
+		}
+	}, [pendingMessage, pendingRunId, streamRunId, agentStreamLines.length]);
 	const [slashMenuOpen, setSlashMenuOpen] = useState(false);
 	const [slashQuery, setSlashQuery] = useState("");
 	const [claudeCommands, setClaudeCommands] = useState<
@@ -563,6 +579,10 @@ export default function BrainPage() {
 		if (!msg || chatSending) return;
 		setChatSending(true);
 		setChatInput("");
+		// Show the user message immediately so they get instant feedback while the
+		// generate API call, daemon pickup, and SDK warm-up run in the background.
+		setPendingMessage(msg);
+		setPendingRunId(null);
 		try {
 			// Expand slash command to its full description
 			const skill = commands.find(
@@ -602,9 +622,12 @@ export default function BrainPage() {
 				setPriorLines([]);
 			}
 			setStreamRunId(data.runId);
+			setPendingRunId(data.runId);
 			await loadRuns();
 		} catch {
 			setChatInput(msg);
+			setPendingMessage(null);
+			setPendingRunId(null);
 		} finally {
 			setChatSending(false);
 		}
@@ -1575,28 +1598,48 @@ export default function BrainPage() {
 					)}
 
 					{/* Body: stream viewer or recent runs */}
-					{streamRunId ? (
+					{streamRunId || pendingMessage ? (
 						<>
 							{/* Run sub-header */}
 							<div className="flex items-center justify-between px-4 py-2 border-b shrink-0">
 								<p
 									className="text-xs text-muted-foreground truncate"
-									title={streamRunId}
+									title={streamRunId ?? undefined}
 								>
-									{wikiRuns.find((r) => r.id === streamRunId)?.firstMessage ||
-										streamRunId}
+									{(streamRunId &&
+										wikiRuns.find((r) => r.id === streamRunId)?.firstMessage) ||
+										pendingMessage ||
+										streamRunId ||
+										"Starting…"}
 								</p>
 								<Button
 									size="sm"
 									variant="ghost"
 									onClick={() => setStreamRunId(null)}
+									disabled={!streamRunId}
 								>
 									Close
 								</Button>
 							</div>
 							{/* Stream content */}
 							<div className="flex-1 overflow-auto p-4 min-h-0">
-								{displayStreamEvents.length === 0 && isConnected ? (
+								{displayStreamEvents.length === 0 && pendingMessage ? (
+									<div className="space-y-3">
+										<div className="flex justify-end">
+											<div className="max-w-[85%] rounded-sm border bg-primary-soft px-3 py-2 text-xs whitespace-pre-wrap text-foreground">
+												{pendingMessage}
+											</div>
+										</div>
+										<div className="flex items-center gap-2 text-xs text-muted-foreground">
+											<WorkingIndicator />
+											<span>
+												{streamRunId
+													? "Waiting for Claude output…"
+													: "Starting run…"}
+											</span>
+										</div>
+									</div>
+								) : displayStreamEvents.length === 0 && isConnected ? (
 									<div className="flex items-center gap-2 text-sm text-muted-foreground">
 										<WorkingIndicator /> Waiting for Claude output...
 									</div>
@@ -1609,7 +1652,14 @@ export default function BrainPage() {
 										{displayStreamEvents.map((line, i) => (
 											<StreamEntry key={`evt_${i}_${line.type}`} line={line} />
 										))}
-										{isConnected && <WorkingIndicator />}
+										{pendingMessage && (
+											<div className="flex justify-end">
+												<div className="max-w-[85%] rounded-sm border bg-primary-soft px-3 py-2 text-xs whitespace-pre-wrap text-foreground">
+													{pendingMessage}
+												</div>
+											</div>
+										)}
+										{(isConnected || pendingMessage) && <WorkingIndicator />}
 									</div>
 								)}
 							</div>
