@@ -1,5 +1,11 @@
 # Libraries
 
+- `bin/bootstrap.ts` — function bootstrapDataDir: () => Promise<void>
+- `bin/checks.ts`
+  - function checkNodeVersion: (minVersion) => boolean
+  - function checkClaudeCLI: () => boolean
+  - function checkPortAvailable: (port) => Promise<boolean>
+  - function checkDataDirWritable: (dataDir) => boolean
 - `scripts/daemon/active-runs.ts`
   - function readActiveRuns: (filePath) => void
   - function writeActiveRuns: (filePath, data) => void
@@ -9,8 +15,8 @@
 - `scripts/daemon/dispatcher.ts` — class Dispatcher
 - `scripts/daemon/health.ts` — class HealthMonitor
 - `scripts/daemon/prompt-builder.ts`
-  - function buildTaskPrompt: (agentId, task, missionId?) => string
-  - function buildScheduledPrompt: (command) => string
+  - function buildTaskPrompt: (agentId, task, missionId?, workspaceId) => string
+  - function buildScheduledPrompt: (command, workspaceId) => string
   - function getTask: (taskId) => TaskDef | null
   - function getPendingTasks: () => TaskDef[]
   - function isTaskUnblocked: (task) => boolean
@@ -55,7 +61,7 @@
   - function useBrainDump: () => void
   - function useActivityLog: () => void
   - function useInbox: () => void
-  - _...4 more_
+  - _...6 more_
 - `src/hooks/use-fast-task-poll.ts` — function useFastTaskPoll: (hasRunningTasks, refetchTasks) => void
 - `src/hooks/use-processing-entries.ts` — function useProcessingEntries: (entries) => void
 - `src/hooks/use-sidebar.ts` — function useSidebar: () => void
@@ -63,14 +69,46 @@
 - `src/instrumentation.ts` — function register: () => void
 - `src/lib/agent-icons.ts` — function getAgentIcon: (agentId, iconName?) => LucideIcon
 - `src/lib/api-client.ts` — function apiFetch: (url, init?) => Promise<Response>, interface ApiFetchInit
+- `src/lib/cabinets/tree.ts`
+  - function findRootCabinetNode: (nodes) => TreeNode | null
+  - function findNodeByPath: (nodes, path) => TreeNode | null
+  - function findDeepestCabinetNode: (nodes, targetPath) => TreeNode | null
+  - function findParentCabinetNode: (nodes, cabinetPath, cabinetAncestor) => TreeNode | null
+- `src/lib/claude-sdk.ts` — function resolveClaudeExecutable: () => string | null
+- `src/lib/command-activation.ts`
+  - function activateCommand: (workspaceId, commandId) => Promise<void>
+  - function deactivateCommand: (workspaceId, commandId) => Promise<void>
+  - function listActivatedCommands: (workspaceId) => Promise<string[]>
+  - function listActivatedCommandsSync: (workspaceId) => string[]
+  - function isCommandActivated: (workspaceId, commandId) => Promise<boolean>
+  - function activateAllCommands: (workspaceId) => Promise<void>
+  - _...6 more_
+- `src/lib/command-files.ts`
+  - function parseCommandFile: (id, raw) => Omit<CommandFileData, "createdAt" | "updatedAt">
+  - function serializeCommandFile: (cmd, "createdAt" | "updatedAt">) => string
+  - function readCommandFile: (cmdDir) => Promise<CommandFileData | null>
+  - function readCommandFileSync: (cmdDir) => CommandFileData | null
+  - function writeCommandFile: (cmdDir, cmd, "createdAt" | "updatedAt">) => Promise<void>
+  - function listCommandIds: (baseDir) => Promise<string[]>
+  - _...5 more_
 - `src/lib/data.ts`
   - function setCurrentWorkspace: (id) => void
+  - function ensureSkillsMigrated: (workspaceId) => Promise<void>
   - function getWorkspaceDataDir: (workspaceId) => string
   - function ensureWorkspaceDir: (workspaceId) => Promise<void>
   - function initWikiDir: (workspaceId) => Promise<void>
   - function ensureDocMaintainerAgentForWorkspace: (workspaceId) => Promise<void>
-  - function getTasks: () => Promise<TasksFile>
-  - _...36 more_
+  - _...33 more_
+- `src/lib/embeds/detect.ts`
+  - function detectEmbed: (raw) => DetectedEmbed | null
+  - function providerLabel: (p) => string
+  - interface DetectedEmbed
+  - type EmbedProvider
+- `src/lib/google/detect.ts`
+  - function detectGoogle: (rawUrl) => GoogleLink | null
+  - function googleKindLabel: (kind) => string
+  - interface GoogleLink
+  - type GoogleKind
 - `src/lib/json-io.ts` — function readJSON: (file) => T | null, function writeJSON: (file, data) => void
 - `src/lib/log-reader.ts`
   - function isAllowedLogPath: (filePath) => boolean
@@ -80,6 +118,9 @@
   - function createLogger: (processName, opts) => Logger
   - interface Logger
   - type LogLevel
+- `src/lib/markdown/parse-frontmatter.ts` — function parseFrontmatter: (text) => ParsedFrontmatter, interface ParsedFrontmatter
+- `src/lib/markdown/to-html.ts` — function markdownToHtml: (markdown, pagePath?) => Promise<string>
+- `src/lib/markdown/to-markdown.ts` — function htmlToMarkdown: (html) => string
 - `src/lib/paginate.ts`
   - function parsePaginationParams: (searchParams) => PaginationParams
   - function paginateItems: (items, {...}, offset }, total) => PaginatedResult<T>
@@ -87,35 +128,48 @@
   - interface PaginatedResult
   - const CACHE_HEADERS
 - `src/lib/paths.ts`
+  - function assertSafeId: (id) => void
   - function getWorkspaceDir: (workspaceId) => string
   - function getUploadsDir: (workspaceId) => string
   - function getWikiPathFile: (workspaceId) => string
   - function getWikiDir: (workspaceId) => string
   - function getDefaultWikiDir: (workspaceId) => string
-  - const DATA_DIR: string
+  - _...16 more_
+- `src/lib/plugin-reader.ts` — function listInstalledPlugins: (projectDir?) => Promise<PluginInfo[]>, interface PluginInfo
 - `src/lib/process-utils.ts` — function isProcessAlive: (pid, assumeAliveIfZero) => boolean
 - `src/lib/scheduled-jobs.ts`
   - function scheduleUploadsCleanup: () => void
   - function scheduleLogCleanup: () => void
   - function scheduleDaemonWatchdog: () => void
 - `src/lib/scrub.ts` — function scrubCredentials: (text) => string
+- `src/lib/skill-activation.ts`
+  - function activateSkill: (workspaceId, skillId) => Promise<void>
+  - function deactivateSkill: (workspaceId, skillId) => Promise<void>
+  - function listActivatedSkills: (workspaceId) => Promise<string[]>
+  - function isSkillActivated: (workspaceId, skillId) => Promise<boolean>
+  - function listActivatedSkillsSync: (workspaceId) => string[]
+  - function activateAllSkills: (workspaceId) => Promise<void>
+  - _...6 more_
+- `src/lib/skill-files.ts`
+  - function parseSkillFile: (id, raw) => Omit<SkillFileData, "createdAt" | "updatedAt">
+  - function serializeSkillFile: (skill, "createdAt" | "updatedAt">) => string
+  - function readSkillFile: (skillDir) => Promise<SkillFileData | null>
+  - function readSkillFileSync: (skillDir) => SkillFileData | null
+  - function writeSkillFile: (skillDir, skill, "createdAt" | "updatedAt">) => Promise<void>
+  - function listSkillIds: (skillsBaseDir) => Promise<string[]>
+  - _...5 more_
 - `src/lib/sync-commands.ts`
   - function generateAgentCommandMarkdown: (agent, linkedSkills) => string
-  - function syncAgentCommand: (agent) => Promise<void>
-  - function syncAllAgentCommands: () => Promise<void>
-  - function syncSkillFile: (skill) => Promise<void>
-  - function syncAllSkillFiles: () => Promise<void>
-- `src/lib/toast.ts`
-  - function showSuccess: (message, options?) => void
-  - function showError: (message, options?) => void
-  - function showInfo: (message, options?) => void
+  - function syncAgentCommand: (agent, workspaceId) => Promise<void>
+  - function syncAllAgentCommands: (workspaceId) => Promise<void>
+- `src/lib/toast.ts` — function showSuccess: (message, options?) => void, function showError: (message, options?) => void
 - `src/lib/types.ts`
   - function getQuadrant: (task) => EisenhowerQuadrant
-  - function quadrantFromValues: (importance, urgency) => EisenhowerQuadrant
   - function valuesFromQuadrant: (quadrant) => void
   - interface AgentDefinition
   - interface AgentsFile
   - interface SkillDefinition
+  - interface LegacySkillDefinition
   - _...45 more_
 - `src/lib/utils.ts`
   - function cn: (...inputs) => void
@@ -123,15 +177,16 @@
   - function parseAgentMentions: (text) => string[]
 - `src/lib/validations.ts`
   - function validateBody: (request, schema) => Promise<ValidationResult<T>>
+  - const safeId
   - const DEFAULT_LIMIT
   - const LIMITS
   - const commentSchema
   - const taskCreateSchema
-  - const taskUpdateSchema
-  - _...16 more_
+  - _...21 more_
+- `src/lib/wiki-helpers.ts` — function isAppFolder: (wikiDir, relPath) => Promise<boolean>
 - `src/lib/wiki-plugin.ts`
+  - function getPluginStatus: (cwd) => void
   - function ensureWikiPluginInstalledDetailed: (cwd, options?) => WikiPluginInstall
-  - function ensureWikiPluginInstalled: (cwd) => WikiPluginStatus
   - function ensureWikiBootstrappedFromPlugin: (wikiDir, pluginInstallPath, domain, options?) => WikiBootstrapResult
   - function reconcileWikiWithPlugin: (wikiDir, pluginInstallPath) => WikiReconcileResult
   - interface WikiPluginInstall
@@ -139,3 +194,7 @@
   - _...3 more_
 - `src/lib/workspace-context.ts` — function applyWorkspaceContext: () => Promise<string>
 - `src/proxy.ts` — function proxy: (request) => void, const config
+- `src/stores/editor-store.ts`
+  - class FetchPageError
+  - type LoadStatus
+  - const useEditorStore

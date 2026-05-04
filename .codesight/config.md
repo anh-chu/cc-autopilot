@@ -4,14 +4,17 @@
 
 - `API_KEY` **required** — __tests__/daemon.test.ts
 - `APPDATA` **required** — scripts/daemon/runner.ts
+- `CLAUDE_CODE_EXECUTABLE` **required** — src/lib/claude-sdk.ts
 - `CLAUDE_CODE_OAUTH_TOKEN` **required** — scripts/daemon/security.ts
-- `CMC_DATA_DIR` **required** — __tests__/helpers.ts
-- `MANDIO_WORKSPACE_ID` **required** — scripts/daemon/run-brain-dump-triage.ts
 - `COMSPEC` **required** — scripts/daemon/security.ts
 - `HOME` **required** — scripts/daemon/runner.ts
 - `LOCALAPPDATA` **required** — scripts/daemon/runner.ts
-- `MC_API_TOKEN` **required** — src/proxy.ts
-- `NEXT_PUBLIC_MC_API_TOKEN` **required** — src/lib/api-client.ts
+- `MANDIO_API_TOKEN` **required** — src/proxy.ts
+- `MANDIO_BOOTSTRAP_STANDALONE` **required** — bin/bootstrap.ts
+- `MANDIO_DATA_DIR` **required** — __tests__/helpers.ts
+- `MANDIO_INSTALL_DIR` **required** — src/lib/paths.ts
+- `MANDIO_WORKSPACE_ID` **required** — scripts/daemon/prompt-builder.ts
+- `NEXT_PUBLIC_MANDIO_API_TOKEN` **required** — src/lib/api-client.ts
 - `NEXT_RUNTIME` **required** — src/instrumentation.ts
 - `NODE_ENV` **required** — src/instrumentation.ts
 - `P` **required** — scripts/daemon/security.ts
