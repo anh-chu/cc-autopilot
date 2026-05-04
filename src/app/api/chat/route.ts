@@ -5,15 +5,25 @@
 
 import * as fs from "node:fs";
 import * as path from "node:path";
+import type { Query } from "@anthropic-ai/claude-agent-sdk";
 import { type ModelMessage, streamText } from "ai";
 import { claudeCode } from "ai-sdk-provider-claude-code";
-import type { Query } from "@anthropic-ai/claude-agent-sdk";
 import { getSessionId, saveSessionId } from "@/lib/chat-sessions";
+import { getWikiDir, getWorkspaceDir } from "@/lib/paths";
 import { applyWorkspaceContext } from "@/lib/workspace-context";
+
+/** Resolve a default cwd from context when client did not pass one. */
+function defaultCwdForContext(
+	workspaceId: string,
+	context: string | undefined,
+): string {
+	if (context?.startsWith("wiki:")) return getWikiDir(workspaceId);
+	return getWorkspaceDir(workspaceId);
+}
 
 // Process-wide semaphore: max 3 concurrent chats
 let activeChatCount = 0;
-const waitingQueue: ((value: void) => void)[] = [];
+const waitingQueue: (() => void)[] = [];
 
 async function acquireChatSlot(): Promise<void> {
 	if (activeChatCount < 3) {
@@ -41,10 +51,10 @@ function releaseChatSlot(): void {
 export async function GET(request: Request) {
 	const workspaceId = await applyWorkspaceContext();
 	const { searchParams } = new URL(request.url);
-	const context = searchParams.get('context') || undefined;
-	
+	const context = searchParams.get("context") || undefined;
+
 	const sessionId = getSessionId(workspaceId, context);
-	
+
 	return new Response(JSON.stringify({ sessionId }), {
 		headers: { "Content-Type": "application/json" },
 	});
@@ -73,11 +83,12 @@ export async function POST(request: Request) {
 	};
 
 	const { messages, data } = body;
-	const cwd = data?.cwd ?? process.cwd();
 	const context = data?.context;
+	const cwd = data?.cwd ?? defaultCwdForContext(workspaceId, context);
 
 	// Get current session ID if not provided in body
-	const currentSessionId = data?.sessionId ?? getSessionId(workspaceId, context);
+	const currentSessionId =
+		data?.sessionId ?? getSessionId(workspaceId, context);
 
 	// Validate cwd is an existing absolute path
 	if (!path.isAbsolute(cwd)) {
@@ -109,7 +120,8 @@ export async function POST(request: Request) {
 			...(currentSessionId ? { resume: currentSessionId } : {}),
 			onQueryCreated: (query: Query) => {
 				// Capture the session ID - it may be available on query properties
-				newSessionId = (query as any).sessionId || (query as any).id;
+				const q = query as { sessionId?: string; id?: string };
+				newSessionId = q.sessionId || q.id;
 			},
 		});
 
@@ -121,17 +133,19 @@ export async function POST(request: Request) {
 		const result = streamText({ model, messages: enhancedMessages });
 
 		// Save session ID after stream completes (async)
-		Promise.resolve(result.text).then(() => {
-			if (newSessionId) {
-				try {
-					saveSessionId(workspaceId, newSessionId, context);
-				} catch (error) {
-					console.warn('Failed to save session ID:', error);
+		Promise.resolve(result.text)
+			.then(() => {
+				if (newSessionId) {
+					try {
+						saveSessionId(workspaceId, newSessionId, context);
+					} catch (error) {
+						console.warn("Failed to save session ID:", error);
+					}
 				}
-			}
-		}).catch((error: unknown) => {
-			console.warn('Stream completion error:', error);
-		});
+			})
+			.catch((error: unknown) => {
+				console.warn("Stream completion error:", error);
+			});
 
 		return result.toUIMessageStreamResponse();
 	} finally {

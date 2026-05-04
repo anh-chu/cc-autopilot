@@ -19,7 +19,6 @@ import {
 	useChatRuntime,
 } from "@assistant-ui/react-ai-sdk";
 import { useEffect, useState } from "react";
-import { claudeCodeToolUIs } from "./tool-uis";
 
 // Enhanced message renderer that properly displays text content.
 // Phase 0 fix: TextPrimitive was empty, now properly renders message text.
@@ -42,7 +41,6 @@ interface AssistantThreadProps {
 	context?: string;
 	model?: string;
 	persona?: string;
-	workspaceId?: string; // For explicit workspace specification
 }
 
 export function AssistantThread({
@@ -50,7 +48,6 @@ export function AssistantThread({
 	context,
 	model,
 	persona,
-	workspaceId,
 }: AssistantThreadProps) {
 	const [sessionId, setSessionId] = useState<string | null>(null);
 	const [isLoading, setIsLoading] = useState(true);
@@ -61,7 +58,7 @@ export function AssistantThread({
 			try {
 				const params = new URLSearchParams();
 				if (context) {
-					params.set('context', context);
+					params.set("context", context);
 				}
 				const response = await fetch(`/api/chat?${params.toString()}`);
 				if (response.ok) {
@@ -69,7 +66,7 @@ export function AssistantThread({
 					setSessionId(data.sessionId);
 				}
 			} catch (error) {
-				console.warn('Failed to fetch session ID:', error);
+				console.warn("Failed to fetch session ID:", error);
 			} finally {
 				setIsLoading(false);
 			}
@@ -86,15 +83,6 @@ export function AssistantThread({
 			body: { cwd, model, persona, context, sessionId },
 		}),
 	});
-
-	// Mount tool UIs for claude-code tools
-	useEffect(() => {
-		// Register tool UIs with the runtime
-		claudeCodeToolUIs.forEach((toolUI) => {
-			// Tool UIs self-register when imported/used
-			// The makeAssistantToolUI pattern handles the registration
-		});
-	}, []);
 
 	if (isLoading) {
 		return (
@@ -121,7 +109,11 @@ export function AssistantThread({
 					<ComposerPrimitive.Root className="border-t p-4 flex gap-2">
 						<ComposerPrimitive.Input
 							className="flex-1 resize-none rounded border p-2 text-sm"
-							placeholder={sessionId ? "Continue conversation..." : "Start a conversation..."}
+							placeholder={
+								sessionId
+									? "Continue conversation..."
+									: "Start a conversation..."
+							}
 						/>
 						<ComposerPrimitive.Send className="rounded bg-primary px-4 py-2 text-sm text-primary-foreground">
 							Send

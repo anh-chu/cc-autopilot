@@ -472,21 +472,56 @@ function ToolResultEntry({ block }: { block: ToolResultBlock }) {
 
 function ToolUseGroupEntry({
 	entries,
-}: { entries: ToolUseGroupDisplayLine["entries"] }) {
+}: {
+	entries: ToolUseGroupDisplayLine["entries"];
+}) {
 	return (
 		<>
-			{entries.map((entry, i) => {
+			{entries.map((entry) => {
 				if (entry.type === "tool_use") {
 					return <ToolUseEntry key={entry.block.id} block={entry.block} />;
 				}
 				if (entry.type === "tool_result") {
 					return (
-						<ToolResultEntry key={entry.block.tool_use_id} block={entry.block} />
+						<ToolResultEntry
+							key={entry.block.tool_use_id}
+							block={entry.block}
+						/>
 					);
 				}
 				return null;
 			})}
 		</>
+	);
+}
+
+function UnknownEventEntry({
+	hint,
+	content,
+}: {
+	hint: string;
+	content: string;
+}) {
+	const [open, setOpen] = useState(false);
+	return (
+		<Collapsible open={open} onOpenChange={setOpen}>
+			<CollapsibleTrigger className="flex items-start gap-1.5 py-1.5 px-2 w-full hover:bg-muted/50 rounded-sm text-left">
+				{open ? (
+					<ChevronDown className="h-3 w-3 mt-0.5 shrink-0 text-muted-foreground" />
+				) : (
+					<ChevronRight className="h-3 w-3 mt-0.5 shrink-0 text-muted-foreground" />
+				)}
+				<Terminal className="h-3.5 w-3.5 mt-0.5 shrink-0 text-muted-foreground" />
+				<span className="text-[10px] text-muted-foreground truncate">
+					{hint}
+				</span>
+			</CollapsibleTrigger>
+			<CollapsibleContent>
+				<pre className="text-xs text-muted-foreground whitespace-pre-wrap break-words font-mono leading-relaxed px-7 py-1.5">
+					{content}
+				</pre>
+			</CollapsibleContent>
+		</Collapsible>
 	);
 }
 
@@ -585,27 +620,7 @@ function StreamEntry({ line }: { line: StreamLine }) {
 		return line.type;
 	})();
 
-	const [open, setOpen] = useState(false);
-	return (
-		<Collapsible open={open} onOpenChange={setOpen}>
-			<CollapsibleTrigger className="flex items-start gap-1.5 py-1.5 px-2 w-full hover:bg-muted/50 rounded-sm text-left">
-				{open ? (
-					<ChevronDown className="h-3 w-3 mt-0.5 shrink-0 text-muted-foreground" />
-				) : (
-					<ChevronRight className="h-3 w-3 mt-0.5 shrink-0 text-muted-foreground" />
-				)}
-				<Terminal className="h-3.5 w-3.5 mt-0.5 shrink-0 text-muted-foreground" />
-				<span className="text-[10px] text-muted-foreground truncate">
-					{unknownHint}
-				</span>
-			</CollapsibleTrigger>
-			<CollapsibleContent>
-				<pre className="text-xs text-muted-foreground whitespace-pre-wrap break-words font-mono leading-relaxed px-7 py-1.5">
-					{unknownContent}
-				</pre>
-			</CollapsibleContent>
-		</Collapsible>
-	);
+	return <UnknownEventEntry hint={unknownHint} content={unknownContent} />;
 }
 
 export function DaemonRunViewer({ runId }: DaemonRunViewerProps) {
@@ -632,6 +647,7 @@ export function DaemonRunViewer({ runId }: DaemonRunViewerProps) {
 		setShouldAutoScroll(isNearBottom);
 	}, []);
 
+	// biome-ignore lint/correctness/useExhaustiveDependencies: autoscroll on new line append
 	useEffect(() => {
 		if (shouldAutoScroll && scrollRef.current) {
 			scrollRef.current.scrollTop = scrollRef.current.scrollHeight;

@@ -109,7 +109,7 @@ export default function AutopilotPage() {
 		stop,
 		updateConfig,
 	} = useDaemon();
-	const { runs, stopTask } = useActiveRuns();
+	const { runs } = useActiveRuns();
 	const [expandedSessionId, setExpandedSessionId] = useState<string | null>(
 		null,
 	);

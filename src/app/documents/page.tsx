@@ -1,27 +1,5 @@
 "use client";
 
-function WorkingIndicator() {
-	return (
-		<div className="flex items-center gap-1.5 py-2 px-1">
-			{[0, 1, 2].map((i) => (
-				<span
-					key={i}
-					className="block h-1.5 w-1.5 rounded-full bg-muted-foreground"
-					style={{
-						animation: `workingDot 1.2s ease-in-out ${i * 0.16}s infinite`,
-					}}
-				/>
-			))}
-			<style>{`
-				@keyframes workingDot {
-					0%, 60%, 100% { opacity: 0.3; transform: translateY(0); }
-					30% { opacity: 1; transform: translateY(-4px); }
-				}
-			`}</style>
-		</div>
-	);
-}
-
 import {
 	AlertCircle,
 	Check,
@@ -42,10 +20,11 @@ import {
 	Upload,
 	X,
 } from "lucide-react";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { BreadcrumbNav } from "@/components/breadcrumb-nav";
+import { AssistantThread } from "@/components/chat/AssistantThread";
 import { ConfirmDialog } from "@/components/confirm-dialog";
 import { CsvViewer } from "@/components/editor/csv-viewer";
 import { KBEditor } from "@/components/editor/editor";
@@ -61,32 +40,24 @@ import { PdfViewer } from "@/components/editor/pdf-viewer";
 import { SourceViewer } from "@/components/editor/source-viewer";
 import { WebsiteViewer } from "@/components/editor/website-viewer";
 import { ModelSelect } from "@/components/model-select";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { FrontmatterHeader } from "@/components/wiki/frontmatter-header";
-
-import { useCommands } from "@/hooks/use-data";
-import { AssistantThread } from "@/components/chat/AssistantThread";
-import { getWikiDir } from "@/lib/paths";
-import { useWorkspace } from "@/hooks/use-workspace";
 import { parseFrontmatter } from "@/lib/markdown/parse-frontmatter";
 import remarkWikilinks from "@/lib/markdown/remark-wikilinks";
 
-// Temporary types for backward compatibility during migration
-type StreamLine = any;
-function useAgentStream(runId: string | null): { lines: any[]; isConnected: boolean; isDone: boolean } {
-  return { lines: [], isConnected: false, isDone: true };
+function useAgents(): {
+	agents: Array<{
+		id: string;
+		name: string;
+		status: string;
+		model: string;
+		instructions?: string;
+	}>;
+} {
+	return { agents: [] };
 }
-function prepareConsoleLines(lines: any[]): any[] {
-  return [];
-}
-function StreamEntry({ line }: { line: any }) {
-  return <div>Migration in progress...</div>;
-}
-function useAgents(): { agents: Array<{id: string; name: string; status: string; model: string}> } {
-  return { agents: [] };
-}
+
 import { cn } from "@/lib/utils";
 import { useEditorStore } from "@/stores/editor-store";
 import { useWikiSlugsStore } from "@/stores/wiki-slugs-store";
@@ -100,21 +71,6 @@ interface TreeNode {
 	children?: TreeNode[];
 	expanded?: boolean;
 	loading?: boolean;
-}
-
-interface WikiRun {
-	id: string;
-	status: "running" | "completed" | "failed" | "timeout" | "stopped";
-	agentId: string;
-	source?: string;
-	startedAt: string;
-	completedAt: string | null;
-	exitCode: number | null;
-	error: string | null;
-	streamFile?: string | null;
-	sessionId?: string | null;
-	firstMessage?: string | null;
-	model?: string | null;
 }
 
 const DOC_MAINTAINER_AGENT_ID = "doc-maintainer";
@@ -277,8 +233,6 @@ export default function BrainPage() {
 	const [saving, setSaving] = useState(false);
 	const [saveError, setSaveError] = useState<string | null>(null);
 
-	const [wikiRuns, setWikiRuns] = useState<WikiRun[]>([]);
-	const [runsLoading, setRunsLoading] = useState(false);
 	const [runError, setRunError] = useState<string | null>(null);
 	const [runMessage, setRunMessage] = useState<string | null>(null);
 	const [initingWiki, setInitingWiki] = useState(false);
@@ -286,97 +240,15 @@ export default function BrainPage() {
 	const [pluginVersion, setPluginVersion] = useState<string | null>(null);
 	const [pluginJustUpdated, setPluginJustUpdated] = useState(false);
 
-	const [streamRunId, setStreamRunId] = useState<string | null>(null);
-	const [priorLines, setPriorLines] = useState<StreamLine[]>([]);
-	const agentStreamLinesRef = useRef<StreamLine[]>([]);
 	const [selectedAgentId, setSelectedAgentId] = useState(
 		DOC_MAINTAINER_AGENT_ID,
 	);
-	const { currentId: workspaceId } = useWorkspace();
 	const { agents } = useAgents();
-	const { commands } = useCommands(workspaceId);
 	const runAgents = agents.filter((a) => a.status === "active");
 	const hasDocMaintainer = runAgents.some(
 		(a) => a.id === DOC_MAINTAINER_AGENT_ID,
 	);
 	const [selectedModel, setSelectedModel] = useState("sonnet");
-	const {
-		lines: agentStreamLines,
-		isConnected,
-		isDone: streamDone,
-	} = useAgentStream(streamRunId);
-	// Keep a ref in sync so handleChatSend can snapshot lines before runId changes
-	useEffect(() => {
-		agentStreamLinesRef.current = agentStreamLines;
-	}, [agentStreamLines]);
-	const [chatInput, setChatInput] = useState("");
-	const [chatSending, setChatSending] = useState(false);
-	// Message just submitted, shown optimistically until the stream produces its
-	// first event. Bridges the gap between Send click and first token arriving.
-	const [pendingMessage, setPendingMessage] = useState<string | null>(null);
-	const [pendingRunId, setPendingRunId] = useState<string | null>(null);
-	// Clear the optimistic pending message once the matching stream has any output.
-	useEffect(() => {
-		if (
-			pendingMessage &&
-			pendingRunId &&
-			streamRunId === pendingRunId &&
-			agentStreamLines.length > 0
-		) {
-			setPendingMessage(null);
-			setPendingRunId(null);
-		}
-	}, [pendingMessage, pendingRunId, streamRunId, agentStreamLines.length]);
-	const [slashMenuOpen, setSlashMenuOpen] = useState(false);
-	const [slashQuery, setSlashQuery] = useState("");
-	const [claudeCommands, setClaudeCommands] = useState<
-		{ name: string; description: string; argumentHint?: string }[]
-	>([]);
-
-	useEffect(() => {
-		fetch("/api/claude/slash-commands")
-			.then(
-				(r) =>
-					r.json() as Promise<{
-						commands: {
-							name: string;
-							description: string;
-							argumentHint?: string;
-						}[];
-					}>,
-			)
-			.then((d) => setClaudeCommands(d.commands ?? []))
-			.catch(() => {});
-	}, []);
-
-	const allSlashCommands = useMemo(() => {
-		type Cmd = { command: string; description: string; argumentHint?: string };
-		const appCmds: Cmd[] = commands.map((s) => ({
-			command: s.command,
-			description: s.description,
-		}));
-		const seen = new Set(appCmds.map((s) => s.command));
-		const sdkCmds: Cmd[] = claudeCommands
-			.filter((c) => !seen.has(`/${c.name}`))
-			.map((c) => ({
-				command: `/${c.name}`,
-				description: c.description,
-				argumentHint: c.argumentHint,
-			}));
-		return [...appCmds, ...sdkCmds];
-	}, [commands, claudeCommands]);
-
-	const matchingSkills = useMemo(() => {
-		if (!slashMenuOpen) return [];
-		const q = slashQuery.toLowerCase();
-		return allSlashCommands.filter(
-			(s) => s.command.includes(q) || s.description.toLowerCase().includes(q),
-		);
-	}, [slashMenuOpen, slashQuery, allSlashCommands]);
-	const displayStreamEvents = useMemo(
-		() => prepareConsoleLines([...priorLines, ...agentStreamLines]),
-		[priorLines, agentStreamLines],
-	);
 
 	// Drag state
 	const dragNodeRef = useRef<TreeNode | null>(null);
@@ -510,6 +382,7 @@ export default function BrainPage() {
 		setFileLoading(false);
 	}
 
+	// biome-ignore lint/correctness/useExhaustiveDependencies: only react to editor path changes
 	useEffect(() => {
 		if (!editorCurrentPath) return;
 		if (openFile && openFile.path === editorCurrentPath) return;
@@ -520,7 +393,6 @@ export default function BrainPage() {
 			name,
 			type: "file",
 		} as TreeNode);
-		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [editorCurrentPath]);
 
 	async function handleSave() {
@@ -542,32 +414,6 @@ export default function BrainPage() {
 		setSaving(false);
 	}
 
-	const loadRuns = useCallback(async () => {
-		setRunsLoading(true);
-		try {
-			const res = await fetch("/api/runs");
-			if (!res.ok) return;
-			const data: { runs: WikiRun[] } = await res.json();
-			const wikiOnly = (data.runs || []).filter(
-				(r: WikiRun) => r.source === "wiki",
-			);
-			setWikiRuns(
-				wikiOnly.sort(
-					(a, b) =>
-						new Date(b.startedAt).getTime() - new Date(a.startedAt).getTime(),
-				),
-			);
-		} catch {
-			// ignore
-		} finally {
-			setRunsLoading(false);
-		}
-	}, []);
-
-	useEffect(() => {
-		void loadRuns();
-	}, [loadRuns]);
-
 	useEffect(() => {
 		if (runAgents.length === 0) return;
 		if (!runAgents.some((a) => a.id === selectedAgentId)) {
@@ -582,80 +428,6 @@ export default function BrainPage() {
 			setSelectedModel(agent.model);
 		}
 	}, [selectedAgentId, runAgents]);
-
-	useEffect(() => {
-		if (streamDone) {
-			void loadRuns();
-		}
-	}, [streamDone, loadRuns]);
-
-	const handleChatSend = useCallback(async () => {
-		const msg = chatInput.trim();
-		if (!msg || chatSending) return;
-		setChatSending(true);
-		setChatInput("");
-		// Show the user message immediately so they get instant feedback while the
-		// generate API call, daemon pickup, and SDK warm-up run in the background.
-		setPendingMessage(msg);
-		setPendingRunId(null);
-		try {
-			// Expand slash command to its full description
-			const skill = commands.find(
-				(s) => msg === s.command || msg.startsWith(`${s.command} `),
-			);
-			const extra = skill ? msg.slice(skill.command.length).trim() : "";
-			const expandedMsg = skill
-				? `${skill.longDescription}${extra ? `\n\n${extra}` : ""}`
-				: msg;
-
-			// Find sessionId from current stream run only (null = new conversation)
-			const run = streamRunId
-				? wikiRuns.find((r) => r.id === streamRunId)
-				: null;
-			const sessionId = run?.sessionId;
-
-			const res = await fetch("/api/wiki/generate", {
-				method: "POST",
-				headers: { "Content-Type": "application/json" },
-				body: JSON.stringify({
-					agentId: selectedAgentId,
-					model: selectedModel,
-					message: expandedMsg,
-					...(sessionId ? { sessionId } : {}),
-				}),
-			});
-			if (!res.ok) {
-				const e = (await res.json()) as { error?: string };
-				throw new Error(e.error ?? "Failed to start run");
-			}
-			const data = (await res.json()) as { runId: string };
-			// Follow-up: accumulate current run's lines before hook resets
-			// New conversation: reset prior lines
-			if (sessionId && streamRunId) {
-				setPriorLines((prev) => [...prev, ...agentStreamLinesRef.current]);
-			} else {
-				setPriorLines([]);
-			}
-			setStreamRunId(data.runId);
-			setPendingRunId(data.runId);
-			await loadRuns();
-		} catch {
-			setChatInput(msg);
-			setPendingMessage(null);
-			setPendingRunId(null);
-		} finally {
-			setChatSending(false);
-		}
-	}, [
-		chatInput,
-		chatSending,
-		selectedAgentId,
-		selectedModel,
-		loadRuns,
-		streamRunId,
-		wikiRuns,
-		commands,
-	]);
 
 	const handleInitWiki = useCallback(async () => {
 		setInitingWiki(true);
@@ -690,7 +462,6 @@ export default function BrainPage() {
 			}
 			if (data.pluginVersion) parts.push(`v${data.pluginVersion}`);
 			setRunMessage(parts.join(" · "));
-			await loadRuns();
 			if (
 				data.bootstrapStatus === "bootstrapped" ||
 				data.bootstrapStatus === "already-initialized"
@@ -706,7 +477,7 @@ export default function BrainPage() {
 			setInitingWiki(false);
 		}
 		// biome-ignore lint/correctness/useExhaustiveDependencies: reloadDir is stable within session
-	}, [loadRuns, reloadDir]);
+	}, [reloadDir]);
 
 	const doUpload = useCallback(
 		async (files: FileList | File[], dir: string) => {
@@ -1159,7 +930,7 @@ export default function BrainPage() {
 									variant="default"
 									className="w-full gap-1.5"
 									onClick={handleInitWiki}
-									disabled={initingWiki || isConnected}
+									disabled={initingWiki}
 								>
 									{initingWiki ? (
 										<Loader2 className="h-3.5 w-3.5 animate-spin" />
@@ -1203,7 +974,7 @@ export default function BrainPage() {
 						size="sm"
 						variant="outline"
 						onClick={handleInitWiki}
-						disabled={initingWiki || isConnected}
+						disabled={initingWiki}
 					>
 						{initingWiki ? <Loader2 className="h-3 w-3 animate-spin" /> : null}
 						{wikiInitialized ? "Check for Updates" : "Initialize Wiki Plugin"}
@@ -1612,212 +1383,15 @@ export default function BrainPage() {
 						</div>
 					)}
 
-					{/* Body: stream viewer or recent runs */}
-					{streamRunId || pendingMessage ? (
-						<>
-							{/* Run sub-header */}
-							<div className="flex items-center justify-between px-4 py-2 border-b shrink-0">
-								<p
-									className="text-xs text-muted-foreground truncate"
-									title={streamRunId ?? undefined}
-								>
-									{(streamRunId &&
-										wikiRuns.find((r) => r.id === streamRunId)?.firstMessage) ||
-										pendingMessage ||
-										streamRunId ||
-										"Starting…"}
-								</p>
-								<Button
-									size="sm"
-									variant="ghost"
-									onClick={() => setStreamRunId(null)}
-									disabled={!streamRunId}
-								>
-									Close
-								</Button>
-							</div>
-							{/* Stream content */}
-							<div className="flex-1 overflow-auto p-4 min-h-0">
-								{displayStreamEvents.length === 0 && pendingMessage ? (
-									<div className="space-y-3">
-										<div className="flex justify-end">
-											<div className="max-w-[85%] rounded-sm border bg-primary-soft px-3 py-2 text-xs whitespace-pre-wrap text-foreground">
-												{pendingMessage}
-											</div>
-										</div>
-										<div className="flex items-center gap-2 text-xs text-muted-foreground">
-											<WorkingIndicator />
-											<span>
-												{streamRunId
-													? "Waiting for Claude output…"
-													: "Starting run…"}
-											</span>
-										</div>
-									</div>
-								) : displayStreamEvents.length === 0 && isConnected ? (
-									<div className="flex items-center gap-2 text-sm text-muted-foreground">
-										<WorkingIndicator /> Waiting for Claude output...
-									</div>
-								) : displayStreamEvents.length === 0 ? (
-									<p className="text-sm text-muted-foreground">
-										No output yet.
-									</p>
-								) : (
-									<div className="space-y-1">
-										{displayStreamEvents.map((line, i) => (
-											<StreamEntry key={`evt_${i}_${line.type}`} line={line} />
-										))}
-										{pendingMessage && (
-											<div className="flex justify-end">
-												<div className="max-w-[85%] rounded-sm border bg-primary-soft px-3 py-2 text-xs whitespace-pre-wrap text-foreground">
-													{pendingMessage}
-												</div>
-											</div>
-										)}
-										{(isConnected || pendingMessage) && <WorkingIndicator />}
-									</div>
-								)}
-							</div>
-						</>
-					) : (
-						/* Fresh state: recent runs */
-						<div className="flex-1 overflow-auto p-4 min-h-0">
-							<div className="flex items-center justify-between mb-3">
-								<p className="text-xs font-normal uppercase tracking-wide text-muted-foreground">
-									Recent Runs
-								</p>
-								<Button
-									size="sm"
-									variant="ghost"
-									className="h-7 w-7 p-0"
-									onClick={() => void loadRuns()}
-									disabled={runsLoading}
-								>
-									<RefreshCw className="h-3.5 w-3.5" />
-								</Button>
-							</div>
-							<div className="space-y-2">
-								{wikiRuns.length === 0 ? (
-									<p className="text-xs text-muted-foreground">No runs yet.</p>
-								) : (
-									wikiRuns.slice(0, 5).map((run) => (
-										<button
-											key={run.id}
-											type="button"
-											className="w-full text-left rounded-sm border bg-background px-3 py-2 text-xs space-y-1 cursor-pointer hover:bg-muted/50 transition-colors"
-											onClick={() => {
-												setPriorLines([]);
-												setStreamRunId(run.id);
-											}}
-										>
-											<div className="flex items-center justify-between gap-2">
-												<span
-													className="font-normal truncate"
-													title={run.firstMessage || run.id}
-												>
-													{run.firstMessage || run.id}
-												</span>
-												<Badge
-													variant="outline"
-													className="text-[10px] uppercase shrink-0"
-												>
-													{run.status}
-												</Badge>
-											</div>
-											<p className="text-[11px] text-muted-foreground">
-												{new Date(run.startedAt).toLocaleString()}
-											</p>
-											<p
-												className="text-[11px] text-muted-foreground truncate"
-												title={run.error ?? ""}
-											>
-												{run.agentId ?? DOC_MAINTAINER_AGENT_ID} ·{" "}
-												{run.model ?? "default"} · Exit: {run.exitCode ?? "-"}
-											</p>
-										</button>
-									))
-								)}
-							</div>
-						</div>
-					)}
-
-					{/* Chat input (always visible) */}
-					<div className="border-t shrink-0">
-						{/* Slash command menu */}
-						{slashMenuOpen && matchingSkills.length > 0 && (
-							<div className="border-b bg-popover max-h-48 overflow-y-auto">
-								<p className="px-3 py-1.5 text-[10px] uppercase tracking-wide text-muted-foreground border-b">
-									AI Skills
-								</p>
-								{matchingSkills.map((skill) => (
-									<button
-										key={skill.command}
-										type="button"
-										className="flex items-center gap-2 w-full px-3 py-2 text-left hover:bg-accent/50 transition-colors"
-										onMouseDown={(e) => {
-											e.preventDefault();
-											const lines = chatInput.split("\n");
-											lines[lines.length - 1] = skill.command;
-											setChatInput(lines.join("\n"));
-											setSlashMenuOpen(false);
-											setSlashQuery("");
-										}}
-									>
-										<code className="text-xs font-mono text-primary shrink-0">
-											{skill.command}
-										</code>
-										<span className="text-xs text-muted-foreground truncate">
-											{skill.description}
-										</span>
-									</button>
-								))}
-							</div>
-						)}
-						<div className="p-3 flex gap-2">
-							<textarea
-								className="flex-1 resize-none rounded-sm border bg-background px-3 py-2 text-xs placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring min-h-[60px]"
-								placeholder={
-									streamRunId
-										? "Follow-up instructions... (Ctrl+Enter to send)"
-										: "Describe what to generate... (Ctrl+Enter to send)"
-								}
-								value={chatInput}
-								onChange={(e) => {
-									const val = e.target.value;
-									setChatInput(val);
-									const lastLine = val.split("\n").pop() ?? "";
-									if (lastLine.startsWith("/")) {
-										setSlashMenuOpen(true);
-										setSlashQuery(lastLine.slice(1));
-									} else {
-										setSlashMenuOpen(false);
-										setSlashQuery("");
-									}
-								}}
-								onKeyDown={(e) => {
-									if (slashMenuOpen && e.key === "Escape") {
-										e.preventDefault();
-										setSlashMenuOpen(false);
-										return;
-									}
-									if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) {
-										e.preventDefault();
-										setSlashMenuOpen(false);
-										void handleChatSend();
-									}
-								}}
-								disabled={chatSending}
-							/>
-							<Button
-								size="sm"
-								variant="default"
-								onClick={() => void handleChatSend()}
-								disabled={!chatInput.trim() || chatSending}
-								className="self-end"
-							>
-								{chatSending ? "Sending..." : "Send"}
-							</Button>
-						</div>
+					{/* Chat: AssistantThread owns its own composer */}
+					<div className="flex-1 overflow-hidden">
+						<AssistantThread
+							context="wiki:index"
+							model={selectedModel}
+							persona={
+								runAgents.find((a) => a.id === selectedAgentId)?.instructions
+							}
+						/>
 					</div>
 				</Card>
 			)}
