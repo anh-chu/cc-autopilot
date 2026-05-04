@@ -7,27 +7,24 @@ import {
 	ChevronRight,
 	Loader2,
 	MessageSquare,
-	Square,
 	Terminal,
 	Wrench,
 } from "lucide-react";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { MarkdownContent } from "@/components/markdown-content";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import {
 	Collapsible,
 	CollapsibleContent,
 	CollapsibleTrigger,
 } from "@/components/ui/collapsible";
-import { type StreamLine, useAgentStream } from "@/hooks/use-agent-stream";
 
-interface AgentConsoleProps {
-	runId: string;
-	onStop?: () => void;
+// Types (copied from agent-console.tsx)
+interface StreamLine {
+	type: string;
+	[key: string]: unknown;
 }
 
-// Content block types inside assistant/user messages
 interface TextBlock {
 	type: "text";
 	text: string;
@@ -48,6 +45,7 @@ interface ThinkingBlock {
 	thinking?: string;
 	text?: string;
 }
+
 type ContentBlock =
 	| TextBlock
 	| ToolUseBlock
@@ -73,6 +71,71 @@ interface ToolUseGroupDisplayLine extends StreamLine {
 	>;
 }
 
+interface DaemonRunViewerProps {
+	runId: string;
+}
+
+// Inline SSE hook (copied from use-agent-stream.ts)
+function useInlineAgentStream(runId: string | null) {
+	const [lines, setLines] = useState<StreamLine[]>([]);
+	const [isConnected, setIsConnected] = useState(false);
+	const [isDone, setIsDone] = useState(false);
+	const eventSourceRef = useRef<EventSource | null>(null);
+
+	const cleanup = useCallback(() => {
+		if (eventSourceRef.current) {
+			eventSourceRef.current.close();
+			eventSourceRef.current = null;
+		}
+		setIsConnected(false);
+	}, []);
+
+	useEffect(() => {
+		if (!runId) {
+			cleanup();
+			return;
+		}
+
+		// Reset state for new connection
+		setLines([]);
+		setIsDone(false);
+
+		const es = new EventSource(
+			`/api/runs/stream?runId=${encodeURIComponent(runId)}`,
+		);
+		eventSourceRef.current = es;
+
+		es.onopen = () => {
+			setIsConnected(true);
+		};
+
+		es.onmessage = (event) => {
+			try {
+				const parsed = JSON.parse(event.data) as StreamLine;
+				setLines((prev) => [...prev, parsed]);
+			} catch {
+				// Non-JSON line — ignore
+			}
+		};
+
+		es.addEventListener("done", () => {
+			setIsDone(true);
+			cleanup();
+		});
+
+		es.onerror = () => {
+			setIsConnected(false);
+		};
+
+		return () => {
+			cleanup();
+		};
+	}, [runId, cleanup]);
+
+	return { lines, isConnected, isDone };
+}
+
+// Helper functions (copied from agent-console.tsx)
 function getThinkingFromBlock(block: ContentBlock): string {
 	if (block.type !== "thinking") return "";
 	return (
@@ -84,55 +147,7 @@ function getThinkingFromBlock(block: ContentBlock): string {
 	);
 }
 
-function ResponseTextEntry({ text }: { text: string }) {
-	return (
-		<div className="flex gap-2 py-1.5 px-2">
-			<MessageSquare className="h-3.5 w-3.5 mt-0.5 shrink-0 text-accent" />
-			<MarkdownContent
-				content={text}
-				className="min-w-0 flex-1 text-xs text-foreground/90"
-			/>
-		</div>
-	);
-}
-
-function ThinkingEntry({ thinking }: { thinking: string }) {
-	const [open, setOpen] = useState(false);
-	const preview = thinking.trim().replace(/\s+/g, " ");
-	const hint = preview.length > 90 ? `${preview.slice(0, 90)}…` : preview;
-
-	return (
-		<Collapsible open={open} onOpenChange={setOpen}>
-			<CollapsibleTrigger className="flex items-start gap-1.5 py-1.5 px-2 w-full hover:bg-sunshine-700/10 rounded-sm text-left bg-sunshine-700/5">
-				{open ? (
-					<ChevronDown className="h-3 w-3 mt-0.5 shrink-0 text-muted-foreground" />
-				) : (
-					<ChevronRight className="h-3 w-3 mt-0.5 shrink-0 text-muted-foreground" />
-				)}
-				<Brain className="h-3.5 w-3.5 mt-0.5 shrink-0 text-warning-ink" />
-				<div className="min-w-0 flex-1">
-					<div className="flex items-center gap-2">
-						<span className="text-[10px] font-mono uppercase tracking-wide text-warning-ink">
-							Thinking
-						</span>
-						{!open && hint && (
-							<span className="text-[10px] text-warning-ink truncate">
-								{hint}
-							</span>
-						)}
-					</div>
-				</div>
-			</CollapsibleTrigger>
-			<CollapsibleContent>
-				<pre className="text-xs text-warning-ink whitespace-pre-wrap break-words font-mono leading-relaxed px-7 py-1.5">
-					{thinking}
-				</pre>
-			</CollapsibleContent>
-		</Collapsible>
-	);
-}
-
-export function prepareConsoleLines(
+function prepareConsoleLines(
 	lines: StreamLine[],
 ): (
 	| StreamLine
@@ -158,7 +173,6 @@ export function prepareConsoleLines(
 					if (chunk) thinking += chunk;
 				}
 			}
-
 			continue;
 		}
 
@@ -193,7 +207,6 @@ export function prepareConsoleLines(
 					},
 				});
 			}
-
 			continue;
 		}
 
@@ -207,8 +220,6 @@ export function prepareConsoleLines(
 					type: "merged_thinking",
 					thinking,
 				};
-				// Insert thinking before the last assistant text turn so it renders
-				// above the final response, not below it.
 				let insertAt = -1;
 				for (let i = rendered.length - 1; i >= 0; i--) {
 					const l = rendered[i];
@@ -271,7 +282,6 @@ export function prepareConsoleLines(
 			const onlyText =
 				blocks.length > 0 && blocks.every((block) => block.type === "text");
 			if (onlyText) {
-				// flush buffered tool calls before new text — preserves timeline order
 				if (pendingToolEntries.length > 0) {
 					flushText();
 					flushToolUses();
@@ -300,19 +310,25 @@ export function prepareConsoleLines(
 			const blocks =
 				(line.message as { content?: ContentBlock[] } | undefined)?.content ??
 				[];
-			const onlyToolResults =
-				blocks.length > 0 &&
-				blocks.every((block) => block.type === "tool_result");
-			if (onlyToolResults && pendingToolEntries.length > 0) {
-				flushText();
+			const toolResults = blocks.filter(
+				(block) => block.type === "tool_result",
+			) as ToolResultBlock[];
+			if (toolResults.length > 0) {
 				pendingToolEntries.push(
-					...(blocks as ToolResultBlock[]).map((block) => ({
+					...toolResults.map((block) => ({
 						type: "tool_result" as const,
 						block,
 					})),
 				);
 				continue;
 			}
+		}
+
+		if (line.type === "merged_thinking") {
+			flushText();
+			flushToolUses();
+			grouped.push(line);
+			continue;
 		}
 
 		flushText();
@@ -322,58 +338,53 @@ export function prepareConsoleLines(
 
 	flushText();
 	flushToolUses();
-	const mergedAdjacentToolGroups: (
-		| StreamLine
-		| ThinkingDisplayLine
-		| TextDisplayLine
-		| ToolUseGroupDisplayLine
-	)[] = [];
-	for (const line of grouped) {
-		const prev = mergedAdjacentToolGroups[mergedAdjacentToolGroups.length - 1];
-		if (line.type === "merged_tool_use" && prev?.type === "merged_tool_use") {
-			(prev as ToolUseGroupDisplayLine).entries.push(
-				...((line as ToolUseGroupDisplayLine)
-					.entries as ToolUseGroupDisplayLine["entries"]),
-			);
-			continue;
-		}
-		mergedAdjacentToolGroups.push(line);
-	}
-
-	return mergedAdjacentToolGroups;
+	return grouped;
 }
 
-function ToolUseGroupEntry({
-	entries,
-}: {
-	entries: ToolUseGroupDisplayLine["entries"];
-}) {
+// UI Components (copied from agent-console.tsx)
+function ResponseTextEntry({ text }: { text: string }) {
+	return (
+		<div className="flex gap-2 py-1.5 px-2">
+			<MessageSquare className="h-3.5 w-3.5 mt-0.5 shrink-0 text-accent" />
+			<MarkdownContent
+				content={text}
+				className="min-w-0 flex-1 text-xs text-foreground/90"
+			/>
+		</div>
+	);
+}
+
+function ThinkingEntry({ thinking }: { thinking: string }) {
 	const [open, setOpen] = useState(false);
-	const count = entries.filter((entry) => entry.type === "tool_use").length;
-	const label = `${count} tool call${count === 1 ? "" : "s"}`;
+	const preview = thinking.trim().replace(/\s+/g, " ");
+	const hint = preview.length > 90 ? `${preview.slice(0, 90)}…` : preview;
 
 	return (
 		<Collapsible open={open} onOpenChange={setOpen}>
-			<CollapsibleTrigger className="flex items-center gap-1.5 py-1 px-2 w-full hover:bg-warning/10 rounded-sm text-left">
+			<CollapsibleTrigger className="flex items-start gap-1.5 py-1.5 px-2 w-full hover:bg-sunshine-700/10 rounded-sm text-left bg-sunshine-700/5">
 				{open ? (
-					<ChevronDown className="h-3 w-3 shrink-0 text-muted-foreground" />
+					<ChevronDown className="h-3 w-3 mt-0.5 shrink-0 text-muted-foreground" />
 				) : (
-					<ChevronRight className="h-3 w-3 shrink-0 text-muted-foreground" />
+					<ChevronRight className="h-3 w-3 mt-0.5 shrink-0 text-muted-foreground" />
 				)}
-				<Wrench className="h-3 w-3 shrink-0 text-warning-ink" />
-				<span className="text-xs font-mono text-warning-ink">{label}</span>
+				<Brain className="h-3.5 w-3.5 mt-0.5 shrink-0 text-warning-ink" />
+				<div className="min-w-0 flex-1">
+					<div className="flex items-center gap-2">
+						<span className="text-[10px] font-mono uppercase tracking-wide text-warning-ink">
+							Thinking
+						</span>
+						{!open && hint && (
+							<span className="text-[10px] text-warning-ink truncate">
+								{hint}
+							</span>
+						)}
+					</div>
+				</div>
 			</CollapsibleTrigger>
-			<CollapsibleContent className="space-y-0.5">
-				{entries.map((entry) =>
-					entry.type === "tool_use" ? (
-						<ToolUseEntry key={entry.block.id} block={entry.block} />
-					) : (
-						<ToolResultEntry
-							key={entry.block.tool_use_id}
-							block={entry.block}
-						/>
-					),
-				)}
+			<CollapsibleContent>
+				<pre className="text-xs text-warning-ink whitespace-pre-wrap break-words font-mono leading-relaxed px-7 py-1.5">
+					{thinking}
+				</pre>
 			</CollapsibleContent>
 		</Collapsible>
 	);
@@ -381,71 +392,105 @@ function ToolUseGroupEntry({
 
 function ToolUseEntry({ block }: { block: ToolUseBlock }) {
 	const [open, setOpen] = useState(false);
-	const input = block.input ? JSON.stringify(block.input, null, 2) : "";
+	const inputStr = (() => {
+		try {
+			return JSON.stringify(block.input, null, 2);
+		} catch {
+			return String(block.input ?? "");
+		}
+	})();
+
 	return (
 		<Collapsible open={open} onOpenChange={setOpen}>
-			<CollapsibleTrigger className="flex items-center gap-1.5 py-1 px-2 w-full hover:bg-muted/50 rounded-sm text-left">
+			<CollapsibleTrigger className="flex items-start gap-1.5 py-1.5 px-2 w-full hover:bg-muted/50 rounded-sm text-left">
 				{open ? (
-					<ChevronDown className="h-3 w-3 shrink-0 text-muted-foreground" />
+					<ChevronDown className="h-3 w-3 mt-0.5 shrink-0 text-muted-foreground" />
 				) : (
-					<ChevronRight className="h-3 w-3 shrink-0 text-muted-foreground" />
+					<ChevronRight className="h-3 w-3 mt-0.5 shrink-0 text-muted-foreground" />
 				)}
-				<Wrench className="h-3 w-3 shrink-0 text-warning-ink" />
-				<span className="text-xs font-mono text-warning-ink">{block.name}</span>
+				<Wrench className="h-3.5 w-3.5 mt-0.5 shrink-0 text-info" />
+				<div className="min-w-0 flex-1">
+					<div className="flex items-center gap-2">
+						<span className="text-[10px] font-mono uppercase tracking-wide text-info">
+							{block.name}
+						</span>
+						<Badge variant="outline" className="text-[9px] px-1 py-0">
+							{block.id}
+						</Badge>
+					</div>
+				</div>
 			</CollapsibleTrigger>
-			{input && (
-				<CollapsibleContent>
-					<pre className="text-[10px] text-muted-foreground font-mono px-7 py-1 overflow-x-auto max-h-40">
-						{input.length > 2000 ? `${input.slice(0, 2000)}\n...` : input}
-					</pre>
-				</CollapsibleContent>
-			)}
+			<CollapsibleContent>
+				<pre className="text-xs text-muted-foreground whitespace-pre-wrap break-words font-mono leading-relaxed px-7 py-1.5">
+					{inputStr}
+				</pre>
+			</CollapsibleContent>
 		</Collapsible>
 	);
 }
 
 function ToolResultEntry({ block }: { block: ToolResultBlock }) {
-	const [open, setOpen] = useState(false);
-	const raw =
-		typeof block.content === "string"
-			? block.content
-			: JSON.stringify(block.content, null, 2);
-	const hint = (() => {
-		const trimmed = raw.trim();
-		if (trimmed.startsWith("{") || trimmed.startsWith("["))
-			return `(${raw.length} bytes JSON)`;
-		const first = trimmed.split("\n")[0] ?? "";
-		return first.length > 60 ? `${first.slice(0, 60)}…` : first;
+	const [open, setOpen] = useState(true);
+	const contentStr = (() => {
+		try {
+			return typeof block.content === "string"
+				? block.content
+				: JSON.stringify(block.content, null, 2);
+		} catch {
+			return String(block.content ?? "");
+		}
 	})();
+
 	return (
 		<Collapsible open={open} onOpenChange={setOpen}>
-			<CollapsibleTrigger className="flex items-center gap-1.5 py-1 px-2 w-full hover:bg-muted/50 rounded-sm text-left">
+			<CollapsibleTrigger className="flex items-start gap-1.5 py-1.5 px-2 w-full hover:bg-muted/50 rounded-sm text-left">
 				{open ? (
-					<ChevronDown className="h-3 w-3 shrink-0 text-muted-foreground" />
+					<ChevronDown className="h-3 w-3 mt-0.5 shrink-0 text-muted-foreground" />
 				) : (
-					<ChevronRight className="h-3 w-3 shrink-0 text-muted-foreground" />
+					<ChevronRight className="h-3 w-3 mt-0.5 shrink-0 text-muted-foreground" />
 				)}
-				<CheckCircle2 className="h-3 w-3 shrink-0 text-success" />
-				<span className="text-xs font-mono text-success">result</span>
-				{hint && !open && (
-					<span className="text-[10px] text-muted-foreground truncate max-w-[300px]">
-						{hint}
-					</span>
-				)}
+				<CheckCircle2 className="h-3.5 w-3.5 mt-0.5 shrink-0 text-success" />
+				<div className="min-w-0 flex-1">
+					<div className="flex items-center gap-2">
+						<span className="text-[10px] font-mono uppercase tracking-wide text-success">
+							Result
+						</span>
+						<Badge variant="outline" className="text-[9px] px-1 py-0">
+							{block.tool_use_id}
+						</Badge>
+					</div>
+				</div>
 			</CollapsibleTrigger>
-			{raw && (
-				<CollapsibleContent>
-					<pre className="text-[10px] text-muted-foreground font-mono px-7 py-1 overflow-x-auto max-h-40">
-						{raw.length > 2000 ? `${raw.slice(0, 2000)}\n...` : raw}
-					</pre>
-				</CollapsibleContent>
-			)}
+			<CollapsibleContent>
+				<pre className="text-xs text-muted-foreground whitespace-pre-wrap break-words font-mono leading-relaxed px-7 py-1.5">
+					{contentStr}
+				</pre>
+			</CollapsibleContent>
 		</Collapsible>
 	);
 }
 
-export function StreamEntry({ line }: { line: StreamLine }) {
-	const [open, setOpen] = useState(false);
+function ToolUseGroupEntry({
+	entries,
+}: { entries: ToolUseGroupDisplayLine["entries"] }) {
+	return (
+		<>
+			{entries.map((entry, i) => {
+				if (entry.type === "tool_use") {
+					return <ToolUseEntry key={entry.block.id} block={entry.block} />;
+				}
+				if (entry.type === "tool_result") {
+					return (
+						<ToolResultEntry key={entry.block.tool_use_id} block={entry.block} />
+					);
+				}
+				return null;
+			})}
+		</>
+	);
+}
+
+function StreamEntry({ line }: { line: StreamLine }) {
 	if (line.type === "merged_text") {
 		const text = typeof line.text === "string" ? line.text : "";
 		if (!text.trim()) return null;
@@ -482,7 +527,7 @@ export function StreamEntry({ line }: { line: StreamLine }) {
 		if (rendered.length === 0) return null;
 		return <>{rendered}</>;
 	}
-	// user: line.message.content[] has tool_result blocks
+
 	if (line.type === "user") {
 		const blocks =
 			(line.message as { content?: ContentBlock[] })?.content ?? [];
@@ -497,9 +542,7 @@ export function StreamEntry({ line }: { line: StreamLine }) {
 		return <>{rendered}</>;
 	}
 
-	// SDK partial stream events
 	if (line.type === "stream_event") {
-		// hide low-level stream events by default (text deltas, signatures, etc.)
 		return null;
 	}
 	if (line.type === "result") {
@@ -519,8 +562,10 @@ export function StreamEntry({ line }: { line: StreamLine }) {
 			</div>
 		);
 	}
-	// Skip system events (hook lifecycle, init, etc.)
+
 	if (line.type === "system" || line.type === "rate_limit_event") return null;
+
+	// Unknown event fallback
 	const unknownContent = JSON.stringify(line, null, 2);
 	const unknownHint = (() => {
 		for (const key of [
@@ -537,68 +582,69 @@ export function StreamEntry({ line }: { line: StreamLine }) {
 				return s.length > 80 ? `${s.slice(0, 80)}…` : s;
 			}
 		}
-		return null;
+		return line.type;
 	})();
+
+	const [open, setOpen] = useState(false);
 	return (
 		<Collapsible open={open} onOpenChange={setOpen}>
-			<CollapsibleTrigger className="flex items-center gap-1.5 py-1 px-2 w-full hover:bg-muted/50 rounded-sm text-left opacity-60">
+			<CollapsibleTrigger className="flex items-start gap-1.5 py-1.5 px-2 w-full hover:bg-muted/50 rounded-sm text-left">
 				{open ? (
-					<ChevronDown className="h-3 w-3 shrink-0 text-muted-foreground" />
+					<ChevronDown className="h-3 w-3 mt-0.5 shrink-0 text-muted-foreground" />
 				) : (
-					<ChevronRight className="h-3 w-3 shrink-0 text-muted-foreground" />
+					<ChevronRight className="h-3 w-3 mt-0.5 shrink-0 text-muted-foreground" />
 				)}
-				<Terminal className="h-3 w-3 shrink-0 text-muted-foreground" />
-				<span className="text-[10px] text-muted-foreground font-mono">
-					{line.type}
+				<Terminal className="h-3.5 w-3.5 mt-0.5 shrink-0 text-muted-foreground" />
+				<span className="text-[10px] text-muted-foreground truncate">
+					{unknownHint}
 				</span>
-				{unknownHint && !open && (
-					<span className="text-[10px] text-muted-foreground truncate max-w-[300px]">
-						{unknownHint}
-					</span>
-				)}
 			</CollapsibleTrigger>
 			<CollapsibleContent>
-				<pre className="text-[10px] text-muted-foreground font-mono px-7 py-1 overflow-x-auto max-h-40">
-					{unknownContent.length > 2000
-						? `${unknownContent.slice(0, 2000)}\n...`
-						: unknownContent}
+				<pre className="text-xs text-muted-foreground whitespace-pre-wrap break-words font-mono leading-relaxed px-7 py-1.5">
+					{unknownContent}
 				</pre>
 			</CollapsibleContent>
 		</Collapsible>
 	);
 }
 
-export function AgentConsole({ runId, onStop }: AgentConsoleProps) {
-	const { lines, isConnected, isDone } = useAgentStream(runId);
-	const displayLines = useMemo(() => prepareConsoleLines(lines), [lines]);
+export function DaemonRunViewer({ runId }: DaemonRunViewerProps) {
+	const { lines, isConnected, isDone } = useInlineAgentStream(runId);
 	const scrollRef = useRef<HTMLDivElement>(null);
-	const [autoScroll, setAutoScroll] = useState(true);
+	const [shouldAutoScroll, setShouldAutoScroll] = useState(true);
 
-	// Auto-scroll to bottom when new lines arrive
-	useEffect(() => {
-		if (autoScroll && scrollRef.current) {
-			const el = scrollRef.current;
-			el.scrollTop = el.scrollHeight;
+	const displayLines = useMemo(() => prepareConsoleLines(lines), [lines]);
+
+	const elapsed = useMemo(() => {
+		const now = Date.now();
+		const start = lines.find((line) => line.type === "system")?.timestamp;
+		if (typeof start === "number") {
+			return `${Math.floor((now - start) / 1000)}s`;
 		}
-	}, [autoScroll]);
+		return "";
+	}, [lines]);
 
-	// Detect manual scroll-up to disable auto-scroll
-	const handleScroll = () => {
-		if (!scrollRef.current) return;
-		const el = scrollRef.current;
-		const isAtBottom = el.scrollHeight - el.scrollTop - el.clientHeight < 40;
-		setAutoScroll(isAtBottom);
-	};
+	const handleScroll = useCallback(() => {
+		const scrollEl = scrollRef.current;
+		if (!scrollEl) return;
+		const { scrollTop, scrollHeight, clientHeight } = scrollEl;
+		const isNearBottom = scrollHeight - scrollTop - clientHeight < 50;
+		setShouldAutoScroll(isNearBottom);
+	}, []);
 
-	const elapsed = lines.length > 0 ? `${lines.length} events` : "waiting...";
+	useEffect(() => {
+		if (shouldAutoScroll && scrollRef.current) {
+			scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
+		}
+	}, [displayLines, shouldAutoScroll]);
 
 	return (
-		<div className="border rounded-sm bg-secondary overflow-hidden">
+		<div className="border rounded-lg bg-background">
 			{/* Header */}
-			<div className="flex items-center justify-between px-3 py-2 border-b bg-muted">
+			<div className="flex items-center justify-between p-3 border-b bg-muted/30">
 				<div className="flex items-center gap-2">
 					<Terminal className="h-3.5 w-3.5 text-muted-foreground" />
-					<span className="text-xs font-normal">Live Console</span>
+					<span className="text-xs font-normal">Daemon Run</span>
 					{isConnected && !isDone && (
 						<Badge
 							variant="outline"
@@ -615,17 +661,6 @@ export function AgentConsole({ runId, onStop }: AgentConsoleProps) {
 					)}
 					<span className="text-[10px] text-muted-foreground">{elapsed}</span>
 				</div>
-				{onStop && !isDone && (
-					<Button
-						variant="ghost"
-						size="sm"
-						className="h-6 px-2 text-xs text-destructive hover:text-destructive hover:bg-destructive/10"
-						onClick={onStop}
-					>
-						<Square className="h-3 w-3 mr-1 fill-current" />
-						Stop
-					</Button>
-				)}
 			</div>
 
 			{/* Stream output */}
@@ -637,7 +672,7 @@ export function AgentConsole({ runId, onStop }: AgentConsoleProps) {
 				{displayLines.length === 0 && !isDone && (
 					<div className="flex items-center justify-center h-full text-xs text-muted-foreground">
 						<Loader2 className="h-4 w-4 mr-2 animate-spin" />
-						Waiting for agent output...
+						Waiting for daemon output...
 					</div>
 				)}
 				{displayLines.length === 0 && isDone && (

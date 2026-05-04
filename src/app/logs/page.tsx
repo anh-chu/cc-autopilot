@@ -9,7 +9,7 @@ import {
 	useRef,
 	useState,
 } from "react";
-import { AgentConsole } from "@/components/agent-console";
+import { DaemonRunViewer } from "@/components/chat/DaemonRunViewer";
 import { BreadcrumbNav } from "@/components/breadcrumb-nav";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -502,7 +502,7 @@ export default function LogsPage() {
 						</div>
 					</CardHeader>
 					<CardContent>
-						<AgentConsole runId={selectedRunId} />
+						<DaemonRunViewer runId={selectedRunId} />
 					</CardContent>
 				</Card>
 			) : null}

@@ -45,7 +45,6 @@ import {
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
-import { prepareConsoleLines, StreamEntry } from "@/components/agent-console";
 import { BreadcrumbNav } from "@/components/breadcrumb-nav";
 import { ConfirmDialog } from "@/components/confirm-dialog";
 import { CsvViewer } from "@/components/editor/csv-viewer";
@@ -66,12 +65,28 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { FrontmatterHeader } from "@/components/wiki/frontmatter-header";
-import type { StreamLine } from "@/hooks/use-agent-stream";
-import { useAgentStream } from "@/hooks/use-agent-stream";
-import { useAgents, useCommands } from "@/hooks/use-data";
+
+import { useCommands } from "@/hooks/use-data";
+import { AssistantThread } from "@/components/chat/AssistantThread";
+import { getWikiDir } from "@/lib/paths";
 import { useWorkspace } from "@/hooks/use-workspace";
 import { parseFrontmatter } from "@/lib/markdown/parse-frontmatter";
 import remarkWikilinks from "@/lib/markdown/remark-wikilinks";
+
+// Temporary types for backward compatibility during migration
+type StreamLine = any;
+function useAgentStream(runId: string | null): { lines: any[]; isConnected: boolean; isDone: boolean } {
+  return { lines: [], isConnected: false, isDone: true };
+}
+function prepareConsoleLines(lines: any[]): any[] {
+  return [];
+}
+function StreamEntry({ line }: { line: any }) {
+  return <div>Migration in progress...</div>;
+}
+function useAgents(): { agents: Array<{id: string; name: string; status: string; model: string}> } {
+  return { agents: [] };
+}
 import { cn } from "@/lib/utils";
 import { useEditorStore } from "@/stores/editor-store";
 import { useWikiSlugsStore } from "@/stores/wiki-slugs-store";

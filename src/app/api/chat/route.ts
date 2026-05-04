@@ -1,4 +1,4 @@
-// Phase 1 — enhanced API route with cwd/model/persona validation + concurrency control
+// Phase 2 — enhanced API route with session resume + persistence
 // Deviations from plan documented in Phase 0:
 // - toUIMessageStreamResponse() instead of toDataStreamResponse()
 // - AssistantChatTransport expects UIMessageStream format
@@ -7,6 +7,9 @@ import * as fs from "node:fs";
 import * as path from "node:path";
 import { type ModelMessage, streamText } from "ai";
 import { claudeCode } from "ai-sdk-provider-claude-code";
+import type { Query } from "@anthropic-ai/claude-agent-sdk";
+import { getSessionId, saveSessionId } from "@/lib/chat-sessions";
+import { applyWorkspaceContext } from "@/lib/workspace-context";
 
 // Process-wide semaphore: max 3 concurrent chats
 let activeChatCount = 0;
@@ -32,6 +35,21 @@ function releaseChatSlot(): void {
 	}
 }
 
+/**
+ * GET /api/chat/session - Retrieve current session ID for workspace/context
+ */
+export async function GET(request: Request) {
+	const workspaceId = await applyWorkspaceContext();
+	const { searchParams } = new URL(request.url);
+	const context = searchParams.get('context') || undefined;
+	
+	const sessionId = getSessionId(workspaceId, context);
+	
+	return new Response(JSON.stringify({ sessionId }), {
+		headers: { "Content-Type": "application/json" },
+	});
+}
+
 export async function POST(request: Request) {
 	// Check semaphore first
 	if (activeChatCount >= 3) {
@@ -41,6 +59,8 @@ export async function POST(request: Request) {
 		});
 	}
 
+	const workspaceId = await applyWorkspaceContext();
+
 	const body = (await request.json()) as {
 		messages: ModelMessage[];
 		data?: {
@@ -48,11 +68,16 @@ export async function POST(request: Request) {
 			model?: string;
 			persona?: string;
 			sessionId?: string;
+			context?: string;
 		};
 	};
 
 	const { messages, data } = body;
 	const cwd = data?.cwd ?? process.cwd();
+	const context = data?.context;
+
+	// Get current session ID if not provided in body
+	const currentSessionId = data?.sessionId ?? getSessionId(workspaceId, context);
 
 	// Validate cwd is an existing absolute path
 	if (!path.isAbsolute(cwd)) {
@@ -72,13 +97,20 @@ export async function POST(request: Request) {
 	// Acquire chat slot
 	await acquireChatSlot();
 
+	// Track the new session ID from claude-code
+	let newSessionId: string | undefined;
+
 	try {
-		// model: pass data.model ?? 'sonnet' to claudeCode()
+		// model: pass data.model ?? 'sonnet' to claudeCode() with session management
 		const model = claudeCode(data?.model ?? "sonnet", {
 			cwd,
 			persistSession: true,
 			allowDangerouslySkipPermissions: true,
-			...(data?.sessionId ? { sdkOptions: { resume: data.sessionId } } : {}),
+			...(currentSessionId ? { resume: currentSessionId } : {}),
+			onQueryCreated: (query: Query) => {
+				// Capture the session ID - it may be available on query properties
+				newSessionId = (query as any).sessionId || (query as any).id;
+			},
 		});
 
 		// persona: if provided, prepend a { role: 'system', content: persona } to messages
@@ -87,6 +119,19 @@ export async function POST(request: Request) {
 			: messages;
 
 		const result = streamText({ model, messages: enhancedMessages });
+
+		// Save session ID after stream completes (async)
+		Promise.resolve(result.text).then(() => {
+			if (newSessionId) {
+				try {
+					saveSessionId(workspaceId, newSessionId, context);
+				} catch (error) {
+					console.warn('Failed to save session ID:', error);
+				}
+			}
+		}).catch((error: unknown) => {
+			console.warn('Stream completion error:', error);
+		});
 
 		return result.toUIMessageStreamResponse();
 	} finally {

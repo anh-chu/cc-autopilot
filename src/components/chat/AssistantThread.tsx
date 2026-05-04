@@ -18,7 +18,7 @@ import {
 	AssistantChatTransport,
 	useChatRuntime,
 } from "@assistant-ui/react-ai-sdk";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { claudeCodeToolUIs } from "./tool-uis";
 
 // Enhanced message renderer that properly displays text content.
@@ -42,6 +42,7 @@ interface AssistantThreadProps {
 	context?: string;
 	model?: string;
 	persona?: string;
+	workspaceId?: string; // For explicit workspace specification
 }
 
 export function AssistantThread({
@@ -49,13 +50,40 @@ export function AssistantThread({
 	context,
 	model,
 	persona,
+	workspaceId,
 }: AssistantThreadProps) {
-	// Forward cwd, model, persona via transport body
+	const [sessionId, setSessionId] = useState<string | null>(null);
+	const [isLoading, setIsLoading] = useState(true);
+
+	// Fetch current session ID on mount
+	useEffect(() => {
+		async function fetchSessionId() {
+			try {
+				const params = new URLSearchParams();
+				if (context) {
+					params.set('context', context);
+				}
+				const response = await fetch(`/api/chat?${params.toString()}`);
+				if (response.ok) {
+					const data = await response.json();
+					setSessionId(data.sessionId);
+				}
+			} catch (error) {
+				console.warn('Failed to fetch session ID:', error);
+			} finally {
+				setIsLoading(false);
+			}
+		}
+
+		fetchSessionId();
+	}, [context]);
+
+	// Forward cwd, model, persona, context, sessionId via transport body
 	// HttpChatTransportInitOptions.body confirmed at node_modules/ai/dist/index.d.ts:4000
 	const runtime = useChatRuntime({
 		transport: new AssistantChatTransport({
 			api: "/api/chat",
-			body: { cwd, model, persona },
+			body: { cwd, model, persona, context, sessionId },
 		}),
 	});
 
@@ -67,6 +95,14 @@ export function AssistantThread({
 			// The makeAssistantToolUI pattern handles the registration
 		});
 	}, []);
+
+	if (isLoading) {
+		return (
+			<div className="flex flex-col h-full justify-center items-center">
+				<div className="text-sm text-muted-foreground">Loading session...</div>
+			</div>
+		);
+	}
 
 	return (
 		<AssistantRuntimeProvider runtime={runtime}>
@@ -85,7 +121,7 @@ export function AssistantThread({
 					<ComposerPrimitive.Root className="border-t p-4 flex gap-2">
 						<ComposerPrimitive.Input
 							className="flex-1 resize-none rounded border p-2 text-sm"
-							placeholder="Send a message…"
+							placeholder={sessionId ? "Continue conversation..." : "Start a conversation..."}
 						/>
 						<ComposerPrimitive.Send className="rounded bg-primary px-4 py-2 text-sm text-primary-foreground">
 							Send

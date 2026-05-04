@@ -16,8 +16,9 @@ import {
 	Zap,
 } from "lucide-react";
 import { useMemo, useState } from "react";
-import { AgentConsole } from "@/components/agent-console";
+
 import { BreadcrumbNav } from "@/components/breadcrumb-nav";
+import { DaemonRunViewer } from "@/components/chat/DaemonRunViewer";
 import { ErrorState } from "@/components/error-state";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -457,14 +458,7 @@ export default function AutopilotPage() {
 										</div>
 										{isExpanded && runId && (
 											<div className="border-t px-3 pb-3 pt-2">
-												<AgentConsole
-													runId={runId}
-													onStop={
-														session.taskId
-															? () => stopTask(session.taskId as string)
-															: undefined
-													}
-												/>
+												<DaemonRunViewer runId={runId} />
 											</div>
 										)}
 										{isExpanded && !runId && (
