@@ -1,4 +1,5 @@
 // Phase 2 — enhanced API route with session resume + persistence
+// Phase 6 — multi-session support; GET returns sessions list.
 // Deviations from plan documented in Phase 0:
 // - toUIMessageStreamResponse() instead of toDataStreamResponse()
 // - AssistantChatTransport expects UIMessageStream format
@@ -8,7 +9,12 @@ import * as path from "node:path";
 import type { Query } from "@anthropic-ai/claude-agent-sdk";
 import { convertToModelMessages, streamText, type UIMessage } from "ai";
 import { claudeCode } from "ai-sdk-provider-claude-code";
-import { getSessionId, saveSessionId } from "@/lib/chat-sessions";
+import {
+	createSession,
+	getCurrentSession,
+	listSessions,
+	updateSession,
+} from "@/lib/chat-sessions";
 import { getWikiDir, getWorkspaceDir } from "@/lib/paths";
 import { applyWorkspaceContext } from "@/lib/workspace-context";
 
@@ -30,7 +36,6 @@ async function acquireChatSlot(): Promise<void> {
 		activeChatCount++;
 		return;
 	}
-	// Queue is full, wait for a slot
 	return new Promise((resolve) => {
 		waitingQueue.push(resolve);
 	});
@@ -46,18 +51,25 @@ function releaseChatSlot(): void {
 }
 
 /**
- * GET /api/chat/session - Retrieve current session ID for workspace/context
+ * GET /api/chat — Retrieve sessions + currentId for workspace/context.
  */
 export async function GET(request: Request) {
 	const workspaceId = await applyWorkspaceContext();
 	const { searchParams } = new URL(request.url);
 	const context = searchParams.get("context") || undefined;
 
-	const sessionId = getSessionId(workspaceId, context);
+	const sessions = listSessions(workspaceId, context);
+	const current = getCurrentSession(workspaceId, context);
 
-	return new Response(JSON.stringify({ sessionId }), {
-		headers: { "Content-Type": "application/json" },
-	});
+	return new Response(
+		JSON.stringify({
+			sessions,
+			currentId: current?.id ?? null,
+			// Legacy field — kept for backward compat
+			sessionId: current?.sessionId ?? null,
+		}),
+		{ headers: { "Content-Type": "application/json" } },
+	);
 }
 
 export async function POST(request: Request) {
@@ -86,9 +98,15 @@ export async function POST(request: Request) {
 	const context = data?.context;
 	const cwd = data?.cwd ?? defaultCwdForContext(workspaceId, context);
 
-	// Get current session ID if not provided in body
-	const currentSessionId =
-		data?.sessionId ?? getSessionId(workspaceId, context);
+	// Ensure at least one session exists
+	let currentSession = getCurrentSession(workspaceId, context);
+	if (!currentSession) {
+		currentSession = createSession(workspaceId, context);
+	}
+
+	// Get Claude Code session ID for resume
+	const currentClaudeSessionId =
+		data?.sessionId ?? currentSession.sessionId ?? null;
 
 	// Validate cwd is an existing absolute path
 	if (!path.isAbsolute(cwd)) {
@@ -105,40 +123,62 @@ export async function POST(request: Request) {
 		});
 	}
 
+	// Patch title on first message of a new session
+	if (currentSession.title === "New chat") {
+		const firstUserMsg = messages.find((m) => m.role === "user");
+		if (firstUserMsg) {
+			const titleText = firstUserMsg.parts
+				.filter(
+					(p): p is { type: "text"; text: string } =>
+						p.type === "text" && "text" in p,
+				)
+				.map((p) => p.text)
+				.join(" ")
+				.trim()
+				.slice(0, 60);
+			if (titleText) {
+				updateSession(workspaceId, context, currentSession.id, {
+					title: titleText,
+				});
+			}
+		}
+	}
+
 	// Acquire chat slot
 	await acquireChatSlot();
 
 	// Track the new session ID from claude-code
-	let newSessionId: string | undefined;
+	let newClaudeSessionId: string | undefined;
+
+	const sessionId = currentSession.id;
 
 	try {
-		// model: pass data.model ?? 'sonnet' to claudeCode() with session management
 		const model = claudeCode(data?.model ?? "sonnet", {
 			cwd,
 			persistSession: true,
 			allowDangerouslySkipPermissions: true,
-			...(currentSessionId ? { resume: currentSessionId } : {}),
+			...(currentClaudeSessionId ? { resume: currentClaudeSessionId } : {}),
 			onQueryCreated: (query: Query) => {
-				// Capture the session ID - it may be available on query properties
 				const q = query as { sessionId?: string; id?: string };
-				newSessionId = q.sessionId || q.id;
+				newClaudeSessionId = q.sessionId || q.id;
 			},
 		});
 
 		const modelMessages = await convertToModelMessages(messages);
-		// persona: if provided, prepend a { role: 'system', content: persona } to messages
 		const enhancedMessages = data?.persona
 			? [{ role: "system" as const, content: data.persona }, ...modelMessages]
 			: modelMessages;
 
 		const result = streamText({ model, messages: enhancedMessages });
 
-		// Save session ID after stream completes (async)
+		// Save Claude Code session ID after stream completes
 		Promise.resolve(result.text)
 			.then(() => {
-				if (newSessionId) {
+				if (newClaudeSessionId) {
 					try {
-						saveSessionId(workspaceId, newSessionId, context);
+						updateSession(workspaceId, context, sessionId, {
+							sessionId: newClaudeSessionId,
+						});
 					} catch (error) {
 						console.warn("Failed to save session ID:", error);
 					}
@@ -150,7 +190,6 @@ export async function POST(request: Request) {
 
 		return result.toUIMessageStreamResponse();
 	} finally {
-		// Always release the slot when done
 		releaseChatSlot();
 	}
 }

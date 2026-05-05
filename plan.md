@@ -473,6 +473,9 @@ Each task is single-file scope, fully specified, no architectural decisions rema
 4. Refresh — follow-up message should resume the same Claude Code session (check `<workspaceDataDir>/chat-sessions.json`).
 5. Visit `/autopilot` and `/logs` while a daemon run is active — `<DaemonRunViewer>` tails `/api/runs/stream` read-only.
 
+| 6a | `a5052d7` | Slash command menu in AssistantThread composer: `workspaceId` prop, `ComposerArea` inner component, `useComposer`+`useComposerRuntime` for text tracking, app commands via `useCommands`, CC commands from `/api/claude/slash-commands`, keyboard nav. |
+| 6b | TBD | Multi-session chat history: new SessionBucket schema with migration, `listSessions/createSession/setCurrentSession/updateSession/deleteSession` exports, GET returns sessions list, `POST /api/chat/session` for CRUD, session picker UI with `ThreadWithRuntime` keyed remount. |
+
 ### Known follow-ups
 - Tool-UI tests assert shape only (functions, count). Add render tests with @testing-library/react when needed.
 - Concurrent-chat 429 path is asserted in unit test; consider adding e2e once a Playwright harness exists.

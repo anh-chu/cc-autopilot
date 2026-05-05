@@ -117,7 +117,6 @@ function MessageBody() {
 function ComposerArea({
 	workspaceId,
 	sessionId,
-	context,
 }: {
 	workspaceId: string;
 	sessionId: string | null;
@@ -430,11 +429,11 @@ export function AssistantThread({
 			const r = await fetch(`/api/chat?${params.toString()}`);
 			if (r.ok) {
 				const data = (await r.json()) as {
-					sessions: SessionEntry[];
-					currentId: string | null;
+					sessions?: SessionEntry[];
+					currentId?: string | null;
 				};
-				setSessions(data.sessions);
-				setCurrentId(data.currentId);
+				setSessions(data.sessions ?? []);
+				setCurrentId(data.currentId ?? null);
 			}
 		} catch (err) {
 			console.warn("Failed to load sessions:", err);
