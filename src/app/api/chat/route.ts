@@ -82,20 +82,21 @@ export async function POST(request: Request) {
 
 	const workspaceId = await applyWorkspaceContext();
 
+	// AssistantChatTransport flattens body fields onto the top level of the
+	// request payload, so cwd/model/persona/context/sessionId arrive as
+	// siblings of messages, not nested under a `data` object.
 	const body = (await request.json()) as {
 		messages: UIMessage[];
-		data?: {
-			cwd?: string;
-			model?: string;
-			persona?: string;
-			sessionId?: string;
-			context?: string;
-		};
+		cwd?: string;
+		model?: string;
+		persona?: string;
+		sessionId?: string;
+		context?: string;
 	};
 
-	const { messages, data } = body;
-	const context = data?.context;
-	const cwd = data?.cwd ?? defaultCwdForContext(workspaceId, context);
+	const { messages } = body;
+	const context = body.context;
+	const cwd = body.cwd ?? defaultCwdForContext(workspaceId, context);
 
 	// Ensure at least one session exists
 	let currentSession = getCurrentSession(workspaceId, context);
@@ -105,7 +106,7 @@ export async function POST(request: Request) {
 
 	// Get Claude Code session ID for resume
 	const currentClaudeSessionId =
-		data?.sessionId ?? currentSession.sessionId ?? null;
+		body.sessionId ?? currentSession.sessionId ?? null;
 
 	// Validate cwd is an existing absolute path
 	if (!path.isAbsolute(cwd)) {
@@ -149,7 +150,7 @@ export async function POST(request: Request) {
 	const sessionId = currentSession.id;
 
 	try {
-		const model = claudeCode(data?.model ?? "sonnet", {
+		const model = claudeCode(body.model ?? "sonnet", {
 			cwd,
 			persistSession: true,
 			allowDangerouslySkipPermissions: true,
@@ -157,8 +158,8 @@ export async function POST(request: Request) {
 		});
 
 		const modelMessages = await convertToModelMessages(messages);
-		const enhancedMessages = data?.persona
-			? [{ role: "system" as const, content: data.persona }, ...modelMessages]
+		const enhancedMessages = body.persona
+			? [{ role: "system" as const, content: body.persona }, ...modelMessages]
 			: modelMessages;
 
 		const result = streamText({
