@@ -422,6 +422,7 @@ function ThreadWithRuntime({
 	workspaceId,
 	claudeSessionId,
 	initialMessages,
+	onAssistantFinish,
 }: {
 	cwd?: string;
 	model?: string;
@@ -430,6 +431,7 @@ function ThreadWithRuntime({
 	workspaceId: string;
 	claudeSessionId: string | null;
 	initialMessages: SessionUIMessage[];
+	onAssistantFinish?: () => void;
 }) {
 	const runtime = useChatRuntime({
 		transport: new AssistantChatTransport({
@@ -437,6 +439,9 @@ function ThreadWithRuntime({
 			body: { cwd, model, persona, context, sessionId: claudeSessionId },
 		}),
 		messages: initialMessages,
+		onFinish: () => {
+			onAssistantFinish?.();
+		},
 	});
 
 	return (
@@ -496,8 +501,12 @@ export function AssistantThread({
 		[],
 	);
 	const [messagesLoading, setMessagesLoading] = useState(false);
+	// runtimeKey forces a chat runtime remount only on explicit session
+	// switches (new chat or activate). Lazy promotion from a draft to a real
+	// session id keeps the existing runtime and its just-streamed messages.
+	const [runtimeKey, setRuntimeKey] = useState("draft");
 
-	async function loadSessions() {
+	async function loadSessions(opts?: { syncRuntimeKey?: boolean }) {
 		try {
 			const params = new URLSearchParams();
 			if (context) params.set("context", context);
@@ -509,6 +518,9 @@ export function AssistantThread({
 				};
 				setSessions(data.sessions ?? []);
 				setCurrentId(data.currentId ?? null);
+				if (opts?.syncRuntimeKey && data.currentId) {
+					setRuntimeKey(data.currentId);
+				}
 			}
 		} catch (err) {
 			console.warn("Failed to load sessions:", err);
@@ -519,25 +531,27 @@ export function AssistantThread({
 
 	// biome-ignore lint/correctness/useExhaustiveDependencies: load once per context
 	useEffect(() => {
-		void loadSessions();
+		void loadSessions({ syncRuntimeKey: true });
 	}, [context]);
 
-	// Fetch historical messages whenever the active session changes.
-	// biome-ignore lint/correctness/useExhaustiveDependencies: currentId is the only trigger
+	// Fetch historical messages on explicit session switches only. Driven
+	// off runtimeKey so a lazy promotion (currentId null -> real id after
+	// first send) does not refetch and unmount the live runtime.
+	// biome-ignore lint/correctness/useExhaustiveDependencies: runtimeKey is the only trigger
 	useEffect(() => {
-		if (!currentId) {
+		if (!runtimeKey || runtimeKey.startsWith("draft")) {
 			setInitialMessages([]);
 			return;
 		}
 		setMessagesLoading(true);
-		const params = new URLSearchParams({ id: currentId });
+		const params = new URLSearchParams({ id: runtimeKey });
 		if (context) params.set("context", context);
 		fetch(`/api/chat/messages?${params.toString()}`)
 			.then((r) => r.json() as Promise<{ messages?: SessionUIMessage[] }>)
 			.then((data) => setInitialMessages(data.messages ?? []))
 			.catch(() => setInitialMessages([]))
 			.finally(() => setMessagesLoading(false));
-	}, [currentId]);
+	}, [runtimeKey]);
 
 	const sortedSessions = useMemo(
 		() =>
@@ -551,20 +565,27 @@ export function AssistantThread({
 	const currentSession = sessions.find((s) => s.id === currentId) ?? null;
 
 	async function handleNewSession() {
+		// Lazy: do not persist a session until the first message is sent.
+		// Just clear the current pointer so the next POST /api/chat creates a
+		// fresh entry server-side.
 		try {
-			const r = await fetch("/api/chat/session", {
+			await fetch("/api/chat/session", {
 				method: "POST",
 				headers: { "Content-Type": "application/json" },
-				body: JSON.stringify({ action: "new", context }),
+				body: JSON.stringify({ action: "clear", context }),
 			});
-			if (r.ok) {
-				const entry = (await r.json()) as SessionEntry;
-				setSessions((prev) => [...prev, entry]);
-				setCurrentId(entry.id);
-			}
 		} catch (err) {
-			console.warn("Failed to create session:", err);
+			console.warn("Failed to clear current session:", err);
 		}
+		setCurrentId(null);
+		setInitialMessages([]);
+		setRuntimeKey(`draft-${Date.now()}`);
+	}
+
+	async function handleAssistantFinish() {
+		// Refresh sessions list so a freshly created session (lazy on first
+		// message) and any updated title or sessionId show up immediately.
+		await loadSessions();
 	}
 
 	async function handleActivate(id: string) {
@@ -574,7 +595,10 @@ export function AssistantThread({
 				headers: { "Content-Type": "application/json" },
 				body: JSON.stringify({ action: "activate", id, context }),
 			});
-			if (r.ok) setCurrentId(id);
+			if (r.ok) {
+				setCurrentId(id);
+				setRuntimeKey(id);
+			}
 		} catch (err) {
 			console.warn("Failed to activate session:", err);
 		}
@@ -640,7 +664,7 @@ export function AssistantThread({
 				</div>
 			) : (
 				<ThreadWithRuntime
-					key={currentId ?? "no-session"}
+					key={runtimeKey}
 					cwd={cwd}
 					model={model}
 					persona={persona}
@@ -648,6 +672,7 @@ export function AssistantThread({
 					workspaceId={workspaceId}
 					claudeSessionId={currentSession?.sessionId ?? null}
 					initialMessages={initialMessages}
+					onAssistantFinish={handleAssistantFinish}
 				/>
 			)}
 		</div>

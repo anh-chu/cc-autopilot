@@ -4,6 +4,7 @@
 // DELETE ?id=...&context=...             → delete session
 
 import {
+	clearCurrentSession,
 	createSession,
 	deleteSession,
 	setCurrentSession,
@@ -14,7 +15,7 @@ import { applyWorkspaceContext } from "@/lib/workspace-context";
 export async function POST(request: Request) {
 	const workspaceId = await applyWorkspaceContext();
 	const body = (await request.json()) as {
-		action: "new" | "activate";
+		action: "new" | "activate" | "clear";
 		id?: string;
 		context?: string;
 	};
@@ -23,6 +24,11 @@ export async function POST(request: Request) {
 	if (body.action === "new") {
 		const entry = createSession(workspaceId, context);
 		return Response.json(entry);
+	}
+
+	if (body.action === "clear") {
+		clearCurrentSession(workspaceId, context);
+		return Response.json({ ok: true });
 	}
 
 	if (body.action === "activate") {

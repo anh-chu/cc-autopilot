@@ -173,6 +173,20 @@ export function setCurrentSession(
 }
 
 /**
+ * Clear the current session id without deleting any sessions.
+ * Used when the user starts a fresh chat that should not be persisted
+ * until the first message is sent.
+ */
+export function clearCurrentSession(
+	workspaceId: string,
+	context: string | undefined,
+): void {
+	const bucket = readBucket(workspaceId, context);
+	bucket.currentId = null;
+	writeBucket(workspaceId, context, bucket);
+}
+
+/**
  * Patch title or sessionId on an existing entry. Returns updated entry or null.
  */
 export function updateSession(
