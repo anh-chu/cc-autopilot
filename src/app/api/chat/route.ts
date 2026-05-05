@@ -205,6 +205,7 @@ export async function POST(request: Request) {
 			cwd,
 			persistSession: true,
 			allowDangerouslySkipPermissions: true,
+			permissionMode: "bypassPermissions",
 			...(currentClaudeSessionId ? { resume: currentClaudeSessionId } : {}),
 		});
 
