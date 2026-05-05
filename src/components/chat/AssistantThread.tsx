@@ -632,6 +632,12 @@ export function AssistantThread({
 				const data = (await r.json()) as { currentId: string | null };
 				setSessions((prev) => prev.filter((s) => s.id !== id));
 				setCurrentId(data.currentId);
+				// If the deleted session was the one driving the runtime, swap
+				// the runtime key so the thread remounts onto the new current
+				// session (or a fresh draft if nothing remains).
+				if (id === runtimeKey) {
+					setRuntimeKey(data.currentId ?? `draft-${Date.now()}`);
+				}
 			}
 		} catch (err) {
 			console.warn("Failed to delete session:", err);
