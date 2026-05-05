@@ -32,6 +32,16 @@ import { claudeCodeToolUIs } from "./tool-uis";
 
 // ---- Types ----------------------------------------------------------------
 
+// Minimal UIMessage shape accepted by useChatRuntime as initialMessages.
+// Matches the `parts` subset we produce in readSessionMessages.
+type SessionUIMessage = {
+	id: string;
+	role: "user" | "assistant";
+	parts: Array<
+		{ type: "text"; text: string } | { type: "reasoning"; text: string }
+	>;
+};
+
 interface AssistantThreadProps {
 	cwd?: string;
 	context?: string;
@@ -411,6 +421,7 @@ function ThreadWithRuntime({
 	context,
 	workspaceId,
 	claudeSessionId,
+	initialMessages,
 }: {
 	cwd?: string;
 	model?: string;
@@ -418,12 +429,14 @@ function ThreadWithRuntime({
 	context?: string;
 	workspaceId: string;
 	claudeSessionId: string | null;
+	initialMessages: SessionUIMessage[];
 }) {
 	const runtime = useChatRuntime({
 		transport: new AssistantChatTransport({
 			api: "/api/chat",
 			body: { cwd, model, persona, context, sessionId: claudeSessionId },
 		}),
+		messages: initialMessages,
 	});
 
 	return (
@@ -479,6 +492,10 @@ export function AssistantThread({
 	const [sessions, setSessions] = useState<SessionEntry[]>([]);
 	const [currentId, setCurrentId] = useState<string | null>(null);
 	const [isLoading, setIsLoading] = useState(true);
+	const [initialMessages, setInitialMessages] = useState<SessionUIMessage[]>(
+		[],
+	);
+	const [messagesLoading, setMessagesLoading] = useState(false);
 
 	async function loadSessions() {
 		try {
@@ -504,6 +521,23 @@ export function AssistantThread({
 	useEffect(() => {
 		void loadSessions();
 	}, [context]);
+
+	// Fetch historical messages whenever the active session changes.
+	// biome-ignore lint/correctness/useExhaustiveDependencies: currentId is the only trigger
+	useEffect(() => {
+		if (!currentId) {
+			setInitialMessages([]);
+			return;
+		}
+		setMessagesLoading(true);
+		const params = new URLSearchParams({ id: currentId });
+		if (context) params.set("context", context);
+		fetch(`/api/chat/messages?${params.toString()}`)
+			.then((r) => r.json() as Promise<{ messages?: SessionUIMessage[] }>)
+			.then((data) => setInitialMessages(data.messages ?? []))
+			.catch(() => setInitialMessages([]))
+			.finally(() => setMessagesLoading(false));
+	}, [currentId]);
 
 	const sortedSessions = useMemo(
 		() =>
@@ -598,15 +632,24 @@ export function AssistantThread({
 				onDelete={handleDelete}
 				onRename={handleRename}
 			/>
-			<ThreadWithRuntime
-				key={currentId ?? "no-session"}
-				cwd={cwd}
-				model={model}
-				persona={persona}
-				context={context}
-				workspaceId={workspaceId}
-				claudeSessionId={currentSession?.sessionId ?? null}
-			/>
+			{messagesLoading ? (
+				<div className="flex flex-col flex-1 items-center justify-center">
+					<span className="text-xs text-muted-foreground">
+						Loading messages...
+					</span>
+				</div>
+			) : (
+				<ThreadWithRuntime
+					key={currentId ?? "no-session"}
+					cwd={cwd}
+					model={model}
+					persona={persona}
+					context={context}
+					workspaceId={workspaceId}
+					claudeSessionId={currentSession?.sessionId ?? null}
+					initialMessages={initialMessages}
+				/>
+			)}
 		</div>
 	);
 }

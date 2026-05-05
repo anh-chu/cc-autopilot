@@ -217,6 +217,18 @@ export function deleteSession(
 	return bucket.currentId;
 }
 
+/**
+ * Look up a single session by id within a workspace/context.
+ */
+export function getSession(
+	workspaceId: string,
+	context: string | undefined,
+	id: string,
+): SessionEntry | null {
+	const bucket = readBucket(workspaceId, context);
+	return bucket.sessions.find((s) => s.id === id) ?? null;
+}
+
 // ---- Compatibility wrappers ------------------------------------------------
 
 /**
