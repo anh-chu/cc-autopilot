@@ -2,29 +2,49 @@
 
 // Phase 1 — chat thread with tool UIs, cwd/model/persona forwarding,
 // session resume, role-aware bubbles, reasoning + error rendering.
+// Phase 6 — slash command menu + multi-session chat history.
 
 import {
 	AssistantRuntimeProvider,
 	ComposerPrimitive,
 	MessagePrimitive,
 	ThreadPrimitive,
+	useComposer,
+	useComposerRuntime,
 	useMessage,
 } from "@assistant-ui/react";
 import {
 	AssistantChatTransport,
 	useChatRuntime,
 } from "@assistant-ui/react-ai-sdk";
-import { ChevronDown, ChevronRight, Send } from "lucide-react";
-import { useEffect, useState } from "react";
+import { ChevronDown, ChevronRight, Plus, Send, Trash2 } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
+import { useCommands } from "@/hooks/use-data";
 import { cn } from "@/lib/utils";
 import { claudeCodeToolUIs } from "./tool-uis";
+
+// ---- Types ----------------------------------------------------------------
 
 interface AssistantThreadProps {
 	cwd?: string;
 	context?: string;
 	model?: string;
 	persona?: string;
+	workspaceId: string;
 }
+
+type ClaudeCommand = { name: string; description: string };
+
+// Minimal SessionEntry shape — mirrors src/lib/chat-sessions.ts
+export interface SessionEntry {
+	id: string;
+	sessionId: string | null;
+	title: string;
+	createdAt: string;
+	updatedAt: string;
+}
+
+// ---- Reasoning block -------------------------------------------------------
 
 function ReasoningBlock({ text }: { text: string }) {
 	const [open, setOpen] = useState(false);
@@ -51,6 +71,8 @@ function ReasoningBlock({ text }: { text: string }) {
 		</div>
 	);
 }
+
+// ---- Message body ----------------------------------------------------------
 
 function MessageBody() {
 	const message = useMessage();
@@ -90,48 +112,262 @@ function MessageBody() {
 	);
 }
 
-export function AssistantThread({
-	cwd,
+// ---- Composer area with slash command menu --------------------------------
+
+function ComposerArea({
+	workspaceId,
+	sessionId,
 	context,
-	model,
-	persona,
-}: AssistantThreadProps) {
-	const [sessionId, setSessionId] = useState<string | null>(null);
-	const [isLoading, setIsLoading] = useState(true);
+}: {
+	workspaceId: string;
+	sessionId: string | null;
+	context?: string;
+}) {
+	const composerText = useComposer((s) => s.text);
+	const composerRuntime = useComposerRuntime();
+	const { commands: appCommands } = useCommands(workspaceId);
+	const [ccCommands, setCcCommands] = useState<ClaudeCommand[]>([]);
+	const [menuOpen, setMenuOpen] = useState(false);
+	const [menuQuery, setMenuQuery] = useState("");
+	const [selectedIndex, setSelectedIndex] = useState(0);
+
+	// Fetch Claude Code slash commands once
+	useEffect(() => {
+		fetch("/api/claude/slash-commands")
+			.then((r) => r.json() as Promise<{ commands: ClaudeCommand[] }>)
+			.then((data) => setCcCommands(data.commands))
+			.catch(() => {});
+	}, []);
+
+	// Detect slash trigger from last whitespace-separated token
+	const lastToken = useMemo(() => {
+		const parts = composerText.split(/\s/);
+		const last = parts[parts.length - 1] ?? "";
+		return last.startsWith("/") ? last : "";
+	}, [composerText]);
 
 	useEffect(() => {
-		async function fetchSessionId() {
-			try {
-				const params = new URLSearchParams();
-				if (context) params.set("context", context);
-				const response = await fetch(`/api/chat?${params.toString()}`);
-				if (response.ok) {
-					const data = (await response.json()) as { sessionId: string | null };
-					setSessionId(data.sessionId);
-				}
-			} catch (error) {
-				console.warn("Failed to fetch session ID:", error);
-			} finally {
-				setIsLoading(false);
-			}
+		if (lastToken) {
+			setMenuQuery(lastToken.slice(1).toLowerCase());
+			setMenuOpen(true);
+			setSelectedIndex(0);
+		} else {
+			setMenuOpen(false);
 		}
-		fetchSessionId();
-	}, [context]);
+	}, [lastToken]);
 
+	// Merge app commands (already have "/" prefix in .command) + CC commands
+	const filteredCommands = useMemo(() => {
+		const appNorm = new Set(
+			appCommands.map((c) => c.command.replace(/^\//, "").toLowerCase()),
+		);
+		const all: { name: string; description: string }[] = [
+			...appCommands.map((c) => ({
+				name: c.command.startsWith("/") ? c.command : `/${c.command}`,
+				description: c.description,
+			})),
+			...ccCommands
+				.filter((c) => !appNorm.has(c.name.toLowerCase()))
+				.map((c) => ({ name: `/${c.name}`, description: c.description })),
+		];
+		if (!menuQuery) return all.slice(0, 10);
+		return all
+			.filter(
+				(c) =>
+					c.name.toLowerCase().includes(menuQuery) ||
+					c.description.toLowerCase().includes(menuQuery),
+			)
+			.slice(0, 10);
+	}, [appCommands, ccCommands, menuQuery]);
+
+	function selectCommand(cmd: { name: string }) {
+		const prefix = composerText.slice(
+			0,
+			composerText.length - lastToken.length,
+		);
+		composerRuntime.setText(`${prefix}${cmd.name} `);
+		setMenuOpen(false);
+	}
+
+	function handleKeyDownCapture(e: React.KeyboardEvent) {
+		if (!menuOpen || filteredCommands.length === 0) return;
+		if (e.key === "ArrowDown") {
+			e.preventDefault();
+			e.stopPropagation();
+			setSelectedIndex((i) => Math.min(i + 1, filteredCommands.length - 1));
+		} else if (e.key === "ArrowUp") {
+			e.preventDefault();
+			e.stopPropagation();
+			setSelectedIndex((i) => Math.max(i - 1, 0));
+		} else if (e.key === "Enter") {
+			e.preventDefault();
+			e.stopPropagation();
+			const cmd = filteredCommands[selectedIndex];
+			if (cmd) selectCommand(cmd);
+		} else if (e.key === "Escape") {
+			e.preventDefault();
+			e.stopPropagation();
+			setMenuOpen(false);
+		}
+	}
+
+	return (
+		<div className="border-t relative" onKeyDownCapture={handleKeyDownCapture}>
+			{menuOpen && filteredCommands.length > 0 && (
+				<div className="absolute bottom-full left-0 right-0 bg-popover border rounded-t-md shadow-md overflow-hidden z-50 max-h-60 overflow-y-auto">
+					{filteredCommands.map((cmd, i) => (
+						<button
+							key={cmd.name}
+							type="button"
+							className={cn(
+								"w-full text-left px-3 py-2 text-sm flex items-center gap-2 hover:bg-accent",
+								i === selectedIndex && "bg-accent",
+							)}
+							onMouseDown={(e) => {
+								e.preventDefault();
+								selectCommand(cmd);
+							}}
+						>
+							<span className="font-mono text-xs shrink-0 text-foreground">
+								{cmd.name}
+							</span>
+							<span className="text-muted-foreground text-xs truncate">
+								{cmd.description}
+							</span>
+						</button>
+					))}
+				</div>
+			)}
+			<ComposerPrimitive.Root className="p-3 flex gap-2 items-end">
+				<ComposerPrimitive.Input
+					rows={1}
+					className="flex-1 resize-none rounded-sm border bg-background px-3 py-2 text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring min-h-[40px] max-h-32"
+					placeholder={
+						sessionId ? "Continue conversation…" : "Start a conversation…"
+					}
+				/>
+				<ComposerPrimitive.Send className="rounded-sm bg-primary px-3 py-2 text-sm text-primary-foreground hover:bg-primary/90 disabled:opacity-50 inline-flex items-center gap-1">
+					<Send className="h-3.5 w-3.5" />
+					Send
+				</ComposerPrimitive.Send>
+			</ComposerPrimitive.Root>
+		</div>
+	);
+}
+
+// ---- Session picker --------------------------------------------------------
+
+function SessionPicker({
+	sessions,
+	currentId,
+	onActivate,
+	onNew,
+	onDelete,
+}: {
+	sessions: SessionEntry[];
+	currentId: string | null;
+	onActivate: (id: string) => void;
+	onNew: () => void;
+	onDelete: (id: string) => void;
+}) {
+	const [open, setOpen] = useState(false);
+	const current = sessions.find((s) => s.id === currentId);
+
+	return (
+		<div className="relative shrink-0 border-b bg-muted/40">
+			<div className="flex items-center justify-between px-3 py-1.5">
+				<button
+					type="button"
+					className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground min-w-0"
+					onClick={() => setOpen((v) => !v)}
+				>
+					<span className="max-w-[180px] truncate">
+						{current?.title ?? "New chat"}
+					</span>
+					<ChevronDown className="h-3 w-3 shrink-0" />
+				</button>
+				<button
+					type="button"
+					className="flex items-center gap-0.5 text-xs text-muted-foreground hover:text-foreground shrink-0"
+					onClick={onNew}
+					title="New chat"
+				>
+					<Plus className="h-3.5 w-3.5" />
+				</button>
+			</div>
+
+			{open && (
+				<div className="absolute top-full left-0 right-0 bg-popover border-x border-b rounded-b-md shadow-md z-50 max-h-48 overflow-y-auto">
+					{sessions.map((s) => (
+						<div
+							key={s.id}
+							className={cn(
+								"flex items-center justify-between px-3 py-2 text-xs hover:bg-accent cursor-pointer group",
+								s.id === currentId && "bg-accent/50",
+							)}
+							onClick={() => {
+								onActivate(s.id);
+								setOpen(false);
+							}}
+							onKeyDown={(e) => {
+								if (e.key === "Enter") {
+									onActivate(s.id);
+									setOpen(false);
+								}
+							}}
+							role="option"
+							aria-selected={s.id === currentId}
+							tabIndex={0}
+						>
+							<span className="truncate flex-1">{s.title}</span>
+							<button
+								type="button"
+								className="shrink-0 opacity-0 group-hover:opacity-100 text-muted-foreground hover:text-destructive ml-2"
+								onClick={(e) => {
+									e.stopPropagation();
+									onDelete(s.id);
+									setOpen(false);
+								}}
+								title="Delete session"
+							>
+								<Trash2 className="h-3 w-3" />
+							</button>
+						</div>
+					))}
+					{sessions.length === 0 && (
+						<div className="px-3 py-2 text-xs text-muted-foreground">
+							No sessions yet
+						</div>
+					)}
+				</div>
+			)}
+		</div>
+	);
+}
+
+// ---- Thread with runtime (remounts on session switch) ---------------------
+
+function ThreadWithRuntime({
+	cwd,
+	model,
+	persona,
+	context,
+	workspaceId,
+	claudeSessionId,
+}: {
+	cwd?: string;
+	model?: string;
+	persona?: string;
+	context?: string;
+	workspaceId: string;
+	claudeSessionId: string | null;
+}) {
 	const runtime = useChatRuntime({
 		transport: new AssistantChatTransport({
 			api: "/api/chat",
-			body: { cwd, model, persona, context, sessionId },
+			body: { cwd, model, persona, context, sessionId: claudeSessionId },
 		}),
 	});
-
-	if (isLoading) {
-		return (
-			<div className="flex flex-col h-full justify-center items-center">
-				<div className="text-sm text-muted-foreground">Loading session…</div>
-			</div>
-		);
-	}
 
 	return (
 		<AssistantRuntimeProvider runtime={runtime}>
@@ -141,7 +377,7 @@ export function AssistantThread({
 				<ToolUI key={i} />
 			))}
 
-			<div className="flex flex-col h-full">
+			<div className="flex flex-col flex-1 overflow-hidden min-h-0">
 				<ThreadPrimitive.Root className="flex flex-col flex-1 overflow-hidden">
 					<ThreadPrimitive.Viewport
 						autoScroll
@@ -163,21 +399,140 @@ export function AssistantThread({
 						/>
 					</ThreadPrimitive.Viewport>
 
-					<ComposerPrimitive.Root className="border-t p-3 flex gap-2 items-end">
-						<ComposerPrimitive.Input
-							rows={1}
-							className="flex-1 resize-none rounded-sm border bg-background px-3 py-2 text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring min-h-[40px] max-h-32"
-							placeholder={
-								sessionId ? "Continue conversation…" : "Start a conversation…"
-							}
-						/>
-						<ComposerPrimitive.Send className="rounded-sm bg-primary px-3 py-2 text-sm text-primary-foreground hover:bg-primary/90 disabled:opacity-50 inline-flex items-center gap-1">
-							<Send className="h-3.5 w-3.5" />
-							Send
-						</ComposerPrimitive.Send>
-					</ComposerPrimitive.Root>
+					<ComposerArea
+						workspaceId={workspaceId}
+						sessionId={claudeSessionId}
+						context={context}
+					/>
 				</ThreadPrimitive.Root>
 			</div>
 		</AssistantRuntimeProvider>
+	);
+}
+
+// ---- Public component -----------------------------------------------------
+
+export function AssistantThread({
+	cwd,
+	context,
+	model,
+	persona,
+	workspaceId,
+}: AssistantThreadProps) {
+	const [sessions, setSessions] = useState<SessionEntry[]>([]);
+	const [currentId, setCurrentId] = useState<string | null>(null);
+	const [isLoading, setIsLoading] = useState(true);
+
+	async function loadSessions() {
+		try {
+			const params = new URLSearchParams();
+			if (context) params.set("context", context);
+			const r = await fetch(`/api/chat?${params.toString()}`);
+			if (r.ok) {
+				const data = (await r.json()) as {
+					sessions: SessionEntry[];
+					currentId: string | null;
+				};
+				setSessions(data.sessions);
+				setCurrentId(data.currentId);
+			}
+		} catch (err) {
+			console.warn("Failed to load sessions:", err);
+		} finally {
+			setIsLoading(false);
+		}
+	}
+
+	// biome-ignore lint/correctness/useExhaustiveDependencies: load once per context
+	useEffect(() => {
+		void loadSessions();
+	}, [context]);
+
+	const sortedSessions = useMemo(
+		() =>
+			[...sessions].sort(
+				(a, b) =>
+					new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime(),
+			),
+		[sessions],
+	);
+
+	const currentSession = sessions.find((s) => s.id === currentId) ?? null;
+
+	async function handleNewSession() {
+		try {
+			const r = await fetch("/api/chat/session", {
+				method: "POST",
+				headers: { "Content-Type": "application/json" },
+				body: JSON.stringify({ action: "new", context }),
+			});
+			if (r.ok) {
+				const entry = (await r.json()) as SessionEntry;
+				setSessions((prev) => [...prev, entry]);
+				setCurrentId(entry.id);
+			}
+		} catch (err) {
+			console.warn("Failed to create session:", err);
+		}
+	}
+
+	async function handleActivate(id: string) {
+		try {
+			const r = await fetch("/api/chat/session", {
+				method: "POST",
+				headers: { "Content-Type": "application/json" },
+				body: JSON.stringify({ action: "activate", id, context }),
+			});
+			if (r.ok) setCurrentId(id);
+		} catch (err) {
+			console.warn("Failed to activate session:", err);
+		}
+	}
+
+	async function handleDelete(id: string) {
+		if (!window.confirm("Delete this chat session?")) return;
+		try {
+			const params = new URLSearchParams({ id });
+			if (context) params.set("context", context);
+			const r = await fetch(`/api/chat/session?${params.toString()}`, {
+				method: "DELETE",
+			});
+			if (r.ok) {
+				const data = (await r.json()) as { currentId: string | null };
+				setSessions((prev) => prev.filter((s) => s.id !== id));
+				setCurrentId(data.currentId);
+			}
+		} catch (err) {
+			console.warn("Failed to delete session:", err);
+		}
+	}
+
+	if (isLoading) {
+		return (
+			<div className="flex flex-col h-full justify-center items-center">
+				<div className="text-sm text-muted-foreground">Loading session…</div>
+			</div>
+		);
+	}
+
+	return (
+		<div className="flex flex-col h-full">
+			<SessionPicker
+				sessions={sortedSessions}
+				currentId={currentId}
+				onActivate={handleActivate}
+				onNew={handleNewSession}
+				onDelete={handleDelete}
+			/>
+			<ThreadWithRuntime
+				key={currentId ?? "no-session"}
+				cwd={cwd}
+				model={model}
+				persona={persona}
+				context={context}
+				workspaceId={workspaceId}
+				claudeSessionId={currentSession?.sessionId ?? null}
+			/>
+		</div>
 	);
 }

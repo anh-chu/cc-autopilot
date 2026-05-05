@@ -58,6 +58,7 @@ function useAgents(): {
 	return { agents: [] };
 }
 
+import { useWorkspace } from "@/hooks/use-workspace";
 import { cn } from "@/lib/utils";
 import { useEditorStore } from "@/stores/editor-store";
 import { useWikiSlugsStore } from "@/stores/wiki-slugs-store";
@@ -243,6 +244,7 @@ export default function BrainPage() {
 	const [selectedAgentId, setSelectedAgentId] = useState(
 		DOC_MAINTAINER_AGENT_ID,
 	);
+	const { currentId: workspaceId } = useWorkspace();
 	const { agents } = useAgents();
 	const runAgents = agents.filter((a) => a.status === "active");
 	const hasDocMaintainer = runAgents.some(
@@ -1386,6 +1388,7 @@ export default function BrainPage() {
 					{/* Chat: AssistantThread owns its own composer */}
 					<div className="flex-1 overflow-hidden">
 						<AssistantThread
+							workspaceId={workspaceId}
 							context="wiki:index"
 							model={selectedModel}
 							persona={
