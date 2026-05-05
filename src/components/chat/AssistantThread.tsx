@@ -17,7 +17,14 @@ import {
 	AssistantChatTransport,
 	useChatRuntime,
 } from "@assistant-ui/react-ai-sdk";
-import { ChevronDown, ChevronRight, Plus, Send, Trash2 } from "lucide-react";
+import {
+	ChevronDown,
+	ChevronRight,
+	Pencil,
+	Plus,
+	Send,
+	Trash2,
+} from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { useCommands } from "@/hooks/use-data";
 import { cn } from "@/lib/utils";
@@ -262,15 +269,35 @@ function SessionPicker({
 	onActivate,
 	onNew,
 	onDelete,
+	onRename,
 }: {
 	sessions: SessionEntry[];
 	currentId: string | null;
 	onActivate: (id: string) => void;
 	onNew: () => void;
 	onDelete: (id: string) => void;
+	onRename: (id: string, title: string) => void;
 }) {
 	const [open, setOpen] = useState(false);
+	const [editingId, setEditingId] = useState<string | null>(null);
+	const [draft, setDraft] = useState("");
 	const current = sessions.find((s) => s.id === currentId);
+
+	function startEdit(s: SessionEntry, e: React.MouseEvent) {
+		e.stopPropagation();
+		setEditingId(s.id);
+		setDraft(s.title);
+	}
+
+	function commitEdit() {
+		if (!editingId) return;
+		const next = draft.trim();
+		const original = sessions.find((s) => s.id === editingId);
+		if (next && original && next !== original.title) {
+			onRename(editingId, next);
+		}
+		setEditingId(null);
+	}
 
 	return (
 		<div className="relative shrink-0 border-b bg-muted/40">
@@ -318,10 +345,41 @@ function SessionPicker({
 							aria-selected={s.id === currentId}
 							tabIndex={0}
 						>
-							<span className="truncate flex-1">{s.title}</span>
+							{editingId === s.id ? (
+								<input
+									// biome-ignore lint/a11y/noAutofocus: rename UX
+									autoFocus
+									value={draft}
+									onChange={(e) => setDraft(e.target.value)}
+									onClick={(e) => e.stopPropagation()}
+									onBlur={commitEdit}
+									onKeyDown={(e) => {
+										e.stopPropagation();
+										if (e.key === "Enter") {
+											e.preventDefault();
+											commitEdit();
+										} else if (e.key === "Escape") {
+											e.preventDefault();
+											setEditingId(null);
+										}
+									}}
+									maxLength={60}
+									className="flex-1 bg-background border rounded-sm px-1.5 py-0.5 text-xs focus:outline-none focus:ring-1 focus:ring-ring"
+								/>
+							) : (
+								<span className="truncate flex-1">{s.title}</span>
+							)}
 							<button
 								type="button"
-								className="shrink-0 opacity-0 group-hover:opacity-100 text-muted-foreground hover:text-destructive ml-2"
+								className="shrink-0 opacity-0 group-hover:opacity-100 text-muted-foreground hover:text-foreground ml-2"
+								onClick={(e) => startEdit(s, e)}
+								title="Rename"
+							>
+								<Pencil className="h-3 w-3" />
+							</button>
+							<button
+								type="button"
+								className="shrink-0 opacity-0 group-hover:opacity-100 text-muted-foreground hover:text-destructive ml-1"
 								onClick={(e) => {
 									e.stopPropagation();
 									onDelete(s.id);
@@ -488,6 +546,22 @@ export function AssistantThread({
 		}
 	}
 
+	async function handleRename(id: string, title: string) {
+		try {
+			const r = await fetch("/api/chat/session", {
+				method: "PATCH",
+				headers: { "Content-Type": "application/json" },
+				body: JSON.stringify({ id, title, context }),
+			});
+			if (r.ok) {
+				const entry = (await r.json()) as SessionEntry;
+				setSessions((prev) => prev.map((s) => (s.id === id ? entry : s)));
+			}
+		} catch (err) {
+			console.warn("Failed to rename session:", err);
+		}
+	}
+
 	async function handleDelete(id: string) {
 		if (!window.confirm("Delete this chat session?")) return;
 		try {
@@ -522,6 +596,7 @@ export function AssistantThread({
 				onActivate={handleActivate}
 				onNew={handleNewSession}
 				onDelete={handleDelete}
+				onRename={handleRename}
 			/>
 			<ThreadWithRuntime
 				key={currentId ?? "no-session"}

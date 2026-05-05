@@ -7,6 +7,7 @@ import {
 	createSession,
 	deleteSession,
 	setCurrentSession,
+	updateSession,
 } from "@/lib/chat-sessions";
 import { applyWorkspaceContext } from "@/lib/workspace-context";
 
@@ -45,6 +46,36 @@ export async function POST(request: Request) {
 		status: 400,
 		headers: { "Content-Type": "application/json" },
 	});
+}
+
+export async function PATCH(request: Request) {
+	const workspaceId = await applyWorkspaceContext();
+	const body = (await request.json()) as {
+		id: string;
+		title?: string;
+		context?: string;
+	};
+	if (!body.id) {
+		return new Response(JSON.stringify({ error: "id required" }), {
+			status: 400,
+			headers: { "Content-Type": "application/json" },
+		});
+	}
+	const title = body.title?.trim().slice(0, 60);
+	if (!title) {
+		return new Response(JSON.stringify({ error: "title required" }), {
+			status: 400,
+			headers: { "Content-Type": "application/json" },
+		});
+	}
+	const entry = updateSession(workspaceId, body.context, body.id, { title });
+	if (!entry) {
+		return new Response(JSON.stringify({ error: "session not found" }), {
+			status: 404,
+			headers: { "Content-Type": "application/json" },
+		});
+	}
+	return Response.json(entry);
 }
 
 export async function DELETE(request: Request) {
