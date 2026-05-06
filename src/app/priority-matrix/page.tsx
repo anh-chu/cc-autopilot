@@ -95,6 +95,75 @@ const kanbanColumns: ColumnConfig[] = [
 	},
 ];
 
+function TasksSkeleton({ viewMode }: { viewMode: ViewMode }) {
+	return viewMode === "matrix" ? (
+		<GridSkeleton
+			className="grid grid-cols-1 sm:grid-cols-2 gap-3"
+			count={4}
+			renderItem={() => (
+				<CardSkeleton className="bg-card p-4 min-h-[200px] space-y-2">
+					<Skeleton className="h-5 w-24" />
+					<Skeleton className="h-3 w-32" />
+					<GridSkeleton
+						className="space-y-2 pt-2"
+						count={2}
+						renderItem={() => (
+							<CardSkeleton
+								className="p-3 space-y-2"
+								lines={[
+									{ key: "line-1", className: "h-3 w-full" },
+									{ key: "line-2", className: "h-3 w-2/3" },
+								]}
+								footer={[
+									{ key: "tag-1", className: "h-4 w-16 rounded-sm" },
+									{ key: "tag-2", className: "h-4 w-14 rounded-sm" },
+								]}
+							>
+								<div className="flex items-start justify-between gap-2">
+									<Skeleton className="h-4 w-3/4" />
+									<Skeleton className="h-2 w-2 rounded-full" />
+								</div>
+							</CardSkeleton>
+						)}
+					/>
+				</CardSkeleton>
+			)}
+		/>
+	) : (
+		<GridSkeleton
+			className="grid grid-cols-1 sm:grid-cols-3 gap-3"
+			count={3}
+			renderItem={(index) => (
+				<CardSkeleton className="bg-card p-4 min-h-[300px] space-y-2">
+					<Skeleton className="h-5 w-24" />
+					<GridSkeleton
+						className="space-y-2 pt-2"
+						count={index === 0 ? 3 : 2}
+						renderItem={() => (
+							<CardSkeleton
+								className="p-3 space-y-2"
+								lines={[
+									{ key: "line-1", className: "h-3 w-full" },
+									{ key: "line-2", className: "h-3 w-2/3" },
+								]}
+								footer={[
+									{ key: "tag-1", className: "h-4 w-16 rounded-sm" },
+									{ key: "tag-2", className: "h-4 w-14 rounded-sm" },
+								]}
+							>
+								<div className="flex items-start justify-between gap-2">
+									<Skeleton className="h-4 w-3/4" />
+									<Skeleton className="h-2 w-2 rounded-full" />
+								</div>
+							</CardSkeleton>
+						)}
+					/>
+				</CardSkeleton>
+			)}
+		/>
+	);
+}
+
 export default function TasksPage() {
 	const {
 		tasks,
@@ -213,92 +282,22 @@ export default function TasksPage() {
 		await updateTask(task.id, { kanban: targetStatus });
 	}
 
-	if (loading) {
-		return (
-			<div className="space-y-6">
-				<BreadcrumbNav items={[{ label: "Tasks" }]} />
-				{viewMode === "matrix" ? (
-					<GridSkeleton
-						className="grid grid-cols-1 sm:grid-cols-2 gap-3"
-						count={4}
-						renderItem={() => (
-							<CardSkeleton className="bg-card p-4 min-h-[200px] space-y-2">
-								<Skeleton className="h-5 w-24" />
-								<Skeleton className="h-3 w-32" />
-								<GridSkeleton
-									className="space-y-2 pt-2"
-									count={2}
-									renderItem={() => (
-										<CardSkeleton
-											className="p-3 space-y-2"
-											lines={[
-												{ key: "line-1", className: "h-3 w-full" },
-												{ key: "line-2", className: "h-3 w-2/3" },
-											]}
-											footer={[
-												{ key: "tag-1", className: "h-4 w-16 rounded-sm" },
-												{ key: "tag-2", className: "h-4 w-14 rounded-sm" },
-											]}
-										>
-											<div className="flex items-start justify-between gap-2">
-												<Skeleton className="h-4 w-3/4" />
-												<Skeleton className="h-2 w-2 rounded-full" />
-											</div>
-										</CardSkeleton>
-									)}
-								/>
-							</CardSkeleton>
-						)}
-					/>
-				) : (
-					<GridSkeleton
-						className="grid grid-cols-1 sm:grid-cols-3 gap-3"
-						count={3}
-						renderItem={(index) => (
-							<CardSkeleton className="bg-card p-4 min-h-[300px] space-y-2">
-								<Skeleton className="h-5 w-24" />
-								<GridSkeleton
-									className="space-y-2 pt-2"
-									count={index === 0 ? 3 : 2}
-									renderItem={() => (
-										<CardSkeleton
-											className="p-3 space-y-2"
-											lines={[
-												{ key: "line-1", className: "h-3 w-full" },
-												{ key: "line-2", className: "h-3 w-2/3" },
-											]}
-											footer={[
-												{ key: "tag-1", className: "h-4 w-16 rounded-sm" },
-												{ key: "tag-2", className: "h-4 w-14 rounded-sm" },
-											]}
-										>
-											<div className="flex items-start justify-between gap-2">
-												<Skeleton className="h-4 w-3/4" />
-												<Skeleton className="h-2 w-2 rounded-full" />
-											</div>
-										</CardSkeleton>
-									)}
-								/>
-							</CardSkeleton>
-						)}
-					/>
-				)}
-			</div>
-		);
-	}
-
-	if (tasksError) {
-		return (
-			<div className="space-y-6">
-				<BreadcrumbNav items={[{ label: "Tasks" }]} />
-				<ErrorState message={tasksError} onRetry={refetch} />
-			</div>
-		);
-	}
-
 	return (
 		<div className="space-y-4">
 			<BreadcrumbNav items={[{ label: "Tasks" }]} />
+
+			{tasksError && (
+				<div className="rounded-sm border border-destructive/20 bg-destructive/5 p-3 text-sm text-destructive flex items-center justify-between">
+					<span>{tasksError}</span>
+					<button
+						type="button"
+						onClick={refetch}
+						className="underline hover:text-destructive/80"
+					>
+						Retry
+					</button>
+				</div>
+			)}
 
 			<div className="flex items-center justify-between flex-wrap gap-2">
 				<h1 className="text-xl font-normal">Tasks</h1>
@@ -394,71 +393,77 @@ export default function TasksPage() {
 				</div>
 			</div>
 
-			{viewMode === "map" && <WorkMapView />}
-
-			{viewMode === "matrix" ? (
-				<BoardDndWrapper
-					activeTask={activeTask}
-					projects={projects}
-					onDragStart={handleDragStart}
-					onDragEnd={handleMatrixDragEnd}
-				>
-					<div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-						{quadrants.map((q) => (
-							<BoardColumn
-								key={q.id}
-								config={q}
-								tasks={groupedByQuadrant[q.id as EisenhowerQuadrant]}
-								projects={projects}
-								onTaskClick={(task) => router.push(`/tasks/${task.id}`)}
-								maxHeight="max-h-[calc(100vh-320px)]"
-								selected={selection.selected}
-								onToggleSelect={selection.toggle}
-								runningTaskIds={runningTaskIds}
-								onRunTask={runTask}
-								pendingDecisionTaskIds={pendingDecisionTaskIds}
-								onStatusChange={handleStatusChange}
-								onDuplicate={handleDuplicate}
-								onDelete={handleDelete}
-							/>
-						))}
-					</div>
-				</BoardDndWrapper>
+			{loading ? (
+				<TasksSkeleton viewMode={viewMode} />
 			) : (
-				<BoardDndWrapper
-					activeTask={activeTask}
-					projects={projects}
-					onDragStart={handleDragStart}
-					onDragEnd={handleBoardDragEnd}
-				>
-					<div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-						{kanbanColumns.map((col) => (
-							<BoardColumn
-								key={col.id}
-								config={col}
-								tasks={groupedByKanban[col.id as KanbanStatus]}
-								projects={projects}
-								onTaskClick={(task) => router.push(`/tasks/${task.id}`)}
-								minHeight="min-h-[400px]"
-								selected={selection.selected}
-								onToggleSelect={selection.toggle}
-								runningTaskIds={runningTaskIds}
-								onRunTask={runTask}
-								pendingDecisionTaskIds={pendingDecisionTaskIds}
-								onStatusChange={handleStatusChange}
-								onDuplicate={handleDuplicate}
-								onDelete={handleDelete}
-							/>
-						))}
-					</div>
-				</BoardDndWrapper>
-			)}
+				<>
+					{viewMode === "map" && <WorkMapView />}
 
-			<BoardPanels
-				showCreateTask={showCreateTask}
-				onCloseCreate={setShowCreateTask}
-				onSubmitCreate={handleCreateTask}
-			/>
+					{viewMode === "matrix" ? (
+						<BoardDndWrapper
+							activeTask={activeTask}
+							projects={projects}
+							onDragStart={handleDragStart}
+							onDragEnd={handleMatrixDragEnd}
+						>
+							<div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+								{quadrants.map((q) => (
+									<BoardColumn
+										key={q.id}
+										config={q}
+										tasks={groupedByQuadrant[q.id as EisenhowerQuadrant]}
+										projects={projects}
+										onTaskClick={(task) => router.push(`/tasks/${task.id}`)}
+										maxHeight="max-h-[calc(100vh-320px)]"
+										selected={selection.selected}
+										onToggleSelect={selection.toggle}
+										runningTaskIds={runningTaskIds}
+										onRunTask={runTask}
+										pendingDecisionTaskIds={pendingDecisionTaskIds}
+										onStatusChange={handleStatusChange}
+										onDuplicate={handleDuplicate}
+										onDelete={handleDelete}
+									/>
+								))}
+							</div>
+						</BoardDndWrapper>
+					) : (
+						<BoardDndWrapper
+							activeTask={activeTask}
+							projects={projects}
+							onDragStart={handleDragStart}
+							onDragEnd={handleBoardDragEnd}
+						>
+							<div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+								{kanbanColumns.map((col) => (
+									<BoardColumn
+										key={col.id}
+										config={col}
+										tasks={groupedByKanban[col.id as KanbanStatus]}
+										projects={projects}
+										onTaskClick={(task) => router.push(`/tasks/${task.id}`)}
+										minHeight="min-h-[400px]"
+										selected={selection.selected}
+										onToggleSelect={selection.toggle}
+										runningTaskIds={runningTaskIds}
+										onRunTask={runTask}
+										pendingDecisionTaskIds={pendingDecisionTaskIds}
+										onStatusChange={handleStatusChange}
+										onDuplicate={handleDuplicate}
+										onDelete={handleDelete}
+									/>
+								))}
+							</div>
+						</BoardDndWrapper>
+					)}
+
+					<BoardPanels
+						showCreateTask={showCreateTask}
+						onCloseCreate={setShowCreateTask}
+						onSubmitCreate={handleCreateTask}
+					/>
+				</>
+			)}
 		</div>
 	);
 }
