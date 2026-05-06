@@ -9,11 +9,13 @@ import {
 	Users,
 } from "lucide-react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useState } from "react";
 import { BreadcrumbNav } from "@/components/breadcrumb-nav";
 import { AgentContextMenuContent } from "@/components/context-menus/agent-context-menu";
 import { CreateTaskDialog } from "@/components/create-task-dialog";
+import { CrewAutopilot } from "@/components/crew-autopilot";
+import { CrewSkills } from "@/components/crew-skills";
 import { EmptyState } from "@/components/empty-state";
 import { ErrorState } from "@/components/error-state";
 import { CardSkeleton, GridSkeleton, Skeleton } from "@/components/skeletons";
@@ -166,6 +168,9 @@ export default function CrewPage() {
 		null,
 	);
 
+	const searchParams = useSearchParams();
+	const tab = searchParams.get("tab") ?? "crew";
+
 	async function toggleGlobalPermissions(on: boolean) {
 		await updateConfig({
 			concurrency: config.concurrency,
@@ -261,114 +266,163 @@ export default function CrewPage() {
 						{agents.length} agent{agents.length !== 1 ? "s" : ""} registered
 					</p>
 				</div>
-				<Tip content="Create a custom AI agent">
-					<Button
-						size="sm"
-						onClick={() => router.push("/crew/new")}
-						className="gap-1.5"
-					>
-						<Plus className="h-3.5 w-3.5" /> New Agent
-					</Button>
-				</Tip>
+				{tab === "crew" && (
+					<Tip content="Create a custom AI agent">
+						<Button
+							size="sm"
+							onClick={() => router.push("/crew/new")}
+							className="gap-1.5"
+						>
+							<Plus className="h-3.5 w-3.5" /> New Agent
+						</Button>
+					</Tip>
+				)}
 			</div>
 
-			{/* Global permission default */}
-			<div className="flex items-center justify-between rounded-sm border px-4 py-3 gap-4">
-				<div className="min-w-0">
-					<p className="text-sm font-normal">Global permission default</p>
-					<p className="text-xs text-muted-foreground mt-0.5">
-						Skip all permission prompts for all agents (can be restricted per
-						agent)
-					</p>
-				</div>
-				<div className="flex gap-1 shrink-0">
-					<Button
-						size="sm"
-						variant={!config.execution.skipPermissions ? "default" : "outline"}
-						onClick={() => toggleGlobalPermissions(false)}
-					>
-						Off
-					</Button>
-					<Button
-						size="sm"
-						variant={config.execution.skipPermissions ? "default" : "outline"}
-						className={
-							config.execution.skipPermissions
-								? "bg-warning hover:bg-warning text-white border-warning"
-								: ""
-						}
-						onClick={() => toggleGlobalPermissions(true)}
-					>
-						On
-					</Button>
-				</div>
+			<div className="flex items-center gap-0.5 -mt-2">
+				<Link
+					href="/crew?tab=crew"
+					className={cn(
+						"px-3 py-1.5 text-sm font-medium rounded-md transition-colors",
+						tab === "crew"
+							? "bg-accent text-accent-foreground"
+							: "text-muted-foreground hover:bg-accent/50",
+					)}
+				>
+					Crew
+				</Link>
+				<Link
+					href="/crew?tab=autopilot"
+					className={cn(
+						"px-3 py-1.5 text-sm font-medium rounded-md transition-colors",
+						tab === "autopilot"
+							? "bg-accent text-accent-foreground"
+							: "text-muted-foreground hover:bg-accent/50",
+					)}
+				>
+					Autopilot
+				</Link>
+				<Link
+					href="/crew?tab=skills"
+					className={cn(
+						"px-3 py-1.5 text-sm font-medium rounded-md transition-colors",
+						tab === "skills"
+							? "bg-accent text-accent-foreground"
+							: "text-muted-foreground hover:bg-accent/50",
+					)}
+				>
+					Skills
+				</Link>
 			</div>
 
-			{/* Filter tabs */}
-			<div className="flex gap-1">
-				{(["all", "active", "inactive"] as const).map((f) => (
-					<Button
-						key={f}
-						variant={filter === f ? "default" : "ghost"}
-						size="sm"
-						className="text-xs capitalize"
-						onClick={() => setFilter(f)}
-					>
-						{f}
-					</Button>
-				))}
-			</div>
+			{tab === "crew" && (
+				<>
+					{/* Global permission default */}
+					<div className="flex items-center justify-between rounded-sm border px-4 py-3 gap-4">
+						<div className="min-w-0">
+							<p className="text-sm font-normal">Global permission default</p>
+							<p className="text-xs text-muted-foreground mt-0.5">
+								Skip all permission prompts for all agents (can be restricted
+								per agent)
+							</p>
+						</div>
+						<div className="flex gap-1 shrink-0">
+							<Button
+								size="sm"
+								variant={
+									!config.execution.skipPermissions ? "default" : "outline"
+								}
+								onClick={() => toggleGlobalPermissions(false)}
+							>
+								Off
+							</Button>
+							<Button
+								size="sm"
+								variant={
+									config.execution.skipPermissions ? "default" : "outline"
+								}
+								className={
+									config.execution.skipPermissions
+										? "bg-warning hover:bg-warning text-white border-warning"
+										: ""
+								}
+								onClick={() => toggleGlobalPermissions(true)}
+							>
+								On
+							</Button>
+						</div>
+					</div>
 
-			{filteredAgents.length === 0 ? (
-				<EmptyState
-					icon={Users}
-					title="No agents found"
-					description={
-						filter === "all"
-							? "Create your first agent to get started."
-							: `No ${filter} agents.`
-					}
-					actionLabel="Create an agent"
-					onAction={() => router.push("/crew/new")}
-				/>
-			) : (
-				<div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-					{filteredAgents.map((agent) => (
-						<AgentCard
-							key={agent.id}
-							agent={agent}
-							taskCount={taskCountByAgent(agent.id)}
-							onEdit={handleEditAgent}
-							onNewTask={handleNewTask}
-							onToggleStatus={handleToggleStatus}
+					{/* Filter tabs */}
+					<div className="flex gap-1">
+						{(["all", "active", "inactive"] as const).map((f) => (
+							<Button
+								key={f}
+								variant={filter === f ? "default" : "ghost"}
+								size="sm"
+								className="text-xs capitalize"
+								onClick={() => setFilter(f)}
+							>
+								{f}
+							</Button>
+						))}
+					</div>
+
+					{filteredAgents.length === 0 ? (
+						<EmptyState
+							icon={Users}
+							title="No agents found"
+							description={
+								filter === "all"
+									? "Create your first agent to get started."
+									: `No ${filter} agents.`
+							}
+							actionLabel="Create an agent"
+							onAction={() => router.push("/crew/new")}
 						/>
-					))}
-				</div>
+					) : (
+						<div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+							{filteredAgents.map((agent) => (
+								<AgentCard
+									key={agent.id}
+									agent={agent}
+									taskCount={taskCountByAgent(agent.id)}
+									onEdit={handleEditAgent}
+									onNewTask={handleNewTask}
+									onToggleStatus={handleToggleStatus}
+								/>
+							))}
+						</div>
+					)}
+
+					{newTaskForAgentId && (
+						<CreateTaskDialog
+							open={!!newTaskForAgentId}
+							onOpenChange={(open) => {
+								if (!open) setNewTaskForAgentId(null);
+							}}
+							onSubmit={async (data) => {
+								await createTask({
+									id: `task_${Date.now()}`,
+									...data,
+									tags: data.tags
+										.split(",")
+										.map((t) => t.trim())
+										.filter(Boolean),
+									acceptanceCriteria: data.acceptanceCriteria,
+									createdAt: new Date().toISOString(),
+									updatedAt: new Date().toISOString(),
+									completedAt: null,
+								});
+								setNewTaskForAgentId(null);
+							}}
+						/>
+					)}
+				</>
 			)}
 
-			{newTaskForAgentId && (
-				<CreateTaskDialog
-					open={!!newTaskForAgentId}
-					onOpenChange={(open) => {
-						if (!open) setNewTaskForAgentId(null);
-					}}
-					onSubmit={async (data) => {
-						await createTask({
-							id: `task_${Date.now()}`,
-							...data,
-							tags: data.tags
-								.split(",")
-								.map((t) => t.trim())
-								.filter(Boolean),
-							acceptanceCriteria: data.acceptanceCriteria,
-							createdAt: new Date().toISOString(),
-							updatedAt: new Date().toISOString(),
-							completedAt: null,
-						});
-						setNewTaskForAgentId(null);
-					}}
-				/>
-			)}
+			{tab === "autopilot" && <CrewAutopilot />}
+			{tab === "skills" && <CrewSkills />}
 		</div>
 	);
 }
