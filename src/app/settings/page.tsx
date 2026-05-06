@@ -1,6 +1,7 @@
 "use client";
 
-import { Plus, Rocket, Square, X } from "lucide-react";
+import { Monitor, Moon, Plus, Rocket, Square, Sun, X } from "lucide-react";
+import { useTheme } from "next-themes";
 import { useEffect, useState } from "react";
 import { BreadcrumbNav } from "@/components/breadcrumb-nav";
 import { ConfirmDialog } from "@/components/confirm-dialog";
@@ -49,6 +50,8 @@ export default function SettingsPage() {
 	const [maxParallelAgents, setMaxParallelAgents] = useState(3);
 	const [daemonSaving, setDaemonSaving] = useState(false);
 	const [daemonSaved, setDaemonSaved] = useState(false);
+
+	const { theme, setTheme } = useTheme();
 
 	const [envVars, setEnvVars] = useState<
 		Array<{ id: string; key: string; value: string }>
@@ -154,6 +157,43 @@ export default function SettingsPage() {
 			<BreadcrumbNav items={[{ label: "Settings" }]} />
 
 			<div className="flex-1 p-6 space-y-6 max-w-2xl">
+				<Card>
+					<CardHeader>
+						<CardTitle>Appearance</CardTitle>
+						<CardDescription>
+							Choose your preferred color theme.
+						</CardDescription>
+					</CardHeader>
+					<CardContent className="space-y-5">
+						<div className="flex gap-2">
+							<Button
+								size="sm"
+								variant={theme === "light" ? "default" : "outline"}
+								className="gap-1.5"
+								onClick={() => setTheme("light")}
+							>
+								<Sun className="h-4 w-4" /> Light
+							</Button>
+							<Button
+								size="sm"
+								variant={theme === "dark" ? "default" : "outline"}
+								className="gap-1.5"
+								onClick={() => setTheme("dark")}
+							>
+								<Moon className="h-4 w-4" /> Dark
+							</Button>
+							<Button
+								size="sm"
+								variant={theme === "system" ? "default" : "outline"}
+								className="gap-1.5"
+								onClick={() => setTheme("system")}
+							>
+								<Monitor className="h-4 w-4" /> System
+							</Button>
+						</div>
+					</CardContent>
+				</Card>
+
 				<Card>
 					<CardHeader>
 						<CardTitle>Workspace Settings</CardTitle>
