@@ -59,7 +59,7 @@ import type { AgentRole } from "@/lib/types";
 import { AGENT_ROLES } from "@/lib/types";
 import { cn } from "@/lib/utils";
 import { useActiveRunsContext as useActiveRuns } from "@/providers/active-runs-provider";
-import DashboardLoading from "./loading";
+import { DashboardContentSkeleton } from "./loading";
 
 function formatRelativeTime(isoString: string): string {
 	const diff = Date.now() - new Date(isoString).getTime();
@@ -104,7 +104,7 @@ function AttentionRow({
 }
 
 export default function CommandCenterPage() {
-	const { data, loading, error, refetch } = useDashboardData();
+	const { data, loading, error, refetch, hasLoaded } = useDashboardData();
 	const { agents } = useAgents();
 	const {
 		isRunning: daemonRunning,
@@ -304,23 +304,11 @@ export default function CommandCenterPage() {
 		}
 	};
 
-	if (loading) {
-		return <DashboardLoading />;
-	}
-
-	if (error) {
-		return (
-			<div className="space-y-6">
-				<BreadcrumbNav items={[]} />
-				<ErrorState message={error} onRetry={refetch} />
-			</div>
-		);
-	}
-
 	// Welcome screen when workspace is empty
-	const isEmpty = tasks.length === 0 && projects.length === 0;
+	const isEmptyWorkspace =
+		hasLoaded && tasks.length === 0 && projects.length === 0;
 
-	if (isEmpty) {
+	if (isEmptyWorkspace) {
 		return (
 			<div className="space-y-6">
 				<BreadcrumbNav items={[]} />
@@ -410,6 +398,19 @@ export default function CommandCenterPage() {
 	return (
 		<div className="flex flex-col gap-8">
 			<BreadcrumbNav items={[]} />
+
+			{error && (
+				<div className="rounded-sm border border-destructive/20 bg-destructive/5 p-3 text-sm text-destructive flex items-center justify-between">
+					<span>{error}</span>
+					<button
+						type="button"
+						onClick={refetch}
+						className="underline hover:text-destructive/80"
+					>
+						Retry
+					</button>
+				</div>
+			)}
 
 			<div className="flex items-center gap-0.5 -mt-4 mb-0">
 				<Link
@@ -526,338 +527,359 @@ export default function CommandCenterPage() {
 						</Card>
 					</Link>
 
-					<Card className="border-sunshine-700/20">
-						<CardContent className="p-4">
-							<div className="flex items-center gap-2 mb-3">
-								<AlertTriangle className="h-4 w-4 text-sunshine-700" />
-								<h3 className="text-sm font-normal text-sunshine-700">
-									Attention Required
-								</h3>
-								{totalAttentionCount > 0 && (
-									<Badge
-										variant="secondary"
-										className="text-xs tabular-nums border-sunshine-700/30 text-sunshine-700 ml-auto"
-									>
-										{totalAttentionCount}
-									</Badge>
-								)}
-							</div>
-
-							{totalAttentionCount === 0 ? (
-								<p className="text-sm text-muted-foreground py-2">
-									Nothing needs your attention
-								</p>
-							) : (
-								<div className="space-y-2">
-									{pendingDecisions.map((decision) => (
-										<AttentionRow
-											key={decision.id}
-											icon="🔴"
-											actions={
-												decision.options.length > 0 ? (
-													decision.options.slice(0, 4).map((opt) => (
-														<Button
-															key={opt}
-															size="sm"
-															variant="outline"
-															className="text-xs h-6 px-2"
-															disabled={loadingItems.has(decision.id)}
-															onClick={() =>
-																handleDecisionAnswer(decision.id, opt)
-															}
-														>
-															{loadingItems.has(decision.id) ? "…" : opt}
-														</Button>
-													))
-												) : (
-													<>
-														<Button
-															size="sm"
-															className="text-xs h-6 px-2"
-															disabled={loadingItems.has(decision.id)}
-															onClick={() =>
-																handleDecisionAnswer(decision.id, "approved")
-															}
-														>
-															{loadingItems.has(decision.id) ? "…" : "Approve"}
-														</Button>
-														<Button
-															size="sm"
-															variant="outline"
-															className="text-xs h-6 px-2 text-destructive border-destructive/30 hover:bg-destructive/10"
-															disabled={loadingItems.has(decision.id)}
-															onClick={() =>
-																handleDecisionAnswer(decision.id, "rejected")
-															}
-														>
-															{loadingItems.has(decision.id) ? "…" : "Reject"}
-														</Button>
-													</>
-												)
-											}
-										>
-											<p className="text-xs font-normal text-foreground leading-snug">
-												{decision.question}
-											</p>
-											{decision.context && (
-												<p className="text-[11px] text-muted-foreground mt-0.5 line-clamp-2">
-													{decision.context}
-												</p>
-											)}
-										</AttentionRow>
-									))}
-
-									{unreadReports.map((msg) => (
-										<AttentionRow
-											key={msg.id}
-											icon="🟡"
-											actions={
-												<Button
-													size="sm"
-													variant="outline"
-													className="text-xs h-6 px-2"
-													disabled={loadingItems.has(msg.id)}
-													onClick={() => handleAckReport(msg.id)}
-												>
-													{loadingItems.has(msg.id) ? "…" : "Ack"}
-												</Button>
-											}
-										>
-											<p className="text-xs font-normal text-foreground leading-snug">
-												{msg.subject}
-											</p>
-											<p className="text-[11px] text-muted-foreground mt-0.5 line-clamp-2">
-												{msg.body}
-											</p>
-										</AttentionRow>
-									))}
-
-									{unprocessedEntries.map((entry) => (
-										<AttentionRow
-											key={entry.id}
-											icon="🟡"
-											actions={
-												<Button
-													asChild
-													size="sm"
-													variant="outline"
-													className="text-xs h-6 px-2"
-												>
-													<Link href="/brain-dump">Triage</Link>
-												</Button>
-											}
-										>
-											<p className="text-[11px] text-muted-foreground font-normal">
-												Brain dump
-											</p>
-											<p className="text-xs text-foreground leading-snug line-clamp-2 mt-0.5">
-												{entry.content}
-											</p>
-										</AttentionRow>
-									))}
-
-									{doQuadrantMyTasks.length > 0 && (
-										<Link href="/priority-matrix">
-											<div className="flex items-center gap-2 rounded-sm px-3 py-2 hover:bg-accent/50 transition-colors">
-												<ShieldAlert className="h-4 w-4 shrink-0 text-destructive" />
-												<span className="text-foreground text-xs">
-													{doQuadrantMyTasks.length} DO-quadrant task
-													{doQuadrantMyTasks.length > 1 ? "s" : ""} not started
-												</span>
-											</div>
-										</Link>
-									)}
-
-									{recentCompletions.length > 0 && (
-										<Link href="/priority-matrix">
-											<div className="flex items-center gap-2 rounded-sm px-3 py-2 hover:bg-accent/50 transition-colors">
-												<CheckSquare className="h-4 w-4 shrink-0 text-success" />
-												<span className="text-foreground text-xs">
-													{recentCompletions.length} completed task
-													{recentCompletions.length > 1 ? "s" : ""} to review
-												</span>
-											</div>
-										</Link>
-									)}
-								</div>
-							)}
-						</CardContent>
-					</Card>
-
-					<Card>
-						<CardHeader className="pb-2">
-							<CardTitle className="text-sm flex items-center gap-2">
-								<User className="h-4 w-4 text-primary" />
-								Crew Status
-								<Link
-									href="/crew"
-									className="ml-auto text-xs text-muted-foreground hover:text-foreground font-normal"
-								>
-									View all →
-								</Link>
-							</CardTitle>
-						</CardHeader>
-						<CardContent>
-							{exceptionAgents.length === 0 ? (
-								<div className="flex items-center justify-between py-1">
-									<p className="text-sm text-muted-foreground">
-										All agents nominal
-									</p>
-									<Link
-										href="/crew"
-										className="text-xs text-muted-foreground hover:text-foreground"
-									>
-										/crew →
-									</Link>
-								</div>
-							) : (
-								<div className="space-y-3">
-									{exceptionAgents.map((agent) => {
-										const Icon = agentIcons[agent.id];
-										const statusIndicator =
-											agent.status === "overloaded"
-												? "bg-destructive"
-												: agent.status === "awaiting-decision"
-													? "bg-sunshine-700"
-													: "bg-primary";
-										const statusLabel =
-											agent.status === "overloaded"
-												? "Overloaded"
-												: agent.status === "awaiting-decision"
-													? "Awaiting Decision"
-													: "Dependencies";
-										return (
-											<Link
-												key={agent.id}
-												href={`/crew/${agent.id}`}
-												className="block"
+					{!hasLoaded ? (
+						<DashboardContentSkeleton />
+					) : (
+						<>
+							<Card className="border-sunshine-700/20">
+								<CardContent className="p-4">
+									<div className="flex items-center gap-2 mb-3">
+										<AlertTriangle className="h-4 w-4 text-sunshine-700" />
+										<h3 className="text-sm font-normal text-sunshine-700">
+											Attention Required
+										</h3>
+										{totalAttentionCount > 0 && (
+											<Badge
+												variant="secondary"
+												className="text-xs tabular-nums border-sunshine-700/30 text-sunshine-700 ml-auto"
 											>
-												<div className="group hover:bg-accent/30 rounded-sm px-2 py-1.5 -mx-2 transition-colors">
-													<div className="flex items-center gap-2">
-														<div className="relative">
-															<Icon className="h-4 w-4 text-muted-foreground shrink-0" />
-															<CircleDot
-																className={cn(
-																	"h-2.5 w-2.5 absolute -bottom-0.5 -right-0.5 rounded-full",
-																	statusIndicator,
-																)}
-															/>
-														</div>
-														<span className="text-xs font-normal flex-1 truncate">
-															{agent.label}
-														</span>
-														<span
-															className={cn(
-																"text-[10px] px-1.5 py-0 rounded-sm",
-																agent.status === "dependencies" &&
-																	"text-sunshine-700 dark:text-sunshine-700 bg-accent-soft",
-																agent.status === "awaiting-decision" &&
-																	"text-warning dark:text-warning bg-accent-soft",
-																agent.status === "overloaded" &&
-																	"text-destructive dark:text-destructive bg-destructive-soft",
-															)}
+												{totalAttentionCount}
+											</Badge>
+										)}
+									</div>
+
+									{totalAttentionCount === 0 ? (
+										<p className="text-sm text-muted-foreground py-2">
+											Nothing needs your attention
+										</p>
+									) : (
+										<div className="space-y-2">
+											{pendingDecisions.map((decision) => (
+												<AttentionRow
+													key={decision.id}
+													icon="🔴"
+													actions={
+														decision.options.length > 0 ? (
+															decision.options.slice(0, 4).map((opt) => (
+																<Button
+																	key={opt}
+																	size="sm"
+																	variant="outline"
+																	className="text-xs h-6 px-2"
+																	disabled={loadingItems.has(decision.id)}
+																	onClick={() =>
+																		handleDecisionAnswer(decision.id, opt)
+																	}
+																>
+																	{loadingItems.has(decision.id) ? "…" : opt}
+																</Button>
+															))
+														) : (
+															<>
+																<Button
+																	size="sm"
+																	className="text-xs h-6 px-2"
+																	disabled={loadingItems.has(decision.id)}
+																	onClick={() =>
+																		handleDecisionAnswer(
+																			decision.id,
+																			"approved",
+																		)
+																	}
+																>
+																	{loadingItems.has(decision.id)
+																		? "…"
+																		: "Approve"}
+																</Button>
+																<Button
+																	size="sm"
+																	variant="outline"
+																	className="text-xs h-6 px-2 text-destructive border-destructive/30 hover:bg-destructive/10"
+																	disabled={loadingItems.has(decision.id)}
+																	onClick={() =>
+																		handleDecisionAnswer(
+																			decision.id,
+																			"rejected",
+																		)
+																	}
+																>
+																	{loadingItems.has(decision.id)
+																		? "…"
+																		: "Reject"}
+																</Button>
+															</>
+														)
+													}
+												>
+													<p className="text-xs font-normal text-foreground leading-snug">
+														{decision.question}
+													</p>
+													{decision.context && (
+														<p className="text-[11px] text-muted-foreground mt-0.5 line-clamp-2">
+															{decision.context}
+														</p>
+													)}
+												</AttentionRow>
+											))}
+
+											{unreadReports.map((msg) => (
+												<AttentionRow
+													key={msg.id}
+													icon="🟡"
+													actions={
+														<Button
+															size="sm"
+															variant="outline"
+															className="text-xs h-6 px-2"
+															disabled={loadingItems.has(msg.id)}
+															onClick={() => handleAckReport(msg.id)}
 														>
-															{statusLabel}
-														</span>
-														<span className="text-xs text-muted-foreground tabular-nums w-8 text-right">
-															{agent.activeCount} task
-															{agent.activeCount !== 1 ? "s" : ""}
+															{loadingItems.has(msg.id) ? "…" : "Ack"}
+														</Button>
+													}
+												>
+													<p className="text-xs font-normal text-foreground leading-snug">
+														{msg.subject}
+													</p>
+													<p className="text-[11px] text-muted-foreground mt-0.5 line-clamp-2">
+														{msg.body}
+													</p>
+												</AttentionRow>
+											))}
+
+											{unprocessedEntries.map((entry) => (
+												<AttentionRow
+													key={entry.id}
+													icon="🟡"
+													actions={
+														<Button
+															asChild
+															size="sm"
+															variant="outline"
+															className="text-xs h-6 px-2"
+														>
+															<Link href="/brain-dump">Triage</Link>
+														</Button>
+													}
+												>
+													<p className="text-[11px] text-muted-foreground font-normal">
+														Brain dump
+													</p>
+													<p className="text-xs text-foreground leading-snug line-clamp-2 mt-0.5">
+														{entry.content}
+													</p>
+												</AttentionRow>
+											))}
+
+											{doQuadrantMyTasks.length > 0 && (
+												<Link href="/priority-matrix">
+													<div className="flex items-center gap-2 rounded-sm px-3 py-2 hover:bg-accent/50 transition-colors">
+														<ShieldAlert className="h-4 w-4 shrink-0 text-destructive" />
+														<span className="text-foreground text-xs">
+															{doQuadrantMyTasks.length} DO-quadrant task
+															{doQuadrantMyTasks.length > 1 ? "s" : ""} not
+															started
 														</span>
 													</div>
-													{agent.currentTask && (
-														<p className="text-[11px] text-muted-foreground ml-6 mt-0.5 truncate">
-															Working on: {agent.currentTask.title}
-														</p>
-													)}
-													{agent.dependencyCount > 0 && (
-														<p className="text-[11px] text-sunshine-700 ml-6 mt-0.5">
-															{agent.dependencyCount} waiting on dependencies
-														</p>
-													)}
-													{agent.awaitingDecisionCount > 0 && (
-														<p className="text-[11px] text-warning ml-6 mt-0.5">
-															{agent.awaitingDecisionCount} awaiting decision
-														</p>
-													)}
-												</div>
+												</Link>
+											)}
+
+											{recentCompletions.length > 0 && (
+												<Link href="/priority-matrix">
+													<div className="flex items-center gap-2 rounded-sm px-3 py-2 hover:bg-accent/50 transition-colors">
+														<CheckSquare className="h-4 w-4 shrink-0 text-success" />
+														<span className="text-foreground text-xs">
+															{recentCompletions.length} completed task
+															{recentCompletions.length > 1 ? "s" : ""} to
+															review
+														</span>
+													</div>
+												</Link>
+											)}
+										</div>
+									)}
+								</CardContent>
+							</Card>
+
+							<Card>
+								<CardHeader className="pb-2">
+									<CardTitle className="text-sm flex items-center gap-2">
+										<User className="h-4 w-4 text-primary" />
+										Crew Status
+										<Link
+											href="/crew"
+											className="ml-auto text-xs text-muted-foreground hover:text-foreground font-normal"
+										>
+											View all →
+										</Link>
+									</CardTitle>
+								</CardHeader>
+								<CardContent>
+									{exceptionAgents.length === 0 ? (
+										<div className="flex items-center justify-between py-1">
+											<p className="text-sm text-muted-foreground">
+												All agents nominal
+											</p>
+											<Link
+												href="/crew"
+												className="text-xs text-muted-foreground hover:text-foreground"
+											>
+												/crew →
 											</Link>
-										);
-									})}
+										</div>
+									) : (
+										<div className="space-y-3">
+											{exceptionAgents.map((agent) => {
+												const Icon = agentIcons[agent.id];
+												const statusIndicator =
+													agent.status === "overloaded"
+														? "bg-destructive"
+														: agent.status === "awaiting-decision"
+															? "bg-sunshine-700"
+															: "bg-primary";
+												const statusLabel =
+													agent.status === "overloaded"
+														? "Overloaded"
+														: agent.status === "awaiting-decision"
+															? "Awaiting Decision"
+															: "Dependencies";
+												return (
+													<Link
+														key={agent.id}
+														href={`/crew/${agent.id}`}
+														className="block"
+													>
+														<div className="group hover:bg-accent/30 rounded-sm px-2 py-1.5 -mx-2 transition-colors">
+															<div className="flex items-center gap-2">
+																<div className="relative">
+																	<Icon className="h-4 w-4 text-muted-foreground shrink-0" />
+																	<CircleDot
+																		className={cn(
+																			"h-2.5 w-2.5 absolute -bottom-0.5 -right-0.5 rounded-full",
+																			statusIndicator,
+																		)}
+																	/>
+																</div>
+																<span className="text-xs font-normal flex-1 truncate">
+																	{agent.label}
+																</span>
+																<span
+																	className={cn(
+																		"text-[10px] px-1.5 py-0 rounded-sm",
+																		agent.status === "dependencies" &&
+																			"text-sunshine-700 dark:text-sunshine-700 bg-accent-soft",
+																		agent.status === "awaiting-decision" &&
+																			"text-warning dark:text-warning bg-accent-soft",
+																		agent.status === "overloaded" &&
+																			"text-destructive dark:text-destructive bg-destructive-soft",
+																	)}
+																>
+																	{statusLabel}
+																</span>
+																<span className="text-xs text-muted-foreground tabular-nums w-8 text-right">
+																	{agent.activeCount} task
+																	{agent.activeCount !== 1 ? "s" : ""}
+																</span>
+															</div>
+															{agent.currentTask && (
+																<p className="text-[11px] text-muted-foreground ml-6 mt-0.5 truncate">
+																	Working on: {agent.currentTask.title}
+																</p>
+															)}
+															{agent.dependencyCount > 0 && (
+																<p className="text-[11px] text-sunshine-700 ml-6 mt-0.5">
+																	{agent.dependencyCount} waiting on
+																	dependencies
+																</p>
+															)}
+															{agent.awaitingDecisionCount > 0 && (
+																<p className="text-[11px] text-warning ml-6 mt-0.5">
+																	{agent.awaitingDecisionCount} awaiting
+																	decision
+																</p>
+															)}
+														</div>
+													</Link>
+												);
+											})}
+										</div>
+									)}
+								</CardContent>
+							</Card>
+
+							<section aria-label="Projects">
+								<div className="flex items-center justify-between mb-3">
+									<h2 className="text-lg font-normal flex items-center gap-2">
+										<Sparkles className="h-4 w-4 text-primary" />
+										Projects
+									</h2>
+									<div className="flex items-center gap-2">
+										<Button
+											size="sm"
+											variant="outline"
+											className="text-xs gap-1"
+											onClick={() => setShowCreateTask(true)}
+										>
+											<Plus className="h-3 w-3" /> New Task
+										</Button>
+										<Button
+											size="sm"
+											variant="outline"
+											className="text-xs gap-1"
+											onClick={() => setShowCreateProject(true)}
+										>
+											<Plus className="h-3 w-3" /> New Project
+										</Button>
+										<Link
+											href="/map"
+											className="text-xs text-muted-foreground hover:text-foreground"
+										>
+											View all →
+										</Link>
+									</div>
 								</div>
-							)}
-						</CardContent>
-					</Card>
+								<div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+									{projects
+										.filter((p) => p.status === "active")
+										.map((project) => (
+											<ProjectCardLarge
+												key={project.id}
+												project={project}
+												tasks={tasks}
+												isRunning={isProjectRunning(project.id)}
+												isProjectRunActive={isProjectRunActive(project.id)}
+												onRun={runProject}
+												onStop={stopProject}
+											/>
+										))}
+									{projects.filter((p) => p.status === "active").length ===
+										0 && (
+										<Card
+											className="border-dashed cursor-pointer hover:border-primary/30"
+											onClick={() => setShowCreateProject(true)}
+										>
+											<CardContent className="p-6 flex flex-col items-center justify-center text-muted-foreground">
+												<Plus className="h-8 w-8 mb-2" />
+												<p className="text-sm">Create your first project</p>
+											</CardContent>
+										</Card>
+									)}
+								</div>
+							</section>
 
-					<section aria-label="Projects">
-						<div className="flex items-center justify-between mb-3">
-							<h2 className="text-lg font-normal flex items-center gap-2">
-								<Sparkles className="h-4 w-4 text-primary" />
-								Projects
-							</h2>
-							<div className="flex items-center gap-2">
-								<Button
-									size="sm"
-									variant="outline"
-									className="text-xs gap-1"
-									onClick={() => setShowCreateTask(true)}
-								>
-									<Plus className="h-3 w-3" /> New Task
-								</Button>
-								<Button
-									size="sm"
-									variant="outline"
-									className="text-xs gap-1"
-									onClick={() => setShowCreateProject(true)}
-								>
-									<Plus className="h-3 w-3" /> New Project
-								</Button>
-								<Link
-									href="/map"
-									className="text-xs text-muted-foreground hover:text-foreground"
-								>
-									View all →
-								</Link>
-							</div>
-						</div>
-						<div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-							{projects
-								.filter((p) => p.status === "active")
-								.map((project) => (
-									<ProjectCardLarge
-										key={project.id}
-										project={project}
-										tasks={tasks}
-										isRunning={isProjectRunning(project.id)}
-										isProjectRunActive={isProjectRunActive(project.id)}
-										onRun={runProject}
-										onStop={stopProject}
-									/>
-								))}
-							{projects.filter((p) => p.status === "active").length === 0 && (
-								<Card
-									className="border-dashed cursor-pointer hover:border-primary/30"
-									onClick={() => setShowCreateProject(true)}
-								>
-									<CardContent className="p-6 flex flex-col items-center justify-center text-muted-foreground">
-										<Plus className="h-8 w-8 mb-2" />
-										<p className="text-sm">Create your first project</p>
-									</CardContent>
-								</Card>
-							)}
-						</div>
-					</section>
-
-					<CreateTaskDialog
-						open={showCreateTask}
-						onOpenChange={setShowCreateTask}
-						onSubmit={handleCreateTask}
-					/>
-					<ProjectDialog
-						open={showCreateProject}
-						onOpenChange={setShowCreateProject}
-						agents={agents}
-						onSubmit={handleCreateProject}
-					/>
+							<CreateTaskDialog
+								open={showCreateTask}
+								onOpenChange={setShowCreateTask}
+								onSubmit={handleCreateTask}
+							/>
+							<ProjectDialog
+								open={showCreateProject}
+								onOpenChange={setShowCreateProject}
+								agents={agents}
+								onSubmit={handleCreateProject}
+							/>
+						</>
+					)}
 				</div>
 			)}
 

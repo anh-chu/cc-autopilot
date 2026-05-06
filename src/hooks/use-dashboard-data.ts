@@ -29,6 +29,7 @@ export function useDashboardData() {
 	const [data, setData] = useState<DashboardData | null>(null);
 	const [loading, setLoading] = useState(true);
 	const [error, setError] = useState<string | null>(null);
+	const [hasLoaded, setHasLoaded] = useState(false);
 	const initialLoadDone = useRef(false);
 
 	const refetch = useCallback(async () => {
@@ -40,6 +41,7 @@ export function useDashboardData() {
 			setData(json);
 			setError(null);
 			initialLoadDone.current = true;
+			setHasLoaded(true);
 		} catch (err) {
 			setError(err instanceof Error ? err.message : "Unknown error");
 		} finally {
@@ -65,5 +67,5 @@ export function useDashboardData() {
 		};
 	}, [refetch]);
 
-	return { data, loading, error, refetch };
+	return { data, loading, error, refetch, hasLoaded };
 }
