@@ -1,8 +1,8 @@
 "use client";
 
 import type { DragEndEvent } from "@dnd-kit/core";
-import { Columns3, Filter, Grid2x2, Plus } from "lucide-react";
-import { useRouter } from "next/navigation";
+import { Columns3, Filter, GitFork, Grid2x2, Plus } from "lucide-react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useState } from "react";
 import {
 	BoardColumn,
@@ -24,6 +24,7 @@ import {
 	SelectValue,
 } from "@/components/ui/select";
 import { Tip } from "@/components/ui/tip";
+import { WorkMapView } from "@/components/work-map-view";
 import {
 	useAgents,
 	useDecisions,
@@ -36,7 +37,7 @@ import { getQuadrant, valuesFromQuadrant } from "@/lib/types";
 import { cn } from "@/lib/utils";
 import { useActiveRunsContext as useActiveRuns } from "@/providers/active-runs-provider";
 
-type ViewMode = "matrix" | "board";
+type ViewMode = "matrix" | "board" | "map";
 
 const quadrants: ColumnConfig[] = [
 	{
@@ -111,7 +112,9 @@ export default function TasksPage() {
 	const { runningTaskIds, runTask } = useActiveRuns();
 	useFastTaskPoll(runningTaskIds.size > 0, refetch);
 
-	const [viewMode, setViewMode] = useState<ViewMode>("board");
+	const searchParams = useSearchParams();
+	const initialView = (searchParams.get("view") as ViewMode) ?? "board";
+	const [viewMode, setViewMode] = useState<ViewMode>(initialView);
 	const [filterProject, setFilterProject] = useState<string>("all");
 	const [filterAssignee, setFilterAssignee] = useState<string>("all");
 
@@ -332,6 +335,21 @@ export default function TasksPage() {
 								<Columns3 className="h-3.5 w-3.5" />
 							</button>
 						</Tip>
+						<Tip content="Project Map">
+							<button
+								type="button"
+								onClick={() => setViewMode("map")}
+								className={cn(
+									"flex items-center justify-center rounded-sm px-2 py-1 transition-colors",
+									viewMode === "map"
+										? "bg-background shadow-e-1 text-foreground"
+										: "text-muted-foreground hover:text-foreground",
+								)}
+								aria-label="Project Map view"
+							>
+								<GitFork className="h-3.5 w-3.5" />
+							</button>
+						</Tip>
 					</div>
 
 					<Filter className="h-3.5 w-3.5 text-muted-foreground" />
@@ -375,6 +393,8 @@ export default function TasksPage() {
 					</Tip>
 				</div>
 			</div>
+
+			{viewMode === "map" && <WorkMapView />}
 
 			{viewMode === "matrix" ? (
 				<BoardDndWrapper
