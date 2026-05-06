@@ -5,9 +5,25 @@ const nextConfig: NextConfig = {
 	output: "standalone",
 	redirects: async () => [
 		{ source: "/daemon", destination: "/autopilot", permanent: true },
-		// /goals and /objectives both redirect to /initiatives since objectives was renamed
 		{ source: "/goals", destination: "/initiatives", permanent: true },
 		{ source: "/objectives", destination: "/initiatives", permanent: true },
+		// Merged into Dashboard tabs
+		{ source: "/brain-dump", destination: "/?tab=inbox", permanent: false },
+		{ source: "/activity", destination: "/?tab=activity", permanent: false },
+		{ source: "/logs", destination: "/?tab=logs", permanent: false },
+		// Merged into Work views
+		{
+			source: "/map",
+			destination: "/priority-matrix?view=map",
+			permanent: false,
+		},
+		// Merged into Agents tabs
+		{
+			source: "/autopilot",
+			destination: "/crew?tab=autopilot",
+			permanent: false,
+		},
+		{ source: "/skills", destination: "/crew?tab=skills", permanent: false },
 	],
 	allowedDevOrigins: ["localhost", "devvm", "127.0.0.1"],
 	devIndicators: false,
