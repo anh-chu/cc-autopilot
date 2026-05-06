@@ -122,7 +122,7 @@ function LogTailCard({
 	);
 }
 
-export function DashboardLogs() {
+export function HomeLogs() {
 	const { runs } = useActiveRuns();
 	const [daemonLog, setDaemonLog] = useState<LogState>(INITIAL_LOG_STATE);
 	const [appLog, setAppLog] = useState<LogState>(INITIAL_LOG_STATE);

@@ -1,6 +1,6 @@
 "use client";
 
-import { ChevronRight, LayoutDashboard } from "lucide-react";
+import { ChevronRight, Home } from "lucide-react";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
 
@@ -24,8 +24,8 @@ export function BreadcrumbNav({ items, className }: BreadcrumbNavProps) {
 				href="/"
 				className="flex items-center gap-1.5 text-muted-foreground hover:text-foreground transition-colors"
 			>
-				<LayoutDashboard className="h-4 w-4" />
-				<span>Dashboard</span>
+				<Home className="h-4 w-4" />
+				<span>Home</span>
 			</Link>
 			{items.map((item, i) => (
 				<span key={i} className="flex items-center gap-1.5">

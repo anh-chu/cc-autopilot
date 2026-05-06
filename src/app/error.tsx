@@ -74,7 +74,7 @@ export default function Error({
 				<Button variant="ghost" size="sm" asChild className="gap-2">
 					<Link href="/">
 						<Home className="h-3.5 w-3.5" />
-						Dashboard
+						Home
 					</Link>
 				</Button>
 			</div>

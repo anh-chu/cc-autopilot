@@ -141,7 +141,7 @@ export default function GlobalError({
 								fontSize: "0.875rem",
 							}}
 						>
-							Go to Dashboard
+							Go to Home
 						</button>
 					</div>
 				</div>

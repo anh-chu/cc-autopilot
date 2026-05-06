@@ -23,9 +23,9 @@ import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { type ReactNode, useState } from "react";
 import { BreadcrumbNav } from "@/components/breadcrumb-nav";
-import { DashboardActivity } from "@/components/dashboard-activity";
-import { DashboardInbox } from "@/components/dashboard-inbox";
-import { DashboardLogs } from "@/components/dashboard-logs";
+import { HomeActivity } from "@/components/home-activity";
+import { HomeInbox } from "@/components/home-inbox";
+import { HomeLogs } from "@/components/home-logs";
 import { ProjectCardLarge } from "@/components/project-card-large";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -50,16 +50,16 @@ import { ErrorState } from "@/components/error-state";
 import type { TaskFormData } from "@/components/task-form";
 import { Tip } from "@/components/ui/tip";
 import { useDaemon } from "@/hooks/use-daemon";
-import { useDashboardData } from "@/hooks/use-dashboard-data";
 import { useAgents } from "@/hooks/use-data";
 import { useFastTaskPoll } from "@/hooks/use-fast-task-poll";
+import { useHomeData } from "@/hooks/use-home-data";
 import { apiFetch } from "@/lib/api-client";
 import { showError, showSuccess } from "@/lib/toast";
 import type { AgentRole } from "@/lib/types";
 import { AGENT_ROLES } from "@/lib/types";
 import { cn } from "@/lib/utils";
 import { useActiveRunsContext as useActiveRuns } from "@/providers/active-runs-provider";
-import { DashboardContentSkeleton } from "./loading";
+import { HomeContentSkeleton } from "./loading";
 
 function formatRelativeTime(isoString: string): string {
 	const diff = Date.now() - new Date(isoString).getTime();
@@ -104,7 +104,7 @@ function AttentionRow({
 }
 
 export default function CommandCenterPage() {
-	const { data, loading, error, refetch, hasLoaded } = useDashboardData();
+	const { data, loading, error, refetch, hasLoaded } = useHomeData();
 	const { agents } = useAgents();
 	const {
 		isRunning: daemonRunning,
@@ -528,7 +528,7 @@ export default function CommandCenterPage() {
 					</Link>
 
 					{!hasLoaded ? (
-						<DashboardContentSkeleton />
+						<HomeContentSkeleton />
 					) : (
 						<>
 							<Card className="border-sunshine-700/20">
@@ -883,9 +883,9 @@ export default function CommandCenterPage() {
 				</div>
 			)}
 
-			{tab === "inbox" && <DashboardInbox />}
-			{tab === "activity" && <DashboardActivity />}
-			{tab === "logs" && <DashboardLogs />}
+			{tab === "inbox" && <HomeInbox />}
+			{tab === "activity" && <HomeActivity />}
+			{tab === "logs" && <HomeLogs />}
 		</div>
 	);
 }

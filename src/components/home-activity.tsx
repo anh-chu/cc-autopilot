@@ -299,7 +299,7 @@ function FeedSkeleton() {
 	);
 }
 
-export function DashboardActivity() {
+export function HomeActivity() {
 	const { events, loading, error, refetch } = useActivityLog();
 
 	const [actorFilter, setActorFilter] = useState<Actor | "all">("all");

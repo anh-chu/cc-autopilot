@@ -6,7 +6,7 @@ import {
 	Skeleton,
 } from "@/components/skeletons";
 
-export function DashboardContentSkeleton() {
+export function HomeContentSkeleton() {
 	return (
 		<div className="flex flex-col gap-8">
 			<div className="grid gap-4 lg:grid-cols-2">
@@ -50,11 +50,11 @@ export function DashboardContentSkeleton() {
 	);
 }
 
-export default function DashboardLoading() {
+export default function HomeLoading() {
 	return (
 		<PageSkeleton>
 			<BreadcrumbNav items={[]} />
-			<DashboardContentSkeleton />
+			<HomeContentSkeleton />
 		</PageSkeleton>
 	);
 }

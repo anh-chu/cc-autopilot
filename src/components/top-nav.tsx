@@ -5,7 +5,7 @@ import {
 	ChevronDown,
 	FileText,
 	Grid2x2,
-	LayoutDashboard,
+	Home,
 	Plus,
 	Users,
 } from "lucide-react";
@@ -44,12 +44,12 @@ const COLOR_SWATCHES = [
 interface NavItem {
 	href: string;
 	label: string;
-	icon: typeof LayoutDashboard;
+	icon: typeof Home;
 	match?: string[];
 }
 
 const navItems: NavItem[] = [
-	{ href: "/", label: "Dashboard", icon: LayoutDashboard },
+	{ href: "/", label: "Home", icon: Home },
 	{
 		href: "/priority-matrix",
 		label: "Work",

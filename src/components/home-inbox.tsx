@@ -23,7 +23,7 @@ import { useBrainDump, useTasks } from "@/hooks/use-data";
 import { useProcessingEntries } from "@/hooks/use-processing-entries";
 import type { BrainDumpEntry } from "@/lib/types";
 
-export function DashboardInbox() {
+export function HomeInbox() {
 	const {
 		entries,
 		update: updateEntry,

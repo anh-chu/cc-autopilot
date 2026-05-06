@@ -13,7 +13,7 @@ import {
 const shortcuts = [
 	{ key: "?", label: "Show keyboard shortcuts" },
 	{ key: "N", label: "Create new task (opens Cmd+K)" },
-	{ key: "G H", label: "Go to Dashboard" },
+	{ key: "G H", label: "Go to Home" },
 	{ key: "G E", label: "Go to Priority Matrix" },
 	{ key: "G K", label: "Go to Status Board" },
 	{ key: "G O", label: "Go to Map" },

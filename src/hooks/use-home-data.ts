@@ -10,12 +10,12 @@ import type {
 	Task,
 } from "@/lib/types";
 
-export interface DashboardStats {
+export interface HomeStats {
 	unprocessedBrainDump: number;
 }
 
-export interface DashboardData {
-	stats: DashboardStats;
+export interface HomeData {
+	stats: HomeStats;
 	tasks: Task[];
 	projects: Project[];
 	entries: BrainDumpEntry[];
@@ -25,8 +25,8 @@ export interface DashboardData {
 
 const POLL_INTERVAL = 15_000; // 15s — matches tasks polling frequency
 
-export function useDashboardData() {
-	const [data, setData] = useState<DashboardData | null>(null);
+export function useHomeData() {
+	const [data, setData] = useState<HomeData | null>(null);
 	const [loading, setLoading] = useState(true);
 	const [error, setError] = useState<string | null>(null);
 	const [hasLoaded, setHasLoaded] = useState(false);
@@ -37,7 +37,7 @@ export function useDashboardData() {
 			if (!initialLoadDone.current) setLoading(true);
 			const res = await apiFetch("/api/dashboard");
 			if (!res.ok) throw new Error("Failed to fetch dashboard data");
-			const json: DashboardData = await res.json();
+			const json: HomeData = await res.json();
 			setData(json);
 			setError(null);
 			initialLoadDone.current = true;
