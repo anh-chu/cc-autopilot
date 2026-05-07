@@ -54,7 +54,10 @@ interface DaemonStatus {
 interface DaemonConfig {
 	polling: { enabled: boolean };
 	concurrency: { maxParallelAgents: number };
-	schedule: Record<string, { enabled: boolean; cron: string; command: string }>;
+	schedule: Record<
+		string,
+		{ enabled: boolean; cron: string; command: string; startAt?: string | null }
+	>;
 	execution: {
 		maxTurns: number;
 		timeoutMinutes: number;

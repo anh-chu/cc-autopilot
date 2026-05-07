@@ -485,6 +485,17 @@ export function scheduleAutopilotPoller(): void {
 
 			for (const [name, entry] of Object.entries(config.schedule)) {
 				if (!entry.enabled || !entry.cron || !entry.command) continue;
+				// Skip if startAt is set and still in the future
+				if (
+					(entry as { startAt?: string | null }).startAt &&
+					new Date((entry as { startAt: string }).startAt) > new Date()
+				) {
+					autopilotLogger.info(
+						"scheduler",
+						`Skipping schedule "${name}": startAt ${(entry as { startAt: string }).startAt} is in the future`,
+					);
+					continue;
+				}
 				if (!cron.validate(entry.cron)) {
 					autopilotLogger.warn(
 						"scheduler",

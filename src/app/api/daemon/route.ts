@@ -1,7 +1,9 @@
+import { spawn } from "node:child_process";
 import { NextResponse } from "next/server";
 import { getActiveRuns, getDaemonConfig, mutateDaemonConfig } from "@/lib/data";
 import { readJSON } from "@/lib/json-io";
 import { DAEMON_STATUS_FILE } from "@/lib/paths";
+import { resolveScriptEntrypoint } from "@/lib/script-entrypoints";
 import { daemonConfigUpdateSchema, validateBody } from "@/lib/validations";
 
 const STATUS_FILE = DAEMON_STATUS_FILE;
@@ -63,14 +65,54 @@ export async function GET() {
 	});
 }
 
-// ─── POST: Toggle polling on/off ─────────────────────────────────────────────
+// ─── POST: Toggle polling on/off or run a command ad-hoc ─────────────────────
 
 export async function POST(request: Request) {
 	try {
 		const body = await request.json();
+
+		// ── Ad-hoc command run ──────────────────────────────────────────────────
+		if (body.action === "run-command") {
+			const command = body.command;
+			if (!command || typeof command !== "string") {
+				return NextResponse.json(
+					{ error: "Missing or invalid 'command' field" },
+					{ status: 400 },
+				);
+			}
+
+			const cwd = process.cwd();
+			const runTaskEntry = resolveScriptEntrypoint("run-task");
+			const args = [...runTaskEntry.args, command, "--source", "manual"];
+
+			try {
+				const child = spawn(runTaskEntry.runner, args, {
+					cwd,
+					detached: true,
+					stdio: "ignore",
+					shell: false,
+				});
+				child.unref();
+				return NextResponse.json({
+					message: "Command started",
+					pid: child.pid ?? null,
+				});
+			} catch (spawnErr) {
+				return NextResponse.json(
+					{
+						error: `Failed to spawn command: ${
+							spawnErr instanceof Error ? spawnErr.message : String(spawnErr)
+						}`,
+					},
+					{ status: 500 },
+				);
+			}
+		}
+
+		// ── Toggle polling ──────────────────────────────────────────────────────
 		if (body.action !== "toggle-polling") {
 			return NextResponse.json(
-				{ error: "Invalid action. Use 'toggle-polling'" },
+				{ error: "Invalid action. Use 'toggle-polling' or 'run-command'" },
 				{ status: 400 },
 			);
 		}

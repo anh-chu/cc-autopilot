@@ -4,6 +4,7 @@ import {
 	CheckCircle2,
 	Clock,
 	Pencil,
+	Play,
 	Plus,
 	RefreshCw,
 	Rocket,
@@ -44,6 +45,7 @@ import {
 	TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { useDaemon } from "@/hooks/use-daemon";
+import { apiFetch } from "@/lib/api-client";
 import { useActiveRunsContext as useActiveRuns } from "@/providers/active-runs-provider";
 
 function formatDuration(minutes: number): string {
@@ -92,9 +94,134 @@ const AVAILABLE_COMMANDS = [
 	"orchestrate",
 ];
 
-function cronToHuman(cron: string): string {
-	const preset = FREQUENCY_PRESETS.find((p) => p.cron === cron);
-	return preset ? preset.label : cron;
+type RepeatInterval = "once" | "daily" | "weekly" | "monthly" | "custom";
+
+const REPEAT_OPTIONS: { label: string; value: RepeatInterval }[] = [
+	{ label: "Once", value: "once" },
+	{ label: "Daily", value: "daily" },
+	{ label: "Weekly", value: "weekly" },
+	{ label: "Monthly", value: "monthly" },
+	{ label: "Custom (cron)", value: "custom" },
+];
+
+const DAY_NAMES = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+
+/** Detect the repeat interval from a cron expression */
+function detectRepeat(cron: string): RepeatInterval {
+	const parts = cron.trim().split(/\s+/);
+	if (parts.length !== 5) return "custom";
+	const [, , dd, mon, dow] = parts;
+	if (dd === "*" && mon === "*" && dow === "*") return "daily";
+	if (dd === "*" && mon === "*" && dow !== "*") return "weekly";
+	if (dd !== "*" && mon === "*" && dow === "*") {
+		// Could be "once" (specific month+day) or monthly
+		if (mon !== "*") return "once";
+		return "monthly";
+	}
+	if (dd !== "*" && mon !== "*" && dow === "*") return "once";
+	return "custom";
+}
+
+/** Generate a cron expression from a datetime-local string + repeat interval */
+function deriveCron(startAt: string, repeat: RepeatInterval): string {
+	if (!startAt || repeat === "custom") return "";
+	const dt = new Date(startAt);
+	if (isNaN(dt.getTime())) return "";
+	const mm = dt.getMinutes();
+	const hh = dt.getHours();
+	const dd = dt.getDate();
+	const mon = dt.getMonth() + 1;
+	const dow = dt.getDay();
+	switch (repeat) {
+		case "once":
+			return `${mm} ${hh} ${dd} ${mon} *`;
+		case "daily":
+			return `${mm} ${hh} * * *`;
+		case "weekly":
+			return `${mm} ${hh} * * ${dow}`;
+		case "monthly":
+			return `${mm} ${hh} ${dd} * *`;
+		default:
+			return "";
+	}
+}
+
+/** Format a local datetime string for a datetime-local input (YYYY-MM-DDTHH:mm) */
+function toDatetimeLocal(isoOrNull: string | null | undefined): string {
+	if (!isoOrNull) {
+		const now = new Date();
+		now.setSeconds(0, 0);
+		return now.toISOString().slice(0, 16);
+	}
+	try {
+		const dt = new Date(isoOrNull);
+		// Shift to local time
+		const offset = dt.getTimezoneOffset();
+		const local = new Date(dt.getTime() - offset * 60000);
+		return local.toISOString().slice(0, 16);
+	} catch {
+		return new Date().toISOString().slice(0, 16);
+	}
+}
+
+/** Human-readable description of a schedule entry */
+function scheduleToHuman(schedule: {
+	cron: string;
+	startAt?: string | null;
+}): string {
+	const { cron, startAt } = schedule;
+	const parts = cron.trim().split(/\s+/);
+	if (parts.length !== 5) return cron;
+
+	const [mmStr, hhStr, dd, , dow] = parts;
+	const mm = parseInt(mmStr, 10);
+	const hh = parseInt(hhStr, 10);
+	const timeStr = `${hh.toString().padStart(2, "0")}:${mm.toString().padStart(2, "0")}`;
+	const repeat = detectRepeat(cron);
+
+	let text = "";
+	switch (repeat) {
+		case "once":
+			text = `Once at ${timeStr}`;
+			break;
+		case "daily":
+			text = `Daily at ${timeStr}`;
+			break;
+		case "weekly": {
+			const dayIdx = parseInt(dow, 10);
+			const dayName = isNaN(dayIdx) ? dow : (DAY_NAMES[dayIdx] ?? dow);
+			text = `Weekly on ${dayName} at ${timeStr}`;
+			break;
+		}
+		case "monthly":
+			text = `Monthly on the ${dd}${ordinalSuffix(parseInt(dd, 10))} at ${timeStr}`;
+			break;
+		default:
+			return cron;
+	}
+
+	if (startAt) {
+		const startDate = new Date(startAt);
+		if (!isNaN(startDate.getTime()) && startDate > new Date()) {
+			text += ` · starts ${startDate.toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" })}`;
+		}
+	}
+
+	return text;
+}
+
+function ordinalSuffix(n: number): string {
+	if (n >= 11 && n <= 13) return "th";
+	switch (n % 10) {
+		case 1:
+			return "st";
+		case 2:
+			return "nd";
+		case 3:
+			return "rd";
+		default:
+			return "th";
+	}
 }
 
 export function CrewAutopilot() {
@@ -217,12 +344,22 @@ export function CrewAutopilot() {
 	const [editingSchedule, setEditingSchedule] = useState<string | null>(null);
 	const [editCron, setEditCron] = useState("");
 	const [editCommand, setEditCommand] = useState("");
+	const [editStartAt, setEditStartAt] = useState("");
+	const [editRepeat, setEditRepeat] = useState<RepeatInterval>("daily");
+
+	// Ad-hoc run state
+	const [runningCommands, setRunningCommands] = useState<Set<string>>(
+		new Set(),
+	);
 
 	function startEditingSchedule(name: string) {
 		const entry = config.schedule[name];
 		if (!entry) return;
+		const repeat = detectRepeat(entry.cron);
+		setEditRepeat(repeat);
 		setEditCron(entry.cron);
 		setEditCommand(entry.command);
+		setEditStartAt(toDatetimeLocal(entry.startAt));
 		setEditingSchedule(name);
 	}
 
@@ -230,16 +367,22 @@ export function CrewAutopilot() {
 		setEditingSchedule(null);
 		setEditCron("");
 		setEditCommand("");
+		setEditStartAt("");
+		setEditRepeat("daily");
 	}
 
 	async function saveScheduleEntry(name: string) {
+		const finalCron =
+			editRepeat === "custom" ? editCron : deriveCron(editStartAt, editRepeat);
+		const startAtISO = editStartAt ? new Date(editStartAt).toISOString() : null;
 		await updateConfig({
 			schedule: {
 				...config.schedule,
 				[name]: {
 					...config.schedule[name],
-					cron: editCron,
+					cron: finalCron || editCron,
 					command: editCommand,
+					startAt: startAtISO,
 				},
 			},
 		});
@@ -251,7 +394,12 @@ export function CrewAutopilot() {
 		await updateConfig({
 			schedule: {
 				...config.schedule,
-				[newName]: { enabled: true, cron: "0 9 * * *", command: "daily-plan" },
+				[newName]: {
+					enabled: true,
+					cron: "0 9 * * *",
+					command: "daily-plan",
+					startAt: null,
+				},
 			},
 		});
 	}
@@ -260,6 +408,25 @@ export function CrewAutopilot() {
 		const updated = { ...config.schedule };
 		delete updated[name];
 		await updateConfig({ schedule: updated });
+	}
+
+	async function runCommandNow(command: string) {
+		setRunningCommands((prev) => new Set(prev).add(command));
+		try {
+			await apiFetch("/api/daemon", {
+				method: "POST",
+				headers: { "Content-Type": "application/json" },
+				body: JSON.stringify({ action: "run-command", command }),
+			});
+		} catch {
+			// ignore — fire and forget
+		} finally {
+			setRunningCommands((prev) => {
+				const next = new Set(prev);
+				next.delete(command);
+				return next;
+			});
+		}
 	}
 
 	if (isLoading) {
@@ -289,6 +456,10 @@ export function CrewAutopilot() {
 					(status.stats.tasksCompleted / status.stats.tasksDispatched) * 100,
 				)
 			: 0;
+
+	// Preview the derived cron expression while editing
+	const previewCron =
+		editRepeat === "custom" ? editCron : deriveCron(editStartAt, editRepeat);
 
 	return (
 		<div className="space-y-6">
@@ -573,7 +744,7 @@ export function CrewAutopilot() {
 							{Object.entries(config.schedule).map(([name, schedule]) => (
 								<div key={name} className="rounded-sm border p-3">
 									{editingSchedule === name ? (
-										/* Edit mode */
+										/* Edit mode — calendar-like form */
 										<div className="space-y-3">
 											<div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
 												<div className="space-y-1.5">
@@ -598,25 +769,67 @@ export function CrewAutopilot() {
 												</div>
 												<div className="space-y-1.5">
 													<p className="text-xs text-muted-foreground">
-														Frequency
+														Repeat
 													</p>
-													<Select value={editCron} onValueChange={setEditCron}>
+													<Select
+														value={editRepeat}
+														onValueChange={(v) =>
+															setEditRepeat(v as RepeatInterval)
+														}
+													>
 														<SelectTrigger className="h-8">
 															<SelectValue />
 														</SelectTrigger>
 														<SelectContent>
-															{FREQUENCY_PRESETS.map((preset) => (
-																<SelectItem
-																	key={preset.cron}
-																	value={preset.cron}
-																>
-																	{preset.label}
+															{REPEAT_OPTIONS.map((opt) => (
+																<SelectItem key={opt.value} value={opt.value}>
+																	{opt.label}
 																</SelectItem>
 															))}
 														</SelectContent>
 													</Select>
 												</div>
 											</div>
+
+											{editRepeat !== "custom" ? (
+												<div className="space-y-1.5">
+													<p className="text-xs text-muted-foreground">
+														{editRepeat === "once"
+															? "Run at"
+															: "Start date & time"}
+													</p>
+													<Input
+														type="datetime-local"
+														className="h-8 text-sm"
+														value={editStartAt}
+														onChange={(e) => setEditStartAt(e.target.value)}
+													/>
+													{previewCron && (
+														<p className="text-xs text-muted-foreground">
+															Cron:{" "}
+															<code className="font-mono">{previewCron}</code>
+															{" · "}
+															{scheduleToHuman({
+																cron: previewCron,
+																startAt: null,
+															})}
+														</p>
+													)}
+												</div>
+											) : (
+												<div className="space-y-1.5">
+													<p className="text-xs text-muted-foreground">
+														Cron expression
+													</p>
+													<Input
+														className="h-8 font-mono text-sm"
+														placeholder="0 9 * * *"
+														value={editCron}
+														onChange={(e) => setEditCron(e.target.value)}
+													/>
+												</div>
+											)}
+
 											<div className="flex justify-end gap-2">
 												<Tip content="Discard changes">
 													<Button
@@ -663,19 +876,35 @@ export function CrewAutopilot() {
 												<div>
 													<p className="font-normal">/{schedule.command}</p>
 													<p className="text-xs text-muted-foreground">
-														{cronToHuman(schedule.cron)}
+														{scheduleToHuman({
+															cron: schedule.cron,
+															startAt: schedule.startAt,
+														})}
 													</p>
 												</div>
 											</div>
-											<div className="flex items-center gap-2">
+											<div className="flex items-center gap-1">
 												{status.nextScheduledRuns[schedule.command] && (
-													<span className="text-xs text-muted-foreground hidden sm:inline">
+													<span className="text-xs text-muted-foreground hidden sm:inline mr-1">
 														Next:{" "}
 														{new Date(
 															status.nextScheduledRuns[schedule.command],
 														).toLocaleString()}
 													</span>
 												)}
+												<Tip content="Run now">
+													<Button
+														variant="ghost"
+														size="icon"
+														className="h-7 w-7 text-muted-foreground hover:text-foreground"
+														onClick={() => void runCommandNow(schedule.command)}
+														disabled={runningCommands.has(schedule.command)}
+													>
+														<Play
+															className={`h-3.5 w-3.5 ${runningCommands.has(schedule.command) ? "animate-pulse" : ""}`}
+														/>
+													</Button>
+												</Tip>
 												<Tip content="Edit schedule entry">
 													<Button
 														variant="ghost"
