@@ -66,21 +66,6 @@ function formatRelativeTime(isoString: string): string {
 	return `${Math.floor(hours / 24)}d ago`;
 }
 
-const FREQUENCY_PRESETS: { label: string; cron: string }[] = [
-	{ label: "Every day at 7:00 AM", cron: "0 7 * * *" },
-	{ label: "Every day at 9:00 AM", cron: "0 9 * * *" },
-	{ label: "Every day at noon", cron: "0 12 * * *" },
-	{ label: "Every day at 5:00 PM", cron: "0 17 * * *" },
-	{ label: "Every day at 9:00 PM", cron: "0 21 * * *" },
-	{ label: "Weekdays at 7:00 AM", cron: "0 7 * * 1-5" },
-	{ label: "Weekdays at 9:00 AM", cron: "0 9 * * 1-5" },
-	{ label: "Weekdays at noon", cron: "0 12 * * 1-5" },
-	{ label: "Weekdays at 5:00 PM", cron: "0 17 * * 1-5" },
-	{ label: "Mondays at 9:00 AM", cron: "0 9 * * 1" },
-	{ label: "Fridays at 5:00 PM", cron: "0 17 * * 5" },
-	{ label: "Sundays at 7:00 PM", cron: "0 19 * * 0" },
-];
-
 const AVAILABLE_COMMANDS = [
 	"standup",
 	"daily-plan",
@@ -126,7 +111,7 @@ function detectRepeat(cron: string): RepeatInterval {
 function deriveCron(startAt: string, repeat: RepeatInterval): string {
 	if (!startAt || repeat === "custom") return "";
 	const dt = new Date(startAt);
-	if (isNaN(dt.getTime())) return "";
+	if (Number.isNaN(dt.getTime())) return "";
 	const mm = dt.getMinutes();
 	const hh = dt.getHours();
 	const dd = dt.getDate();
@@ -189,7 +174,7 @@ function scheduleToHuman(schedule: {
 			break;
 		case "weekly": {
 			const dayIdx = parseInt(dow, 10);
-			const dayName = isNaN(dayIdx) ? dow : (DAY_NAMES[dayIdx] ?? dow);
+			const dayName = Number.isNaN(dayIdx) ? dow : (DAY_NAMES[dayIdx] ?? dow);
 			text = `Weekly on ${dayName} at ${timeStr}`;
 			break;
 		}
@@ -202,7 +187,7 @@ function scheduleToHuman(schedule: {
 
 	if (startAt) {
 		const startDate = new Date(startAt);
-		if (!isNaN(startDate.getTime()) && startDate > new Date()) {
+		if (!Number.isNaN(startDate.getTime()) && startDate > new Date()) {
 			text += ` · starts ${startDate.toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" })}`;
 		}
 	}
