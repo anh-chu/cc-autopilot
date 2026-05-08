@@ -70,9 +70,6 @@ export async function POST() {
 		const done = tasksData.tasks.filter(
 			(t) => t.kanban === "done" && !t.isScheduled,
 		);
-		const scheduledDone = tasksData.tasks.filter(
-			(t) => t.kanban === "done" && t.isScheduled,
-		);
 		tasksData.tasks = tasksData.tasks.filter((t) => t.kanban !== "done");
 		// Scheduled tasks are removed (not archived) to prevent unbounded growth
 

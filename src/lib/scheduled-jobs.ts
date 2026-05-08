@@ -526,7 +526,6 @@ export function scheduleAutopilotPoller(): void {
 
 							// Dedup + create task atomically inside the mutex
 							let taskId: string | null = null;
-							const now = new Date().toISOString();
 							await mutateTasks(async (data) => {
 								const alreadyQueued = data.tasks.some(
 									(t) =>
