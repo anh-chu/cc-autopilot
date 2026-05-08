@@ -47,7 +47,7 @@ import {
 } from "@/hooks/use-data";
 import { getAgentIcon } from "@/lib/agent-icons";
 import { apiFetch } from "@/lib/api-client";
-import type { AgentRole, Task } from "@/lib/types";
+import type { ActiveRun, AgentRole, Task } from "@/lib/types";
 import { getQuadrant } from "@/lib/types";
 import { cn, parseAgentMentions } from "@/lib/utils";
 
@@ -97,6 +97,10 @@ export default function TaskDetailPage() {
 	const [localComments, setLocalComments] = useState<Task["comments"]>([]);
 	const [timelineOpen, setTimelineOpen] = useState(false);
 	const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+	const [runs, setRuns] = useState<ActiveRun[]>([]);
+	const [runsLoading, setRunsLoading] = useState(false);
+	const [runsOpen, setRunsOpen] = useState(false);
+	const [expandedRunId, setExpandedRunId] = useState<string | null>(null);
 
 	// Sync local comments when task data changes
 	useEffect(() => {
@@ -104,6 +108,16 @@ export default function TaskDetailPage() {
 			setLocalComments(task.comments ?? []);
 		}
 	}, [task]);
+
+	// Fetch runs for this task
+	useEffect(() => {
+		setRunsLoading(true);
+		fetch(`/api/runs?taskId=${encodeURIComponent(taskId)}`)
+			.then((res) => res.json() as Promise<{ runs: ActiveRun[] }>)
+			.then((data) => setRuns(data.runs ?? []))
+			.catch(() => setRuns([]))
+			.finally(() => setRunsLoading(false));
+	}, [taskId]);
 
 	const activeAgents = agents.filter((a) => a.status === "active");
 	const deployableAgents = activeAgents.filter((a) => a.id !== "me");
@@ -785,6 +799,86 @@ export default function TaskDetailPage() {
 										<p className="text-xs text-muted-foreground py-1">
 											No activity yet
 										</p>
+									)}
+								</CardContent>
+							</CollapsibleContent>
+						</Collapsible>
+					</Card>
+
+					{/* Runs card */}
+					<Card>
+						<Collapsible open={runsOpen} onOpenChange={setRunsOpen}>
+							<CollapsibleTrigger className="flex items-center gap-2 w-full text-left px-6 py-4 hover:text-foreground text-muted-foreground transition-colors">
+								<Activity className="h-4 w-4" />
+								<span className="text-sm font-normal">
+									Runs {runs.length > 0 && `(${runs.length})`}
+								</span>
+							</CollapsibleTrigger>
+							<CollapsibleContent>
+								<CardContent className="pt-0 pb-4 space-y-1">
+									{runsLoading ? (
+										<p className="text-xs text-muted-foreground py-1">
+											Loading...
+										</p>
+									) : runs.length === 0 ? (
+										<p className="text-xs text-muted-foreground py-1">
+											No runs yet
+										</p>
+									) : (
+										runs.map((run) => (
+											<div key={run.id}>
+												<button
+													type="button"
+													className="w-full flex items-center gap-2 px-2 py-1.5 rounded-sm text-xs hover:bg-muted transition-colors text-left"
+													onClick={() =>
+														setExpandedRunId(
+															expandedRunId === run.id ? null : run.id,
+														)
+													}
+												>
+													<Badge
+														variant="outline"
+														className={cn(
+															"text-[10px] px-1.5 py-0 shrink-0",
+															run.status === "running" &&
+																"border-blue-300 text-blue-600 bg-blue-50",
+															run.status === "completed" &&
+																"border-green-300 text-green-600 bg-green-50",
+															run.status === "failed" &&
+																"border-red-300 text-red-600 bg-red-50",
+															run.status === "timeout" &&
+																"border-orange-300 text-orange-600 bg-orange-50",
+															run.status === "stopped" &&
+																"border-gray-300 text-gray-500 bg-gray-50",
+														)}
+													>
+														{run.status}
+													</Badge>
+													<span className="flex-1 truncate">{run.agentId}</span>
+													<span className="text-muted-foreground shrink-0">
+														{new Date(run.startedAt).toLocaleDateString()}
+													</span>
+													<span className="text-muted-foreground shrink-0 ml-2">
+														{run.completedAt
+															? `${Math.round(
+																	(new Date(run.completedAt).getTime() -
+																		new Date(run.startedAt).getTime()) /
+																		1000,
+																)}s`
+															: "..."}
+													</span>
+												</button>
+												{expandedRunId === run.id &&
+													run.status === "failed" &&
+													run.error && (
+														<div className="px-2 pb-1.5">
+															<p className="text-xs text-destructive bg-destructive/5 rounded-sm p-2 border border-destructive/10">
+																{run.error}
+															</p>
+														</div>
+													)}
+											</div>
+										))
 									)}
 								</CardContent>
 							</CollapsibleContent>

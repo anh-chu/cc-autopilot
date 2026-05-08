@@ -1,6 +1,7 @@
 "use client";
 
 import {
+	Activity,
 	BarChart3,
 	BookOpen,
 	Bot,
@@ -21,7 +22,7 @@ import {
 	Zap,
 } from "lucide-react";
 import { useParams, useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { BreadcrumbNav } from "@/components/breadcrumb-nav";
 import { EmptyState } from "@/components/empty-state";
 import { ErrorState } from "@/components/error-state";
@@ -43,7 +44,8 @@ import {
 	useTasks,
 } from "@/hooks/use-data";
 import { useFastTaskPoll } from "@/hooks/use-fast-task-poll";
-import type { KanbanStatus, Task } from "@/lib/types";
+import type { ActiveRun, KanbanStatus, Task } from "@/lib/types";
+import { cn } from "@/lib/utils";
 import { useActiveRunsContext as useActiveRuns } from "@/providers/active-runs-provider";
 
 const iconMap: Record<string, typeof User> = {
@@ -104,6 +106,25 @@ export default function AgentPage() {
 	const [editingDescription, setEditingDescription] = useState(false);
 	const [descriptionText, setDescriptionText] = useState("");
 	const [savingProfile, setSavingProfile] = useState(false);
+	const [runs, setRuns] = useState<ActiveRun[]>([]);
+	const [runsLoading, setRunsLoading] = useState(false);
+	const [expandedRunId, setExpandedRunId] = useState<string | null>(null);
+
+	useEffect(() => {
+		setRunsLoading(true);
+		fetch(`/api/runs?agentId=${encodeURIComponent(id)}`)
+			.then((res) => res.json() as Promise<{ runs: ActiveRun[] }>)
+			.then((data) => {
+				const sorted = (data.runs ?? []).sort(
+					(a, b) =>
+						new Date(b.startedAt).getTime() - new Date(a.startedAt).getTime(),
+				);
+				setRuns(sorted.slice(0, 20));
+			})
+			.catch(() => setRuns([]))
+			.finally(() => setRunsLoading(false));
+	}, [id]);
+
 	const agent = agents.find((a) => a.id === id);
 
 	if (loading) {
@@ -583,6 +604,79 @@ export default function AgentPage() {
 					</div>
 				</section>
 			)}
+
+			{/* Runs */}
+			<section className="space-y-3">
+				<h2 className="text-sm font-normal flex items-center gap-2">
+					<Activity className="h-3.5 w-3.5" />
+					Runs
+					{runs.length > 0 && (
+						<Badge variant="secondary" className="text-[10px] px-1.5 py-0">
+							{runs.length}
+						</Badge>
+					)}
+				</h2>
+				{runsLoading ? (
+					<p className="text-xs text-muted-foreground">Loading...</p>
+				) : runs.length === 0 ? (
+					<p className="text-xs text-muted-foreground">No runs yet</p>
+				) : (
+					<div className="space-y-1">
+						{runs.map((run) => (
+							<div key={run.id}>
+								<button
+									type="button"
+									className="w-full flex items-center gap-2 px-3 py-1.5 rounded-sm text-xs hover:bg-muted transition-colors text-left"
+									onClick={() =>
+										setExpandedRunId(expandedRunId === run.id ? null : run.id)
+									}
+								>
+									<Badge
+										variant="outline"
+										className={cn(
+											"text-[10px] px-1.5 py-0 shrink-0",
+											run.status === "running" &&
+												"border-blue-300 text-blue-600 bg-blue-50",
+											run.status === "completed" &&
+												"border-green-300 text-green-600 bg-green-50",
+											run.status === "failed" &&
+												"border-red-300 text-red-600 bg-red-50",
+											run.status === "timeout" &&
+												"border-orange-300 text-orange-600 bg-orange-50",
+											run.status === "stopped" &&
+												"border-gray-300 text-gray-500 bg-gray-50",
+										)}
+									>
+										{run.status}
+									</Badge>
+									<span className="flex-1 truncate">{run.taskId}</span>
+									<span className="text-muted-foreground shrink-0">
+										{new Date(run.startedAt).toLocaleDateString()}
+									</span>
+									<span className="text-muted-foreground shrink-0 ml-2">
+										{run.completedAt
+											? `${Math.round(
+													(new Date(run.completedAt).getTime() -
+														new Date(run.startedAt).getTime()) /
+														1000,
+												)}s`
+											: "..."}
+									</span>
+								</button>
+								{expandedRunId === run.id &&
+									run.status === "failed" &&
+									run.error && (
+										<div className="px-3 pb-2 pt-1">
+											<p className="text-xs text-destructive bg-destructive/5 rounded-sm p-2 border border-destructive/10">
+												{run.error}
+											</p>
+										</div>
+									)}
+							</div>
+						))}
+					</div>
+				)}
+			</section>
 		</div>
 	);
 }
