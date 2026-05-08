@@ -18,7 +18,7 @@ const STATUS_FILE = DAEMON_STATUS_FILE;
 // ─── GET: Read daemon status + config ────────────────────────────────────────
 
 export async function GET() {
-	const workspaceId = await applyWorkspaceContext();
+	await applyWorkspaceContext();
 	const savedStatus = readJSON(STATUS_FILE) ?? {
 		status: "stopped",
 		pid: null,

@@ -13,7 +13,6 @@ import {
 	useTaskHandlers,
 } from "@/components/board-view";
 import { BreadcrumbNav } from "@/components/breadcrumb-nav";
-import { ErrorState } from "@/components/error-state";
 import { CardSkeleton, GridSkeleton, Skeleton } from "@/components/skeletons";
 import { Button } from "@/components/ui/button";
 import {
