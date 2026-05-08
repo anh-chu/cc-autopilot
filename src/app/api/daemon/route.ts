@@ -42,7 +42,8 @@ export async function GET() {
 	const activeRuns = await getActiveRuns();
 
 	// Derive running sessions from active-runs.json
-	const activeSessions = activeRuns.runs
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
+	const activeSessions: any[] = activeRuns.runs
 		.filter((r) => r.status === "running")
 		.map((r) => ({
 			id: r.id,
@@ -53,6 +54,96 @@ export async function GET() {
 			startedAt: r.startedAt,
 			status: r.status,
 		}));
+
+	// Also include running/starting conversations (commands, manual runs)
+	// that don't have active-runs entries.
+	try {
+		const runningConvs = await listConversations({ status: "running" });
+		const startingConvs = await listConversations({ status: "starting" });
+		const convSessions = [...runningConvs, ...startingConvs]
+			.filter(
+				(c) => c.executionSource !== "chat" && c.executionSource !== "task",
+			)
+			.map((c) => ({
+				id: c.id,
+				agentId: c.agentId ?? "claude",
+				taskId: c.taskId ?? null,
+				command: c.executionSource,
+				pid: 0,
+				startedAt: c.createdAt,
+				status: c.status as string,
+			}));
+		// Avoid duplicating sessions that already appear via active-runs
+		const existingIds = new Set(activeSessions.map((s: any) => s.id));
+		for (const cs of convSessions) {
+			if (!existingIds.has(cs.id)) {
+				activeSessions.push(cs);
+			}
+		}
+	} catch {
+		// Non-critical — conversation listing can fail gracefully
+	}
+
+	// Augment history with recently completed/failed conversations
+	// that don't have active-runs entries (commands, manual runs).
+	try {
+		const recentConvs = await listConversations({ status: "completed" });
+		const recentFailed = await listConversations({ status: "failed" });
+		const allRecent = [...recentConvs, ...recentFailed]
+			.filter(
+				(c) => c.executionSource !== "chat" && c.executionSource !== "task",
+			)
+			.sort(
+				(a, b) =>
+					new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime(),
+			)
+			.slice(0, 20)
+			.map((c) => {
+				const commandName = c.title.startsWith("Command: /")
+					? c.title.slice("Command: /".length)
+					: c.executionSource;
+				const startedAt = c.createdAt;
+				const completedAt = c.updatedAt;
+				const durationMinutes = startedAt
+					? Math.round(
+							(new Date(completedAt).getTime() -
+								new Date(startedAt).getTime()) /
+								60_000,
+						)
+					: 0;
+				return {
+					id: c.id,
+					agentId: c.agentId ?? "claude",
+					taskId: c.taskId ?? null,
+					command: commandName,
+					pid: 0,
+					startedAt: c.createdAt,
+					status: c.status,
+					completedAt,
+					exitCode: null,
+					error: c.status === "failed" ? "Execution failed" : null,
+					durationMinutes,
+					costUsd: null,
+					numTurns: c.turnCount ?? null,
+					usage: {
+						inputTokens: 0,
+						outputTokens: 0,
+						cacheReadInputTokens: 0,
+						cacheCreationInputTokens: 0,
+					},
+				};
+			});
+		const history = (savedStatus as { history: Array<Record<string, unknown>> })
+			.history;
+		const existingHistoryIds = new Set(history.map((h) => h.id as string));
+		for (const entry of allRecent) {
+			if (!existingHistoryIds.has(entry.id)) {
+				history.unshift(entry as unknown as Record<string, unknown>);
+			}
+		}
+	} catch {
+		// Non-critical
+	}
 
 	const isRunning =
 		(config as { polling?: { enabled?: boolean } }).polling?.enabled ?? false;
