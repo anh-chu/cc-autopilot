@@ -15,13 +15,7 @@ import { readdir, stat, unlink } from "node:fs/promises";
 import path from "node:path";
 import cron from "node-cron";
 import { loadCommandPrompt } from "./command-prompt";
-import {
-	appendConversationTurn,
-	createConversation,
-	listConversations,
-	reapStaleRuns,
-	setConversationsWorkspace,
-} from "./conversations";
+import { reapStaleRuns, setConversationsWorkspace } from "./conversations";
 import {
 	getActiveRuns,
 	getDaemonConfig,
@@ -34,6 +28,7 @@ import { createLogger } from "./logger";
 import { DATA_DIR } from "./paths";
 import { isProcessAlive } from "./process-utils";
 import { resolveScriptEntrypoint } from "./script-entrypoints";
+import { generateId } from "./utils";
 
 const GRACE_MS = 60 * 60 * 1000; // 1 hour
 const LOG_RETENTION_MS = 7 * 24 * 60 * 60 * 1000; // 7 days
@@ -488,7 +483,7 @@ export function scheduleAutopilotPoller(): void {
 			if (!config.schedule) return;
 
 			const cwd = process.cwd();
-			const runConvEntry = resolveScriptEntrypoint("run-conversation");
+			const runTaskEntry = resolveScriptEntrypoint("run-task");
 
 			for (const [name, entry] of Object.entries(config.schedule)) {
 				if (!entry.enabled || !entry.cron || !entry.command) continue;
@@ -520,23 +515,18 @@ export function scheduleAutopilotPoller(): void {
 
 					void (async () => {
 						try {
-							// Dedup: skip if a conversation for this command is already starting or running
-							const existing = await listConversations({
-								source: "scheduled",
-								status: "starting" as never,
-							});
-							// Also check running
-							const running = await listConversations({
-								source: "scheduled",
-								status: "running" as never,
-							});
-							const alreadyRunning = existing
-								.concat(running)
-								.some((c) => c.title === `Command: /${command}`);
-							if (alreadyRunning) {
+							// Dedup: skip if a task for this command is already in-progress or not-started
+							const { tasks: existingTasks } = await getTasks();
+							const alreadyQueued = existingTasks.some(
+								(t) =>
+									t.isScheduled &&
+									t.title === `Command: /${command}` &&
+									(t.kanban === "not-started" || t.kanban === "in-progress"),
+							);
+							if (alreadyQueued) {
 								autopilotLogger.info(
 									"scheduler",
-									`Skipping schedule "${name}": command /${command} already running`,
+									`Skipping schedule "${name}": command /${command} already queued or running`,
 								);
 								return;
 							}
@@ -551,40 +541,54 @@ export function scheduleAutopilotPoller(): void {
 								return;
 							}
 
-							// Pre-create conversation so it's visible in UI before Claude starts
-							const conversation = await createConversation({
-								title: `Command: /${command}`,
-								agentId: "claude",
-								model: null,
-								mode: "foreground",
-								executionSource: "scheduled",
-								taskId: null,
-								status: "queued",
+							// Create a scheduled task so it flows through normal task dispatch
+							const taskId = generateId("task");
+							const now = new Date().toISOString();
+							await mutateTasks(async (data) => {
+								data.tasks.push({
+									id: taskId,
+									title: `Command: /${command}`,
+									description: promptResult.content,
+									importance: "important",
+									urgency: "urgent",
+									kanban: "not-started",
+									projectId: null,
+									milestoneId: null,
+									assignedTo: "claude",
+									collaborators: [],
+									subtasks: [],
+									blockedBy: [],
+									estimatedMinutes: null,
+									actualMinutes: null,
+									acceptanceCriteria: "",
+									comments: [],
+									tags: [],
+									dueDate: null,
+									createdAt: now,
+									updatedAt: now,
+									completedAt: null,
+									deletedAt: null,
+									isScheduled: true,
+								});
 							});
 
-							// Append the command prompt as the initial user turn
-							await appendConversationTurn(conversation.id, {
-								role: "user",
-								content: promptResult.content,
-							});
-
-							// Spawn the conversation runner
-							const args = [...runConvEntry.args, conversation.id];
-							const child = spawn(runConvEntry.runner, args, {
+							// Spawn run-task.ts with the new task ID
+							const args = [
+								...runTaskEntry.args,
+								taskId,
+								"--source",
+								"scheduled",
+							];
+							const child = spawn(runTaskEntry.runner, args, {
 								cwd,
 								detached: true,
 								stdio: "ignore",
 								shell: false,
-								env: {
-									...process.env,
-									MANDIO_WORKSPACE_ID:
-										process.env.MANDIO_WORKSPACE_ID ?? "default",
-								},
 							});
 							child.unref();
 							autopilotLogger.info(
 								"scheduler",
-								`Dispatched command /${command} → conversation ${conversation.id} (pid: ${child.pid ?? "unknown"})`,
+								`Dispatched command /${command} → task ${taskId} (pid: ${child.pid ?? "unknown"})`,
 							);
 						} catch (dispatchErr) {
 							autopilotLogger.error(

@@ -164,7 +164,9 @@ export default function AgentPage() {
 
 	const Icon = getAgentIcon(agent.icon);
 	const agentTasks = tasks.filter(
-		(t) => t.assignedTo === agent.id || t.collaborators?.includes(agent.id),
+		(t) =>
+			!t.isScheduled &&
+			(t.assignedTo === agent.id || t.collaborators?.includes(agent.id)),
 	);
 	const inProgress = agentTasks.filter((t) => t.kanban === "in-progress");
 	const todo = agentTasks.filter((t) => t.kanban === "not-started");

@@ -63,6 +63,7 @@ interface TaskDef {
 		type?: string;
 	}>;
 	estimatedMinutes: number | null;
+	isScheduled?: boolean;
 }
 
 // ─── Skill Reading (Sync for daemon) ──────────────────────────────────────────

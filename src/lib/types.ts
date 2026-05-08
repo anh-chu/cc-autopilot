@@ -176,6 +176,8 @@ export interface Task {
 	mapPosition?: CanvasPosition;
 	/** Link to the current/latest execution conversation (null until first run). */
 	conversationId?: string | null;
+	/** True for auto-created tasks from scheduled commands. Hidden from kanban board. */
+	isScheduled?: boolean;
 }
 
 export interface TasksFile {

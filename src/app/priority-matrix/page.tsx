@@ -204,7 +204,8 @@ export default function TasksPage() {
 	} = useTaskHandlers(tasks, updateTask, createTask, deleteTask);
 
 	// Matrix view: only active tasks, grouped by quadrant
-	let activeTasks = tasks.filter((t) => t.kanban !== "done");
+	// Exclude auto-created scheduled command tasks from the kanban board
+	let activeTasks = tasks.filter((t) => !t.isScheduled && t.kanban !== "done");
 	if (filterProject !== "all")
 		activeTasks = activeTasks.filter((t) => t.projectId === filterProject);
 	if (filterAssignee !== "all")
@@ -223,7 +224,8 @@ export default function TasksPage() {
 	}
 
 	// Board view: all tasks, grouped by kanban status
-	let boardTasks = tasks;
+	// Exclude auto-created scheduled command tasks
+	let boardTasks = tasks.filter((t) => !t.isScheduled);
 	if (filterProject !== "all")
 		boardTasks = boardTasks.filter((t) => t.projectId === filterProject);
 	if (filterAssignee !== "all")

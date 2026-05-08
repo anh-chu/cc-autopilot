@@ -182,7 +182,9 @@ export function ProjectDetailPage({
 	const [tagInput, setTagInput] = useState("");
 
 	const project = projects.find((p) => p.id === projectId);
-	const projectTasks = tasks.filter((t) => t.projectId === projectId);
+	const projectTasks = tasks.filter(
+		(t) => t.projectId === projectId && !t.isScheduled,
+	);
 
 	if (!project) {
 		return (

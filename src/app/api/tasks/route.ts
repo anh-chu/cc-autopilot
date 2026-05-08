@@ -256,7 +256,12 @@ export async function GET(request: Request) {
 	});
 
 	// Apply filters
-	if (id) tasks = tasks.filter((t) => t.id === id);
+	if (id) {
+		tasks = tasks.filter((t) => t.id === id);
+	} else {
+		// Exclude auto-created scheduled command tasks from general task queries
+		tasks = tasks.filter((t) => !t.isScheduled);
+	}
 	if (assignedTo) tasks = tasks.filter((t) => t.assignedTo === assignedTo);
 	if (kanban) tasks = tasks.filter((t) => t.kanban === kanban);
 	if (projectId) tasks = tasks.filter((t) => t.projectId === projectId);

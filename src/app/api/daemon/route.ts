@@ -2,14 +2,16 @@ import { spawn } from "node:child_process";
 import { NextResponse } from "next/server";
 import { loadCommandPrompt } from "@/lib/command-prompt";
 import {
-	appendConversationTurn,
-	createConversation,
-	listConversations,
-} from "@/lib/conversations";
-import { getActiveRuns, getDaemonConfig, mutateDaemonConfig } from "@/lib/data";
+	getActiveRuns,
+	getDaemonConfig,
+	getTasks,
+	mutateDaemonConfig,
+	mutateTasks,
+} from "@/lib/data";
 import { readJSON } from "@/lib/json-io";
 import { DAEMON_STATUS_FILE } from "@/lib/paths";
 import { resolveScriptEntrypoint } from "@/lib/script-entrypoints";
+import { generateId } from "@/lib/utils";
 import { daemonConfigUpdateSchema, validateBody } from "@/lib/validations";
 
 const STATUS_FILE = DAEMON_STATUS_FILE;
@@ -41,19 +43,8 @@ export async function GET() {
 	const config = await getDaemonConfig();
 	const activeRuns = await getActiveRuns();
 
-	// Common session shape shared between active-runs and conversation entries.
-	interface SessionEntry {
-		id: string;
-		agentId: string;
-		taskId: string | null;
-		command: string;
-		pid: number;
-		startedAt: string;
-		status: string;
-	}
-
 	// Derive running sessions from active-runs.json
-	const activeSessions: SessionEntry[] = activeRuns.runs
+	const activeSessions = activeRuns.runs
 		.filter((r) => r.status === "running")
 		.map((r) => ({
 			id: r.id,
@@ -64,96 +55,6 @@ export async function GET() {
 			startedAt: r.startedAt,
 			status: r.status,
 		}));
-
-	// Also include running/starting conversations (commands, manual runs)
-	// that don't have active-runs entries.
-	try {
-		const runningConvs = await listConversations({ status: "running" });
-		const startingConvs = await listConversations({ status: "starting" });
-		const convSessions = [...runningConvs, ...startingConvs]
-			.filter(
-				(c) => c.executionSource !== "chat" && c.executionSource !== "task",
-			)
-			.map((c) => ({
-				id: c.id,
-				agentId: c.agentId ?? "claude",
-				taskId: c.taskId ?? null,
-				command: c.executionSource,
-				pid: 0,
-				startedAt: c.createdAt,
-				status: c.status as string,
-			}));
-		// Avoid duplicating sessions that already appear via active-runs
-		const existingIds = new Set(activeSessions.map((s) => s.id));
-		for (const cs of convSessions) {
-			if (!existingIds.has(cs.id)) {
-				activeSessions.push(cs);
-			}
-		}
-	} catch {
-		// Non-critical — conversation listing can fail gracefully
-	}
-
-	// Augment history with recently completed/failed conversations
-	// that don't have active-runs entries (commands, manual runs).
-	try {
-		const recentConvs = await listConversations({ status: "completed" });
-		const recentFailed = await listConversations({ status: "failed" });
-		const allRecent = [...recentConvs, ...recentFailed]
-			.filter(
-				(c) => c.executionSource !== "chat" && c.executionSource !== "task",
-			)
-			.sort(
-				(a, b) =>
-					new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime(),
-			)
-			.slice(0, 20)
-			.map((c) => {
-				const commandName = c.title.startsWith("Command: /")
-					? c.title.slice("Command: /".length)
-					: c.executionSource;
-				const startedAt = c.createdAt;
-				const completedAt = c.updatedAt;
-				const durationMinutes = startedAt
-					? Math.round(
-							(new Date(completedAt).getTime() -
-								new Date(startedAt).getTime()) /
-								60_000,
-						)
-					: 0;
-				return {
-					id: c.id,
-					agentId: c.agentId ?? "claude",
-					taskId: c.taskId ?? null,
-					command: commandName,
-					pid: 0,
-					startedAt: c.createdAt,
-					status: c.status,
-					completedAt,
-					exitCode: null,
-					error: c.status === "failed" ? "Execution failed" : null,
-					durationMinutes,
-					costUsd: null,
-					numTurns: c.turnCount ?? null,
-					usage: {
-						inputTokens: 0,
-						outputTokens: 0,
-						cacheReadInputTokens: 0,
-						cacheCreationInputTokens: 0,
-					},
-				};
-			});
-		const history = (savedStatus as { history: Array<Record<string, unknown>> })
-			.history;
-		const existingHistoryIds = new Set(history.map((h) => h.id as string));
-		for (const entry of allRecent) {
-			if (!existingHistoryIds.has(entry.id)) {
-				history.unshift(entry as unknown as Record<string, unknown>);
-			}
-		}
-	} catch {
-		// Non-critical
-	}
 
 	const isRunning =
 		(config as { polling?: { enabled?: boolean } }).polling?.enabled ?? false;
@@ -198,60 +99,66 @@ export async function POST(request: Request) {
 					);
 				}
 
-				// Dedup: skip if a conversation for this command is already starting or running
-				const existing = await listConversations({
-					source: "manual",
-					status: "starting" as never,
-				});
-				const running = await listConversations({
-					source: "manual",
-					status: "running" as never,
-				});
-				const alreadyRunning = existing
-					.concat(running)
-					.some((c) => c.title === `Command: /${command}`);
-				if (alreadyRunning) {
+				// Dedup: skip if a scheduled task for this command is already queued or running
+				const { tasks: existingTasks } = await getTasks();
+				const alreadyQueued = existingTasks.some(
+					(t) =>
+						t.isScheduled &&
+						t.title === `Command: /${command}` &&
+						(t.kanban === "not-started" || t.kanban === "in-progress"),
+				);
+				if (alreadyQueued) {
 					return NextResponse.json({
 						message: `Command /${command} is already running`,
 						skipped: true,
 					});
 				}
 
-				// Pre-create conversation so it's visible in UI before Claude starts
-				const conversation = await createConversation({
-					title: `Command: /${command}`,
-					agentId: "claude",
-					model: null,
-					mode: "foreground",
-					executionSource: "manual",
-					taskId: null,
-					status: "queued",
+				// Create a scheduled task so it flows through normal task dispatch
+				const taskId = generateId("task");
+				const now = new Date().toISOString();
+				await mutateTasks(async (data) => {
+					data.tasks.push({
+						id: taskId,
+						title: `Command: /${command}`,
+						description: promptResult.content,
+						importance: "important",
+						urgency: "urgent",
+						kanban: "not-started",
+						projectId: null,
+						milestoneId: null,
+						assignedTo: "claude",
+						collaborators: [],
+						subtasks: [],
+						blockedBy: [],
+						estimatedMinutes: null,
+						actualMinutes: null,
+						acceptanceCriteria: "",
+						comments: [],
+						tags: [],
+						dueDate: null,
+						createdAt: now,
+						updatedAt: now,
+						completedAt: null,
+						deletedAt: null,
+						isScheduled: true,
+					});
 				});
 
-				// Append the command prompt as the initial user turn
-				await appendConversationTurn(conversation.id, {
-					role: "user",
-					content: promptResult.content,
-				});
-
-				// Spawn the conversation runner
+				// Spawn run-task.ts with the new task ID
 				const cwd = process.cwd();
-				const runConvEntry = resolveScriptEntrypoint("run-conversation");
-				const args = [...runConvEntry.args, conversation.id];
-				const child = spawn(runConvEntry.runner, args, {
+				const runTaskEntry = resolveScriptEntrypoint("run-task");
+				const args = [...runTaskEntry.args, taskId, "--source", "manual"];
+				const child = spawn(runTaskEntry.runner, args, {
 					cwd,
 					detached: true,
 					stdio: "ignore",
 					shell: false,
-					env: {
-						...process.env,
-						MANDIO_WORKSPACE_ID: process.env.MANDIO_WORKSPACE_ID ?? "default",
-					},
 				});
 				child.unref();
 				return NextResponse.json({
 					message: "Command started",
-					conversationId: conversation.id,
+					taskId,
 					pid: child.pid ?? null,
 				});
 			} catch (dispatchErr) {

@@ -1048,7 +1048,10 @@ function ProjectInitiativeCanvasInner() {
 	const canvasTasks = useMemo(
 		() =>
 			tasks.filter(
-				(t) => !t.deletedAt && (showDoneTasks || t.kanban !== "done"),
+				(t) =>
+					!t.deletedAt &&
+					!t.isScheduled &&
+					(showDoneTasks || t.kanban !== "done"),
 			),
 		[tasks, showDoneTasks],
 	);
@@ -1056,7 +1059,7 @@ function ProjectInitiativeCanvasInner() {
 	// Memoized per-project task map for performance
 	const projectTaskMap = useMemo(() => {
 		const map = new Map<string, Task[]>();
-		for (const task of tasks.filter((t) => !t.deletedAt)) {
+		for (const task of tasks.filter((t) => !t.deletedAt && !t.isScheduled)) {
 			if (task.projectId) {
 				const arr = map.get(task.projectId) ?? [];
 				arr.push(task);

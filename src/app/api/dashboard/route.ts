@@ -21,7 +21,7 @@ export async function GET() {
 		]);
 
 	// Filter soft-deleted
-	const tasks = tasksData.tasks.filter((t) => !t.deletedAt);
+	const tasks = tasksData.tasks.filter((t) => !t.deletedAt && !t.isScheduled);
 	const projects = projectsData.projects.filter((p) => !p.deletedAt);
 	const entries = brainDumpData.entries;
 	const messages = inboxData.messages;
