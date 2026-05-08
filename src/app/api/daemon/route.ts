@@ -41,9 +41,19 @@ export async function GET() {
 	const config = await getDaemonConfig();
 	const activeRuns = await getActiveRuns();
 
+	// Common session shape shared between active-runs and conversation entries.
+	interface SessionEntry {
+		id: string;
+		agentId: string;
+		taskId: string | null;
+		command: string;
+		pid: number;
+		startedAt: string;
+		status: string;
+	}
+
 	// Derive running sessions from active-runs.json
-	// eslint-disable-next-line @typescript-eslint/no-explicit-any
-	const activeSessions: any[] = activeRuns.runs
+	const activeSessions: SessionEntry[] = activeRuns.runs
 		.filter((r) => r.status === "running")
 		.map((r) => ({
 			id: r.id,
@@ -74,7 +84,7 @@ export async function GET() {
 				status: c.status as string,
 			}));
 		// Avoid duplicating sessions that already appear via active-runs
-		const existingIds = new Set(activeSessions.map((s: any) => s.id));
+		const existingIds = new Set(activeSessions.map((s) => s.id));
 		for (const cs of convSessions) {
 			if (!existingIds.has(cs.id)) {
 				activeSessions.push(cs);
