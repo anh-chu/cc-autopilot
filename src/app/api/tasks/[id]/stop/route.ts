@@ -2,6 +2,7 @@ import path from "node:path";
 import { NextResponse } from "next/server";
 import { readJSON, writeJSON } from "@/lib/json-io";
 import { DATA_DIR } from "@/lib/paths";
+import { applyWorkspaceContext } from "@/lib/workspace-context";
 
 interface TaskEntry {
 	id: string;
@@ -47,6 +48,7 @@ export async function POST(
 	_request: Request,
 	{ params }: { params: Promise<{ id: string }> },
 ) {
+	const workspaceId = await applyWorkspaceContext();
 	const { id: taskId } = await params;
 	const now = new Date().toISOString();
 

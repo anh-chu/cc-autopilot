@@ -80,23 +80,29 @@ export function RunsFeed() {
 	const [statusFilter, setStatusFilter] = useState("all");
 
 	// Fetch runs
-	const fetchRuns = useCallback(async () => {
+	const fetchRuns = useCallback(async (signal?: AbortSignal) => {
 		try {
-			const res = await fetch("/api/runs");
-			if (!res.ok) return;
-			const json = await res.json();
+			const res = await fetch("/api/runs", { signal });
+			if (!res.ok) throw new Error(`Failed to fetch runs: ${res.status}`);
+			const json = (await res.json()) as { runs: ActiveRun[] };
 			setRuns(json.runs ?? []);
-		} catch {
-			// Ignore fetch errors
+		} catch (err) {
+			if (err instanceof Error && err.name === "AbortError") return; // unmounted
+			// Ignore other fetch errors
 		} finally {
 			setLoading(false);
 		}
 	}, []);
 
 	useEffect(() => {
-		fetchRuns();
-		const interval = setInterval(fetchRuns, 10_000);
-		return () => clearInterval(interval);
+		const controller = new AbortController();
+		const signal = controller.signal;
+		fetchRuns(signal);
+		const interval = setInterval(() => fetchRuns(signal), 10_000);
+		return () => {
+			clearInterval(interval);
+			controller.abort();
+		};
 	}, [fetchRuns]);
 
 	// Client-side filtering

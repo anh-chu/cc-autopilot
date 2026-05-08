@@ -4,6 +4,7 @@ import { NextResponse } from "next/server";
 import { readJSON } from "@/lib/json-io";
 import { DATA_DIR } from "@/lib/paths";
 import { resolveScriptEntrypoint } from "@/lib/script-entrypoints";
+import { applyWorkspaceContext } from "@/lib/workspace-context";
 
 interface TaskEntry {
 	id: string;
@@ -31,6 +32,7 @@ export async function POST(
 	_request: Request,
 	{ params }: { params: Promise<{ id: string }> },
 ) {
+	const workspaceId = await applyWorkspaceContext();
 	const { id: taskId } = await params;
 
 	// 1. Validate task exists
@@ -149,6 +151,7 @@ export async function POST(
 			detached: true,
 			stdio: "ignore",
 			shell: false,
+			env: { ...process.env, MANDIO_WORKSPACE_ID: workspaceId },
 		});
 
 		child.unref();

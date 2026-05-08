@@ -5,6 +5,7 @@ import { readJSON, writeJSON } from "@/lib/json-io";
 import { DATA_DIR } from "@/lib/paths";
 import { isProcessAlive } from "@/lib/process-utils";
 import { resolveScriptEntrypoint } from "@/lib/script-entrypoints";
+import { applyWorkspaceContext } from "@/lib/workspace-context";
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
@@ -55,6 +56,7 @@ export async function POST(
 	_request: Request,
 	{ params }: { params: Promise<{ id: string }> },
 ) {
+	const workspaceId = await applyWorkspaceContext();
 	const { id: projectId } = await params;
 
 	// 1. Check for existing running mission
@@ -205,6 +207,7 @@ export async function POST(
 				detached: true,
 				stdio: "ignore",
 				shell: false,
+				env: { ...process.env, MANDIO_WORKSPACE_ID: workspaceId },
 			});
 			child.unref();
 			launched.push(task.id);

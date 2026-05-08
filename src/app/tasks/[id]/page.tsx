@@ -111,12 +111,22 @@ export default function TaskDetailPage() {
 
 	// Fetch runs for this task
 	useEffect(() => {
+		const controller = new AbortController();
 		setRunsLoading(true);
-		fetch(`/api/runs?taskId=${encodeURIComponent(taskId)}`)
-			.then((res) => res.json() as Promise<{ runs: ActiveRun[] }>)
+		fetch(`/api/runs?taskId=${encodeURIComponent(taskId)}`, {
+			signal: controller.signal,
+		})
+			.then((res) => {
+				if (!res.ok) throw new Error(`Failed to fetch runs: ${res.status}`);
+				return res.json() as Promise<{ runs: ActiveRun[] }>;
+			})
 			.then((data) => setRuns(data.runs ?? []))
-			.catch(() => setRuns([]))
+			.catch((err) => {
+				if (err instanceof Error && err.name === "AbortError") return; // unmounted
+				setRuns([]);
+			})
 			.finally(() => setRunsLoading(false));
+		return () => controller.abort();
 	}, [taskId]);
 
 	const activeAgents = agents.filter((a) => a.status === "active");

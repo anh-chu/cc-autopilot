@@ -111,9 +111,15 @@ export default function AgentPage() {
 	const [expandedRunId, setExpandedRunId] = useState<string | null>(null);
 
 	useEffect(() => {
+		const controller = new AbortController();
 		setRunsLoading(true);
-		fetch(`/api/runs?agentId=${encodeURIComponent(id)}`)
-			.then((res) => res.json() as Promise<{ runs: ActiveRun[] }>)
+		fetch(`/api/runs?agentId=${encodeURIComponent(id)}`, {
+			signal: controller.signal,
+		})
+			.then((res) => {
+				if (!res.ok) throw new Error(`Failed to fetch runs: ${res.status}`);
+				return res.json() as Promise<{ runs: ActiveRun[] }>;
+			})
 			.then((data) => {
 				const sorted = (data.runs ?? []).sort(
 					(a, b) =>
@@ -121,8 +127,12 @@ export default function AgentPage() {
 				);
 				setRuns(sorted.slice(0, 20));
 			})
-			.catch(() => setRuns([]))
+			.catch((err) => {
+				if (err instanceof Error && err.name === "AbortError") return; // unmounted
+				setRuns([]);
+			})
 			.finally(() => setRunsLoading(false));
+		return () => controller.abort();
 	}, [id]);
 
 	const agent = agents.find((a) => a.id === id);
