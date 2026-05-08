@@ -1098,10 +1098,13 @@ async function main() {
 	);
 	taskLogger.info("run-task", "Starting task", { taskId, source });
 
-	// 1. Validate task exists
+	// 1. Validate task exists (commands are dispatched via run-conversation.ts, not here)
 	const task = getTask(taskId);
 	if (!task) {
-		logger.error("run-task", `Task not found: ${taskId}`);
+		logger.error(
+			"run-task",
+			`Task not found: "${taskId}". If this was meant to be a command (e.g. /daily-plan), use run-conversation.ts instead.`,
+		);
 		process.exit(1);
 	}
 

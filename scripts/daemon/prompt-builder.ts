@@ -466,16 +466,26 @@ export function buildTaskPrompt(
 }
 
 /**
+ * Result of looking up a scheduled command's prompt file.
+ */
+export interface ScheduledPromptResult {
+	found: boolean;
+	content: string;
+}
+
+/**
  * Build a prompt for a scheduled command (daily-plan, standup, etc.).
  * Reads the command file from three locations (fallback order):
  * 1. Workspace symlinked location: <wsDir>/.claude/commands/mandio-<command>/user.md
  * 2. Global command store: ~/.mandio/artifacts/commands/<command>/user.md
  * 3. Legacy project location: <project>/.claude/commands/<command>/user.md (backward compat)
+ *
+ * Returns { found: false } if no command file exists — caller should hard-fail.
  */
 export function buildScheduledPrompt(
 	command: string,
 	workspaceId: string = process.env.MANDIO_WORKSPACE_ID ?? "default",
-): string {
+): ScheduledPromptResult {
 	// 1. Try workspace symlinked location
 	const wsCommandsDir = getWorkspaceCommandsDir(workspaceId);
 	const linkedCmdFile = path.join(
@@ -490,7 +500,7 @@ export function buildScheduledPrompt(
 			const stat = lstatSync(linkedCmdFile);
 			if (!stat.isSymbolicLink()) {
 				const content = readFileSync(linkedCmdFile, "utf-8");
-				return enforcePromptLimit(content);
+				return { found: true, content: enforcePromptLimit(content) };
 			}
 		} catch {
 			// proceed to fallback
@@ -501,22 +511,18 @@ export function buildScheduledPrompt(
 	const globalCmdFile = path.join(getGlobalCommandDir(command), "user.md");
 	if (existsSync(globalCmdFile)) {
 		const content = readFileSync(globalCmdFile, "utf-8");
-		return enforcePromptLimit(content);
+		return { found: true, content: enforcePromptLimit(content) };
 	}
 
 	// 3. Fallback: legacy project location (backward compat)
 	const cmdFile = path.join(COMMANDS_DIR, command, "user.md");
 	if (existsSync(cmdFile)) {
 		const content = readFileSync(cmdFile, "utf-8");
-		return enforcePromptLimit(content);
+		return { found: true, content: enforcePromptLimit(content) };
 	}
 
-	// Fallback: generic prompt if no command file found
-	logger.warn(
-		"prompt-builder",
-		`No command file found for /${command}, using generic prompt`,
-	);
-	return `Run the /${command} workflow. Read ai-context.md first for context.`;
+	logger.error("prompt-builder", `No command file found for /${command}`);
+	return { found: false, content: "" };
 }
 
 /**

@@ -13,12 +13,14 @@ interface ConversationListProps {
 	currentId?: string | null;
 	onSelect: (id: string) => void;
 	taskId?: string | null;
+	source?: string | null;
 }
 
 export function ConversationList({
 	currentId,
 	onSelect,
 	taskId,
+	source,
 }: ConversationListProps) {
 	const [conversations, setConversations] = useState<Conversation[]>([]);
 	const [isLoading, setIsLoading] = useState(true);
@@ -27,9 +29,11 @@ export function ConversationList({
 		const fetchConversations = async () => {
 			setIsLoading(true);
 			try {
-				const url = taskId
-					? `/api/conversations?taskId=${taskId}`
-					: `/api/conversations`;
+				const params = new URLSearchParams();
+				if (taskId) params.set("taskId", taskId);
+				if (source) params.set("source", source);
+				const qs = params.toString();
+				const url = qs ? `/api/conversations?${qs}` : `/api/conversations`;
 				const res = await apiFetch(url);
 				if (res.ok) {
 					const data = await res.json();
@@ -43,7 +47,7 @@ export function ConversationList({
 		};
 
 		fetchConversations();
-	}, [taskId]);
+	}, [taskId, source]);
 
 	const handleCreate = async () => {
 		try {

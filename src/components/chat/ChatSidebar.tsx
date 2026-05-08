@@ -185,7 +185,11 @@ export function ChatSidebar({ open, onToggle, isMobile }: ChatSidebarProps) {
 					{/* Conversation list (collapsible) */}
 					{showList && (
 						<div className="shrink-0 max-h-[200px] overflow-y-auto border-b">
-							<ConversationList currentId={currentId} onSelect={setCurrentId} />
+							<ConversationList
+								currentId={currentId}
+								onSelect={setCurrentId}
+								source="chat"
+							/>
 						</div>
 					)}
 

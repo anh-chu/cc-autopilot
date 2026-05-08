@@ -1,5 +1,11 @@
 import { spawn } from "node:child_process";
 import { NextResponse } from "next/server";
+import { loadCommandPrompt } from "@/lib/command-prompt";
+import {
+	appendConversationTurn,
+	createConversation,
+	listConversations,
+} from "@/lib/conversations";
 import { getActiveRuns, getDaemonConfig, mutateDaemonConfig } from "@/lib/data";
 import { readJSON } from "@/lib/json-io";
 import { DAEMON_STATUS_FILE } from "@/lib/paths";
@@ -81,27 +87,79 @@ export async function POST(request: Request) {
 				);
 			}
 
-			const cwd = process.cwd();
-			const runTaskEntry = resolveScriptEntrypoint("run-task");
-			const args = [...runTaskEntry.args, command, "--source", "manual"];
-
 			try {
-				const child = spawn(runTaskEntry.runner, args, {
+				// Load the command prompt
+				const promptResult = loadCommandPrompt(command);
+				if (!promptResult.found) {
+					return NextResponse.json(
+						{ error: `No command file found for /${command}` },
+						{ status: 404 },
+					);
+				}
+
+				// Dedup: skip if a conversation for this command is already starting or running
+				const existing = await listConversations({
+					source: "manual",
+					status: "starting" as never,
+				});
+				const running = await listConversations({
+					source: "manual",
+					status: "running" as never,
+				});
+				const alreadyRunning = existing
+					.concat(running)
+					.some((c) => c.title === `Command: /${command}`);
+				if (alreadyRunning) {
+					return NextResponse.json({
+						message: `Command /${command} is already running`,
+						skipped: true,
+					});
+				}
+
+				// Pre-create conversation so it's visible in UI before Claude starts
+				const conversation = await createConversation({
+					title: `Command: /${command}`,
+					agentId: "claude",
+					model: null,
+					mode: "foreground",
+					executionSource: "manual",
+					taskId: null,
+					status: "queued",
+				});
+
+				// Append the command prompt as the initial user turn
+				await appendConversationTurn(conversation.id, {
+					role: "user",
+					content: promptResult.content,
+				});
+
+				// Spawn the conversation runner
+				const cwd = process.cwd();
+				const runConvEntry = resolveScriptEntrypoint("run-conversation");
+				const args = [...runConvEntry.args, conversation.id];
+				const child = spawn(runConvEntry.runner, args, {
 					cwd,
 					detached: true,
 					stdio: "ignore",
 					shell: false,
+					env: {
+						...process.env,
+						MANDIO_WORKSPACE_ID: process.env.MANDIO_WORKSPACE_ID ?? "default",
+					},
 				});
 				child.unref();
 				return NextResponse.json({
 					message: "Command started",
+					conversationId: conversation.id,
 					pid: child.pid ?? null,
 				});
-			} catch (spawnErr) {
+			} catch (dispatchErr) {
 				return NextResponse.json(
 					{
-						error: `Failed to spawn command: ${
-							spawnErr instanceof Error ? spawnErr.message : String(spawnErr)
+						error: `Failed to dispatch command: ${
+							dispatchErr instanceof Error
+								? dispatchErr.message
+								: String(dispatchErr)
 						}`,
 					},
 					{ status: 500 },

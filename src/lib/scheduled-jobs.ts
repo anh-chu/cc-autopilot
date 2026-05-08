@@ -14,7 +14,14 @@ import {
 import { readdir, stat, unlink } from "node:fs/promises";
 import path from "node:path";
 import cron from "node-cron";
-import { reapStaleRuns, setConversationsWorkspace } from "./conversations";
+import { loadCommandPrompt } from "./command-prompt";
+import {
+	appendConversationTurn,
+	createConversation,
+	listConversations,
+	reapStaleRuns,
+	setConversationsWorkspace,
+} from "./conversations";
 import {
 	getActiveRuns,
 	getDaemonConfig,
@@ -481,7 +488,7 @@ export function scheduleAutopilotPoller(): void {
 			if (!config.schedule) return;
 
 			const cwd = process.cwd();
-			const runTaskEntry = resolveScriptEntrypoint("run-task");
+			const runConvEntry = resolveScriptEntrypoint("run-conversation");
 
 			for (const [name, entry] of Object.entries(config.schedule)) {
 				if (!entry.enabled || !entry.cron || !entry.command) continue;
@@ -510,23 +517,86 @@ export function scheduleAutopilotPoller(): void {
 						"scheduler",
 						`Triggering scheduled command: ${command} (schedule: ${name})`,
 					);
-					const args = [...runTaskEntry.args, command, "--source", "scheduled"];
-					try {
-						const child = spawn(runTaskEntry.runner, args, {
-							cwd,
-							detached: true,
-							stdio: "ignore",
-							shell: false,
-						});
-						child.unref();
-					} catch (spawnErr) {
-						autopilotLogger.error(
-							"scheduler",
-							`Failed to spawn scheduled command ${command}: ${
-								spawnErr instanceof Error ? spawnErr.message : String(spawnErr)
-							}`,
-						);
-					}
+
+					void (async () => {
+						try {
+							// Dedup: skip if a conversation for this command is already starting or running
+							const existing = await listConversations({
+								source: "scheduled",
+								status: "starting" as never,
+							});
+							// Also check running
+							const running = await listConversations({
+								source: "scheduled",
+								status: "running" as never,
+							});
+							const alreadyRunning = existing
+								.concat(running)
+								.some((c) => c.title === `Command: /${command}`);
+							if (alreadyRunning) {
+								autopilotLogger.info(
+									"scheduler",
+									`Skipping schedule "${name}": command /${command} already running`,
+								);
+								return;
+							}
+
+							// Load the command prompt
+							const promptResult = loadCommandPrompt(command);
+							if (!promptResult.found) {
+								autopilotLogger.error(
+									"scheduler",
+									`No command file found for /${command}, skipping`,
+								);
+								return;
+							}
+
+							// Pre-create conversation so it's visible in UI before Claude starts
+							const conversation = await createConversation({
+								title: `Command: /${command}`,
+								agentId: "claude",
+								model: null,
+								mode: "foreground",
+								executionSource: "scheduled",
+								taskId: null,
+								status: "queued",
+							});
+
+							// Append the command prompt as the initial user turn
+							await appendConversationTurn(conversation.id, {
+								role: "user",
+								content: promptResult.content,
+							});
+
+							// Spawn the conversation runner
+							const args = [...runConvEntry.args, conversation.id];
+							const child = spawn(runConvEntry.runner, args, {
+								cwd,
+								detached: true,
+								stdio: "ignore",
+								shell: false,
+								env: {
+									...process.env,
+									MANDIO_WORKSPACE_ID:
+										process.env.MANDIO_WORKSPACE_ID ?? "default",
+								},
+							});
+							child.unref();
+							autopilotLogger.info(
+								"scheduler",
+								`Dispatched command /${command} → conversation ${conversation.id} (pid: ${child.pid ?? "unknown"})`,
+							);
+						} catch (dispatchErr) {
+							autopilotLogger.error(
+								"scheduler",
+								`Failed to dispatch command /${command}: ${
+									dispatchErr instanceof Error
+										? dispatchErr.message
+										: String(dispatchErr)
+								}`,
+							);
+						}
+					})();
 				});
 
 				autopilotLogger.info(
