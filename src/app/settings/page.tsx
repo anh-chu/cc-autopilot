@@ -1,6 +1,15 @@
 "use client";
 
-import { Monitor, Moon, Plus, Rocket, Square, Sun, X } from "lucide-react";
+import {
+	Globe,
+	Monitor,
+	Moon,
+	Plus,
+	Rocket,
+	Square,
+	Sun,
+	X,
+} from "lucide-react";
 import { useTheme } from "next-themes";
 import { useEffect, useState } from "react";
 import { BreadcrumbNav } from "@/components/breadcrumb-nav";
@@ -19,6 +28,34 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { useDaemon } from "@/hooks/use-daemon";
 import { useWorkspace } from "@/hooks/use-workspace";
+
+function ScopeBadge({
+	scope,
+	name,
+	color,
+}: {
+	scope: "global" | "workspace";
+	name?: string;
+	color?: string;
+}) {
+	if (scope === "global") {
+		return (
+			<Badge variant="secondary" className="gap-1">
+				<Globe className="h-3 w-3" />
+				Global
+			</Badge>
+		);
+	}
+	return (
+		<Badge variant="outline" className="gap-1.5">
+			<div
+				className="h-2 w-2 rounded-full"
+				style={{ backgroundColor: color ?? "#888" }}
+			/>
+			Workspace{name ? `: ${name}` : ""}
+		</Badge>
+	);
+}
 
 const COLORS = [
 	"#fa520f",
@@ -157,9 +194,15 @@ export default function SettingsPage() {
 			<BreadcrumbNav items={[{ label: "Settings" }]} />
 
 			<div className="flex-1 p-6 space-y-6 max-w-2xl">
+				<h2 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mt-2 mb-1">
+					Global
+				</h2>
 				<Card>
 					<CardHeader>
-						<CardTitle>Appearance</CardTitle>
+						<div className="flex items-center justify-between gap-2">
+							<CardTitle>Appearance</CardTitle>
+							<ScopeBadge scope="global" />
+						</div>
 						<CardDescription>
 							Choose your preferred color theme.
 						</CardDescription>
@@ -194,11 +237,25 @@ export default function SettingsPage() {
 					</CardContent>
 				</Card>
 
+				<h2 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mt-2 mb-1">
+					Workspace{" "}
+					<span className="text-muted-foreground/60">
+						· {currentWorkspace?.name}
+					</span>
+				</h2>
 				<Card>
 					<CardHeader>
-						<CardTitle>Workspace Settings</CardTitle>
+						<div className="flex items-center justify-between gap-2">
+							<CardTitle>Workspace Settings</CardTitle>
+							<ScopeBadge
+								scope="workspace"
+								name={currentWorkspace?.name}
+								color={currentWorkspace?.color}
+							/>
+						</div>
 						<CardDescription>
-							Configure your workspace name, appearance, and defaults.
+							Configure this workspace's name and appearance. Switches with the
+							workspace selector.
 						</CardDescription>
 					</CardHeader>
 					<CardContent className="space-y-5">
@@ -241,7 +298,104 @@ export default function SettingsPage() {
 
 				<Card>
 					<CardHeader>
-						<CardTitle>Environment Variables</CardTitle>
+						<div className="flex items-center justify-between gap-2">
+							<CardTitle>Autopilot</CardTitle>
+							<ScopeBadge
+								scope="workspace"
+								name={currentWorkspace?.name}
+								color={currentWorkspace?.color}
+							/>
+						</div>
+						<CardDescription>
+							Background task execution, polling intervals, and concurrency
+							limits for this workspace.
+						</CardDescription>
+					</CardHeader>
+					<CardContent className="space-y-5">
+						<div className="flex items-center gap-3">
+							{daemonLoading ? (
+								<Badge variant="secondary">Checking...</Badge>
+							) : isRunning ? (
+								<Badge className="bg-sunshine-700/15 text-sunshine-700 border-sunshine-700/30">
+									Running
+								</Badge>
+							) : (
+								<Badge variant="secondary">Stopped</Badge>
+							)}
+							<Button
+								size="sm"
+								variant={isRunning ? "outline" : "default"}
+								className="gap-1.5"
+								onClick={() =>
+									void updateConfig({
+										polling: { enabled: !config.polling.enabled },
+									})
+								}
+							>
+								{isRunning ? (
+									<>
+										<Square className="h-3.5 w-3.5" /> Disable
+									</>
+								) : (
+									<>
+										<Rocket className="h-3.5 w-3.5" /> Enable
+									</>
+								)}
+							</Button>
+						</div>
+
+						<div className="flex items-center justify-between">
+							<div>
+								<p className="text-sm font-normal">Polling</p>
+								<p className="text-xs text-muted-foreground">
+									Automatically pick up new tasks
+								</p>
+							</div>
+							<Switch
+								checked={pollingEnabled}
+								onCheckedChange={setPollingEnabled}
+							/>
+						</div>
+
+						<div className="space-y-1.5">
+							<Label htmlFor="max-agents">Max parallel agents</Label>
+							<Input
+								id="max-agents"
+								type="number"
+								min={1}
+								max={10}
+								value={maxParallelAgents}
+								onChange={(e) =>
+									setMaxParallelAgents(
+										Math.max(1, Math.min(10, Number(e.target.value))),
+									)
+								}
+								className="max-w-[120px]"
+							/>
+						</div>
+
+						<div className="flex items-center gap-3">
+							<Button
+								size="sm"
+								onClick={() => void handleDaemonSave()}
+								disabled={daemonSaving}
+							>
+								{daemonSaved ? "Saved" : daemonSaving ? "Saving..." : "Save"}
+							</Button>
+						</div>
+					</CardContent>
+				</Card>
+
+				<Card>
+					<CardHeader>
+						<div className="flex items-center justify-between gap-2">
+							<CardTitle>Environment Variables</CardTitle>
+							<ScopeBadge
+								scope="workspace"
+								name={currentWorkspace?.name}
+								color={currentWorkspace?.color}
+							/>
+						</div>
 						<CardDescription>
 							Key-value pairs injected into every agent subprocess in this
 							workspace.
@@ -326,92 +480,16 @@ export default function SettingsPage() {
 					</CardContent>
 				</Card>
 
-				<Card>
-					<CardHeader>
-						<CardTitle>Autopilot</CardTitle>
-						<CardDescription>
-							Background task execution, polling intervals, and concurrency
-							limits.
-						</CardDescription>
-					</CardHeader>
-					<CardContent className="space-y-5">
-						<div className="flex items-center gap-3">
-							{daemonLoading ? (
-								<Badge variant="secondary">Checking...</Badge>
-							) : isRunning ? (
-								<Badge className="bg-sunshine-700/15 text-sunshine-700 border-sunshine-700/30">
-									Running
-								</Badge>
-							) : (
-								<Badge variant="secondary">Stopped</Badge>
-							)}
-							<Button
-								size="sm"
-								variant={isRunning ? "outline" : "default"}
-								className="gap-1.5"
-								onClick={() =>
-									void updateConfig({
-										polling: { enabled: !config.polling.enabled },
-									})
-								}
-							>
-								{isRunning ? (
-									<>
-										<Square className="h-3.5 w-3.5" /> Disable
-									</>
-								) : (
-									<>
-										<Rocket className="h-3.5 w-3.5" /> Enable
-									</>
-								)}
-							</Button>
-						</div>
-
-						<div className="flex items-center justify-between">
-							<div>
-								<p className="text-sm font-normal">Polling</p>
-								<p className="text-xs text-muted-foreground">
-									Automatically pick up new tasks
-								</p>
-							</div>
-							<Switch
-								checked={pollingEnabled}
-								onCheckedChange={setPollingEnabled}
-							/>
-						</div>
-
-						<div className="space-y-1.5">
-							<Label htmlFor="max-agents">Max parallel agents</Label>
-							<Input
-								id="max-agents"
-								type="number"
-								min={1}
-								max={10}
-								value={maxParallelAgents}
-								onChange={(e) =>
-									setMaxParallelAgents(
-										Math.max(1, Math.min(10, Number(e.target.value))),
-									)
-								}
-								className="max-w-[120px]"
-							/>
-						</div>
-
-						<div className="flex items-center gap-3">
-							<Button
-								size="sm"
-								onClick={() => void handleDaemonSave()}
-								disabled={daemonSaving}
-							>
-								{daemonSaved ? "Saved" : daemonSaving ? "Saving..." : "Save"}
-							</Button>
-						</div>
-					</CardContent>
-				</Card>
-
 				<Card className="border-destructive/40">
 					<CardHeader>
-						<CardTitle className="text-destructive">Danger Zone</CardTitle>
+						<div className="flex items-center justify-between gap-2">
+							<CardTitle className="text-destructive">Danger Zone</CardTitle>
+							<ScopeBadge
+								scope="workspace"
+								name={currentWorkspace?.name}
+								color={currentWorkspace?.color}
+							/>
+						</div>
 						<CardDescription>
 							Irreversible actions. Proceed with caution.
 						</CardDescription>
