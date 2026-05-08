@@ -207,11 +207,28 @@ async function runAutopilotTick(): Promise<void> {
 	const config = rawConfig as {
 		polling?: { enabled?: boolean };
 		concurrency?: { maxParallelAgents?: number };
+		execution?: { retries?: number };
 	};
 
 	if (!config.polling?.enabled) return;
 
 	const maxParallelAgents = config.concurrency?.maxParallelAgents ?? 3;
+	const maxRetries = config.execution?.retries ?? 1;
+
+	// Load valid agents once per tick for existence checks
+	let validAgentIds = new Set<string>();
+	try {
+		const agentsRaw = readFileSync(
+			path.join(DATA_DIR, "workspaces", "default", "agents.json"),
+			"utf-8",
+		);
+		const agentsData = JSON.parse(agentsRaw) as {
+			agents: Array<{ id: string }>;
+		};
+		validAgentIds = new Set(agentsData.agents.map((a) => a.id));
+	} catch {
+		/* agents.json missing — validAgentIds stays empty, all agent tasks will be skipped */
+	}
 
 	// ── Recovery sweep ───────────────────────────────────────────────────────
 
@@ -233,17 +250,28 @@ async function runAutopilotTick(): Promise<void> {
 		return dead;
 	});
 
-	// Reset orphaned in-progress tasks back to not-started.
+	// Reset orphaned in-progress tasks back to not-started, or fail if max retries exceeded.
 	if (deadTaskIds.size > 0) {
 		await mutateTasks(async (data) => {
 			for (const task of data.tasks) {
 				if (task.kanban === "in-progress" && deadTaskIds.has(task.id)) {
-					task.kanban = "not-started";
+					const attempts = (task.attemptCount ?? 0) + 1;
+					if (attempts > maxRetries) {
+						task.kanban = "failed";
+						task.error = `Max retries exceeded (${maxRetries})`;
+						autopilotLogger.warn(
+							"recovery",
+							`Task ${task.id} failed after ${attempts} attempts (max ${maxRetries})`,
+						);
+					} else {
+						task.kanban = "not-started";
+						autopilotLogger.info(
+							"recovery",
+							`Reset task ${task.id} to not-started (attempt ${attempts}/${maxRetries + 1})`,
+						);
+					}
+					task.attemptCount = attempts;
 					task.updatedAt = new Date().toISOString();
-					autopilotLogger.info(
-						"recovery",
-						`Reset task ${task.id} to not-started`,
-					);
 				}
 			}
 			return undefined;
@@ -309,6 +337,22 @@ async function runAutopilotTick(): Promise<void> {
 		if (task.kanban !== "not-started") return false;
 		if (!task.assignedTo || task.assignedTo === "me") return false;
 		if (aliveRunningTaskIds.has(task.id)) return false;
+		// Skip tasks whose assigned agent no longer exists
+		if (!validAgentIds.has(task.assignedTo)) {
+			autopilotLogger.warn(
+				"dispatch",
+				`Skipping task ${task.id}: assigned agent "${task.assignedTo}" does not exist`,
+			);
+			return false;
+		}
+		// Skip tasks that have exhausted their retry budget
+		if ((task.attemptCount ?? 0) > maxRetries) {
+			autopilotLogger.warn(
+				"dispatch",
+				`Skipping task ${task.id}: max retries exceeded (${maxRetries})`,
+			);
+			return false;
+		}
 		// All blocking dependencies must be done.
 		if (task.blockedBy.length > 0) {
 			const allDone = task.blockedBy.every((depId) => {
@@ -385,6 +429,10 @@ async function runAutopilotTick(): Promise<void> {
  */
 export async function runStartupRecovery(): Promise<void> {
 	try {
+		const rawConfig = await getDaemonConfig();
+		const config = rawConfig as { execution?: { retries?: number } };
+		const maxRetries = config.execution?.retries ?? 1;
+
 		const deadTaskIds = await mutateActiveRuns(async (data) => {
 			const dead = new Set<string>();
 			for (const run of data.runs) {
@@ -406,12 +454,23 @@ export async function runStartupRecovery(): Promise<void> {
 			await mutateTasks(async (data) => {
 				for (const task of data.tasks) {
 					if (task.kanban === "in-progress" && deadTaskIds.has(task.id)) {
-						task.kanban = "not-started";
+						const attempts = (task.attemptCount ?? 0) + 1;
+						if (attempts > maxRetries) {
+							task.kanban = "failed";
+							task.error = `Max retries exceeded (${maxRetries})`;
+							autopilotLogger.warn(
+								"recovery",
+								`Startup: task ${task.id} failed after ${attempts} attempts (max ${maxRetries})`,
+							);
+						} else {
+							task.kanban = "not-started";
+							autopilotLogger.info(
+								"recovery",
+								`Startup: reset task ${task.id} to not-started (attempt ${attempts}/${maxRetries + 1})`,
+							);
+						}
+						task.attemptCount = attempts;
 						task.updatedAt = new Date().toISOString();
-						autopilotLogger.info(
-							"recovery",
-							`Startup: reset task ${task.id} to not-started`,
-						);
 					}
 				}
 				return undefined;

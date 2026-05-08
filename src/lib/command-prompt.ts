@@ -3,6 +3,26 @@ import path from "node:path";
 import { getWorkspaceDir } from "./paths";
 import { generateId } from "./utils";
 
+function getFirstActiveAgentId(): string {
+	const agentsPath = path.join(
+		getWorkspaceDir(process.env.MANDIO_WORKSPACE_ID ?? "default"),
+		"agents.json",
+	);
+	try {
+		const raw = readFileSync(agentsPath, "utf-8");
+		const data = JSON.parse(raw) as {
+			agents: Array<{ id: string; status: string }>;
+		};
+		const active = data.agents.find((a) => a.status === "active");
+		if (active) return active.id;
+	} catch {
+		/* agents.json missing or unreadable */
+	}
+	throw new Error(
+		"No active agents found. Create an agent in the Crew page before running scheduled commands.",
+	);
+}
+
 const COMMANDS_DIR = path.join(process.cwd(), ".claude", "commands");
 const GLOBAL_COMMANDS_DIR = path.join(
 	process.env.HOME ?? process.env.USERPROFILE ?? "/tmp",
@@ -21,6 +41,7 @@ export interface CommandPromptResult {
 /**
  * Build a Task object for a scheduled command.
  * Returns a task payload ready to insert into tasks.json.
+ * Throws if no active agents exist in the workspace.
  */
 export function buildScheduledTask(
 	command: string,
@@ -34,7 +55,7 @@ export function buildScheduledTask(
 	kanban: "not-started";
 	projectId: null;
 	milestoneId: null;
-	assignedTo: "claude";
+	assignedTo: string;
 	collaborators: [];
 	subtasks: [];
 	blockedBy: [];
@@ -51,6 +72,7 @@ export function buildScheduledTask(
 	isScheduled: true;
 } {
 	const now = new Date().toISOString();
+	const assignedTo = getFirstActiveAgentId();
 	return {
 		id: generateId("task"),
 		title: `Command: /${command}`,
@@ -60,7 +82,7 @@ export function buildScheduledTask(
 		kanban: "not-started",
 		projectId: null,
 		milestoneId: null,
-		assignedTo: "claude",
+		assignedTo,
 		collaborators: [],
 		subtasks: [],
 		blockedBy: [],

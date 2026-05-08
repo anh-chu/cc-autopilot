@@ -4,7 +4,8 @@ export type KanbanStatus =
 	| "not-started"
 	| "in-progress"
 	| "done"
-	| "awaiting-decision";
+	| "awaiting-decision"
+	| "failed";
 
 export type ProjectStatus = "active" | "paused" | "completed" | "archived";
 // AgentRole is now a string validated against the agent registry at runtime.
@@ -178,6 +179,10 @@ export interface Task {
 	conversationId?: string | null;
 	/** True for auto-created tasks from scheduled commands. Hidden from kanban board. */
 	isScheduled?: boolean;
+	/** Number of times the autopilot has dispatched and failed to complete this task. */
+	attemptCount?: number;
+	/** Error message when the task reaches a terminal failed state. */
+	error?: string;
 }
 
 export interface TasksFile {

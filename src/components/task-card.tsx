@@ -16,6 +16,7 @@ const kanbanDot: Record<KanbanStatus, string> = {
 	"in-progress": "bg-status-in-progress",
 	done: "bg-status-done",
 	"awaiting-decision": "bg-warning",
+	failed: "bg-destructive",
 };
 
 const kanbanLabels: Record<KanbanStatus, string> = {
@@ -23,6 +24,7 @@ const kanbanLabels: Record<KanbanStatus, string> = {
 	"in-progress": "Active",
 	done: "Done",
 	"awaiting-decision": "Paused",
+	failed: "Failed",
 };
 
 interface TaskCardProps {

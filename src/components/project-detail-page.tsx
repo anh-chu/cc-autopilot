@@ -218,6 +218,7 @@ export function ProjectDetailPage({
 		"in-progress": [],
 		done: [],
 		"awaiting-decision": [],
+		failed: [],
 	};
 	projectTasks.forEach((t) => {
 		kGrouped[t.kanban].push(t);

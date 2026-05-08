@@ -569,6 +569,8 @@ const kanbanStatusColors: Record<string, string> = {
 	done: "border-status-done/20 bg-status-done/10 text-status-done dark:text-status-done",
 	"awaiting-decision":
 		"border-warning/20 bg-warning/10 text-warning dark:text-warning",
+	failed:
+		"border-destructive/20 bg-destructive/10 text-destructive dark:text-destructive",
 };
 
 function TaskNode({ data }: { data: TaskNodeData }) {

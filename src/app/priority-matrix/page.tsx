@@ -238,6 +238,7 @@ export default function TasksPage() {
 		"in-progress": [],
 		done: [],
 		"awaiting-decision": [],
+		failed: [],
 	};
 	for (const task of boardTasks) {
 		groupedByKanban[task.kanban].push(task);
