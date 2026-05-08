@@ -198,6 +198,7 @@ const autopilotLogger = createLogger("autopilot");
 
 /**
  * Enumerate workspace directories under DATA_DIR/workspaces.
+ * Skips workspaces that have a tombstone file (workspaces/<id>/disabled).
  */
 function enumerateWorkspaces(): string[] {
 	const workspacesDir = path.join(DATA_DIR, "workspaces");
@@ -205,10 +206,17 @@ function enumerateWorkspaces(): string[] {
 	try {
 		return readdirSync(workspacesDir).filter((name) => {
 			try {
-				return (
-					statSync(path.join(workspacesDir, name)).isDirectory() &&
-					!name.startsWith(".")
-				);
+				if (
+					!statSync(path.join(workspacesDir, name)).isDirectory() ||
+					name.startsWith(".")
+				) {
+					return false;
+				}
+				// Tombstone check: skip if workspaces/<id>/disabled file exists
+				if (existsSync(path.join(workspacesDir, name, "disabled"))) {
+					return false;
+				}
+				return true;
 			} catch {
 				return false;
 			}

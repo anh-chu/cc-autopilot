@@ -1,4 +1,4 @@
-import { rm } from "node:fs/promises";
+import { rm, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { type NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
@@ -103,6 +103,17 @@ export async function DELETE(request: NextRequest) {
 			{ error: "Cannot delete the default workspace" },
 			{ status: 400 },
 		);
+	// Write disabled tombstone before removal so the poller stops immediately
+	try {
+		await writeFile(
+			path.join(DATA_DIR, "workspaces", id, "disabled"),
+			"",
+			"utf-8",
+		);
+	} catch {
+		/* ignore */
+	}
+
 	// Hard delete: remove directory + metadata
 	await mutateWorkspaces(async (d) => {
 		d.workspaces = d.workspaces.filter((w) => w.id !== id);

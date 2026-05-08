@@ -142,6 +142,8 @@ export function useDaemon(): DaemonData {
 
 	const refetch = useCallback(async () => {
 		try {
+			// Workspace context flows via the x-workspace-id cookie (set by workspace switcher).
+			// The API applies applyWorkspaceContext() server-side from that cookie.
 			const res = await apiFetch("/api/daemon");
 			if (!res.ok) throw new Error("Failed to fetch daemon status");
 			const data = await res.json();
