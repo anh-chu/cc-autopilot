@@ -9,7 +9,6 @@ import {
 	getWorkspaceSkillLink,
 } from "@/lib/paths";
 import {
-	activateSkill as _activateSkill,
 	deactivateSkillFromAllWorkspaces,
 	getSkillActivationState,
 	listActivatedSkills,
@@ -75,7 +74,7 @@ export async function GET(request: Request) {
 				if (activatedIds === null) return s;
 				const activated = activatedIds.has(s.id);
 				if (!activated) return { ...s, activated: false, customized: false };
-				const state = await getSkillActivationState(workspaceId!, s.id);
+				const state = await getSkillActivationState(workspaceId, s.id);
 				return { ...s, activated: true, customized: state === "customized" };
 			}),
 		);

@@ -76,7 +76,7 @@ export async function GET(request: Request) {
 				if (activatedIds === null) return c;
 				const activated = activatedIds.has(c.id);
 				if (!activated) return { ...c, activated: false, customized: false };
-				const state = await getCommandActivationState(workspaceId!, c.id);
+				const state = await getCommandActivationState(workspaceId, c.id);
 				return { ...c, activated: true, customized: state === "customized" };
 			}),
 		);

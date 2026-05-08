@@ -186,13 +186,15 @@ function resetDataMocks(): void {
 	mockData.getActiveRuns.mockResolvedValue({ runs: [] });
 	mockData.getDecisions.mockResolvedValue({ decisions: [] });
 	mockData.getTasks.mockResolvedValue({ tasks: [] });
-	mockData.mutateActiveRuns.mockImplementation(async (fn: Function) =>
-		fn({ runs: [] }),
+	mockData.mutateActiveRuns.mockImplementation(
+		async (fn: (data: { runs: unknown[] }) => unknown) => fn({ runs: [] }),
 	);
-	mockData.mutateTasks.mockImplementation(async (fn: Function) => {
-		await fn({ tasks: [] });
-		return undefined;
-	});
+	mockData.mutateTasks.mockImplementation(
+		async (fn: (data: { tasks: unknown[] }) => unknown) => {
+			await fn({ tasks: [] });
+			return undefined;
+		},
+	);
 }
 
 /** Capture the poller-tick cron callback registered by scheduleAutopilotPoller. */
