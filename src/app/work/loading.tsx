@@ -4,7 +4,7 @@ import { CardSkeleton, GridSkeleton, Skeleton } from "@/components/skeletons";
 export default function PriorityMatrixLoading() {
 	return (
 		<div className="space-y-6">
-			<BreadcrumbNav items={[{ label: "Priority Matrix" }]} />
+			<BreadcrumbNav items={[{ label: "Work" }]} />
 			<GridSkeleton
 				className="grid grid-cols-1 sm:grid-cols-2 gap-3"
 				count={4}
