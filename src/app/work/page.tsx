@@ -1,0 +1,473 @@
+"use client";
+
+import type { DragEndEvent } from "@dnd-kit/core";
+import { Columns3, GitFork, Grid2x2, Plus } from "lucide-react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { useState } from "react";
+import {
+	BoardColumn,
+	BoardDndWrapper,
+	BoardPanels,
+	type ColumnConfig,
+	useSelection,
+	useTaskHandlers,
+} from "@/components/board-view";
+import { BreadcrumbNav } from "@/components/breadcrumb-nav";
+import { FilterBar } from "@/components/filter-bar";
+import { CardSkeleton, GridSkeleton, Skeleton } from "@/components/skeletons";
+import { Button } from "@/components/ui/button";
+
+import { Tip } from "@/components/ui/tip";
+import { WorkMapView } from "@/components/work-map-view";
+import {
+	useAgents,
+	useDecisions,
+	useProjects,
+	useTasks,
+} from "@/hooks/use-data";
+import { useFastTaskPoll } from "@/hooks/use-fast-task-poll";
+import type { EisenhowerQuadrant, KanbanStatus, Task } from "@/lib/types";
+import { getQuadrant, valuesFromQuadrant } from "@/lib/types";
+import { cn } from "@/lib/utils";
+import { useActiveRunsContext as useActiveRuns } from "@/providers/active-runs-provider";
+
+type ViewMode = "matrix" | "board" | "map";
+
+const quadrants: ColumnConfig[] = [
+	{
+		id: "do",
+		label: "DO",
+		subtitle: "Important & Urgent",
+		borderColor: "border-quadrant-do/40",
+		dotColor: "bg-quadrant-do",
+		textColor: "text-quadrant-do",
+	},
+	{
+		id: "schedule",
+		label: "SCHEDULE",
+		subtitle: "Important & Not Urgent",
+		borderColor: "border-quadrant-schedule/40",
+		dotColor: "bg-quadrant-schedule",
+		textColor: "text-quadrant-schedule",
+	},
+	{
+		id: "delegate",
+		label: "DELEGATE",
+		subtitle: "Not Important & Urgent",
+		borderColor: "border-quadrant-delegate/40",
+		dotColor: "bg-quadrant-delegate",
+		textColor: "text-quadrant-delegate",
+	},
+	{
+		id: "eliminate",
+		label: "ELIMINATE",
+		subtitle: "Not Important & Not Urgent",
+		borderColor: "border-quadrant-eliminate/40",
+		dotColor: "bg-quadrant-eliminate",
+		textColor: "text-quadrant-eliminate",
+	},
+];
+
+const kanbanColumns: ColumnConfig[] = [
+	{
+		id: "not-started",
+		label: "Not Started",
+		dotColor: "bg-status-not-started",
+		borderColor: "border-status-not-started/30",
+	},
+	{
+		id: "in-progress",
+		label: "In Progress",
+		dotColor: "bg-status-in-progress",
+		borderColor: "border-status-in-progress/30",
+	},
+	{
+		id: "done",
+		label: "Done",
+		dotColor: "bg-status-done",
+		borderColor: "border-status-done/30",
+	},
+];
+
+function TasksSkeleton({ viewMode }: { viewMode: ViewMode }) {
+	return viewMode === "matrix" ? (
+		<GridSkeleton
+			className="grid grid-cols-1 sm:grid-cols-2 gap-3"
+			count={4}
+			renderItem={() => (
+				<CardSkeleton className="bg-card p-4 min-h-[200px] space-y-2">
+					<Skeleton className="h-5 w-24" />
+					<Skeleton className="h-3 w-32" />
+					<GridSkeleton
+						className="space-y-2 pt-2"
+						count={2}
+						renderItem={() => (
+							<CardSkeleton
+								className="p-3 space-y-2"
+								lines={[
+									{ key: "line-1", className: "h-3 w-full" },
+									{ key: "line-2", className: "h-3 w-2/3" },
+								]}
+								footer={[
+									{ key: "tag-1", className: "h-4 w-16 rounded-sm" },
+									{ key: "tag-2", className: "h-4 w-14 rounded-sm" },
+								]}
+							>
+								<div className="flex items-start justify-between gap-2">
+									<Skeleton className="h-4 w-3/4" />
+									<Skeleton className="h-2 w-2 rounded-full" />
+								</div>
+							</CardSkeleton>
+						)}
+					/>
+				</CardSkeleton>
+			)}
+		/>
+	) : (
+		<GridSkeleton
+			className="grid grid-cols-1 sm:grid-cols-3 gap-3"
+			count={3}
+			renderItem={(index) => (
+				<CardSkeleton className="bg-card p-4 min-h-[300px] space-y-2">
+					<Skeleton className="h-5 w-24" />
+					<GridSkeleton
+						className="space-y-2 pt-2"
+						count={index === 0 ? 3 : 2}
+						renderItem={() => (
+							<CardSkeleton
+								className="p-3 space-y-2"
+								lines={[
+									{ key: "line-1", className: "h-3 w-full" },
+									{ key: "line-2", className: "h-3 w-2/3" },
+								]}
+								footer={[
+									{ key: "tag-1", className: "h-4 w-16 rounded-sm" },
+									{ key: "tag-2", className: "h-4 w-14 rounded-sm" },
+								]}
+							>
+								<div className="flex items-start justify-between gap-2">
+									<Skeleton className="h-4 w-3/4" />
+									<Skeleton className="h-2 w-2 rounded-full" />
+								</div>
+							</CardSkeleton>
+						)}
+					/>
+				</CardSkeleton>
+			)}
+		/>
+	);
+}
+
+export default function TasksPage() {
+	const {
+		tasks,
+		update: updateTask,
+		create: createTask,
+		remove: deleteTask,
+		loading,
+		error: tasksError,
+		refetch,
+	} = useTasks();
+	const router = useRouter();
+	const { projects } = useProjects();
+	const { agents } = useAgents();
+	const { decisions } = useDecisions();
+	const { runningTaskIds, runTask } = useActiveRuns();
+	useFastTaskPoll(runningTaskIds.size > 0, refetch);
+
+	const searchParams = useSearchParams();
+	const initialView = (searchParams.get("view") as ViewMode) ?? "board";
+	const [viewMode, setViewMode] = useState<ViewMode>(initialView);
+	const [filterProject, setFilterProject] = useState<string>("all");
+	const [filterAssignee, setFilterAssignee] = useState<string>("all");
+
+	const pendingDecisionTaskIds = new Set(
+		decisions
+			.filter((d) => d.status === "pending" && d.taskId)
+			.map((d) => d.taskId as string),
+	);
+	const selection = useSelection();
+
+	const {
+		activeTask,
+		showCreateTask,
+		setShowCreateTask,
+		handleDragStart,
+		handleDragEnd: baseDragEnd,
+		handleCreateTask,
+	} = useTaskHandlers(tasks, updateTask, createTask, deleteTask);
+
+	// Matrix view: only active tasks, grouped by quadrant
+	// Exclude auto-created scheduled command tasks from the kanban board
+	let activeTasks = tasks.filter((t) => !t.isScheduled && t.kanban !== "done");
+	if (filterProject !== "all")
+		activeTasks = activeTasks.filter((t) => t.projectId === filterProject);
+	if (filterAssignee !== "all")
+		activeTasks = activeTasks.filter(
+			(t) => (t.assignedTo ?? "unassigned") === filterAssignee,
+		);
+
+	const groupedByQuadrant: Record<EisenhowerQuadrant, Task[]> = {
+		do: [],
+		schedule: [],
+		delegate: [],
+		eliminate: [],
+	};
+	for (const task of activeTasks) {
+		groupedByQuadrant[getQuadrant(task)].push(task);
+	}
+
+	// Board view: all tasks, grouped by kanban status
+	// Exclude auto-created scheduled command tasks
+	let boardTasks = tasks.filter((t) => !t.isScheduled);
+	if (filterProject !== "all")
+		boardTasks = boardTasks.filter((t) => t.projectId === filterProject);
+	if (filterAssignee !== "all")
+		boardTasks = boardTasks.filter(
+			(t) => (t.assignedTo ?? "unassigned") === filterAssignee,
+		);
+
+	const groupedByKanban: Record<KanbanStatus, Task[]> = {
+		"not-started": [],
+		"in-progress": [],
+		done: [],
+		"awaiting-decision": [],
+		failed: [],
+	};
+	for (const task of boardTasks) {
+		groupedByKanban[task.kanban].push(task);
+	}
+
+	async function handleStatusChange(taskId: string, status: KanbanStatus) {
+		await updateTask(taskId, { kanban: status });
+		refetch();
+	}
+
+	async function handleDuplicate(task: Task) {
+		await createTask({
+			...task,
+			id: `task_${Date.now()}`,
+			title: `${task.title} (copy)`,
+			kanban: "not-started",
+			completedAt: null,
+		});
+		refetch();
+	}
+
+	async function handleDelete(taskId: string) {
+		await deleteTask(taskId);
+	}
+
+	async function handleMatrixDragEnd(event: DragEndEvent) {
+		baseDragEnd();
+		const { active, over } = event;
+		if (!over) return;
+		const targetQuadrant = over.id as EisenhowerQuadrant;
+		const task = tasks.find((t) => t.id === active.id);
+		if (!task || getQuadrant(task) === targetQuadrant) return;
+		const { importance, urgency } = valuesFromQuadrant(targetQuadrant);
+		await updateTask(task.id, { importance, urgency });
+	}
+
+	async function handleBoardDragEnd(event: DragEndEvent) {
+		baseDragEnd();
+		const { active, over } = event;
+		if (!over) return;
+		const targetStatus = over.id as KanbanStatus;
+		const task = tasks.find((t) => t.id === active.id);
+		if (!task || task.kanban === targetStatus) return;
+		await updateTask(task.id, { kanban: targetStatus });
+	}
+
+	return (
+		<div className="space-y-4">
+			<BreadcrumbNav items={[{ label: "Work" }]} />
+
+			{tasksError && (
+				<div className="rounded-sm border border-destructive/20 bg-destructive/5 p-3 text-sm text-destructive flex items-center justify-between">
+					<span>{tasksError}</span>
+					<button
+						type="button"
+						onClick={refetch}
+						className="underline hover:text-destructive/80"
+					>
+						Retry
+					</button>
+				</div>
+			)}
+
+			<div className="flex items-center justify-between flex-wrap gap-2">
+				<h1 className="text-xl font-normal">Tasks</h1>
+				<div className="flex items-center gap-2">
+					{/* View toggle */}
+					<div className="flex items-center rounded-sm border bg-muted p-0.5">
+						<Tip content="Priority Matrix">
+							<button
+								type="button"
+								onClick={() => setViewMode("matrix")}
+								className={cn(
+									"flex items-center justify-center rounded-sm px-2 py-1 transition-colors",
+									viewMode === "matrix"
+										? "bg-background shadow-e-1 text-foreground"
+										: "text-muted-foreground hover:text-foreground",
+								)}
+								aria-label="Priority Matrix view"
+							>
+								<Grid2x2 className="h-3.5 w-3.5" />
+							</button>
+						</Tip>
+						<Tip content="Status Board">
+							<button
+								type="button"
+								onClick={() => setViewMode("board")}
+								className={cn(
+									"flex items-center justify-center rounded-sm px-2 py-1 transition-colors",
+									viewMode === "board"
+										? "bg-background shadow-e-1 text-foreground"
+										: "text-muted-foreground hover:text-foreground",
+								)}
+								aria-label="Status Board view"
+							>
+								<Columns3 className="h-3.5 w-3.5" />
+							</button>
+						</Tip>
+						<Tip content="Project Map">
+							<button
+								type="button"
+								onClick={() => setViewMode("map")}
+								className={cn(
+									"flex items-center justify-center rounded-sm px-2 py-1 transition-colors",
+									viewMode === "map"
+										? "bg-background shadow-e-1 text-foreground"
+										: "text-muted-foreground hover:text-foreground",
+								)}
+								aria-label="Project Map view"
+							>
+								<GitFork className="h-3.5 w-3.5" />
+							</button>
+						</Tip>
+					</div>
+
+					<FilterBar
+						filters={[
+							{
+								id: "project",
+								label: "All projects",
+								value: filterProject,
+								onChange: setFilterProject,
+								options: [
+									{ value: "all", label: "All projects" },
+									...projects
+										.filter((p) => p.status === "active")
+										.map((p) => ({ value: p.id, label: p.name })),
+								],
+							},
+							{
+								id: "assignee",
+								label: "All assignees",
+								value: filterAssignee,
+								onChange: setFilterAssignee,
+								options: [
+									{ value: "all", label: "All assignees" },
+									{ value: "unassigned", label: "Unassigned" },
+									...agents
+										.filter((a) => a.status === "active")
+										.map((a) => ({ value: a.id, label: a.name })),
+								],
+							},
+						]}
+						onClear={
+							filterProject !== "all" || filterAssignee !== "all"
+								? () => {
+										setFilterProject("all");
+										setFilterAssignee("all");
+									}
+								: undefined
+						}
+					/>
+					<Tip content="Create a new task">
+						<Button
+							size="sm"
+							onClick={() => setShowCreateTask(true)}
+							className="gap-1.5 h-8"
+						>
+							<Plus className="h-3.5 w-3.5" /> Task
+						</Button>
+					</Tip>
+				</div>
+			</div>
+
+			{loading ? (
+				<TasksSkeleton viewMode={viewMode} />
+			) : (
+				<>
+					{viewMode === "map" && <WorkMapView />}
+
+					{viewMode === "matrix" ? (
+						<BoardDndWrapper
+							activeTask={activeTask}
+							projects={projects}
+							onDragStart={handleDragStart}
+							onDragEnd={handleMatrixDragEnd}
+						>
+							<div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+								{quadrants.map((q) => (
+									<BoardColumn
+										key={q.id}
+										config={q}
+										tasks={groupedByQuadrant[q.id as EisenhowerQuadrant]}
+										projects={projects}
+										onTaskClick={(task) => router.push(`/tasks/${task.id}`)}
+										maxHeight="max-h-[calc(100vh-320px)]"
+										selected={selection.selected}
+										onToggleSelect={selection.toggle}
+										runningTaskIds={runningTaskIds}
+										onRunTask={runTask}
+										pendingDecisionTaskIds={pendingDecisionTaskIds}
+										onStatusChange={handleStatusChange}
+										onDuplicate={handleDuplicate}
+										onDelete={handleDelete}
+									/>
+								))}
+							</div>
+						</BoardDndWrapper>
+					) : (
+						<BoardDndWrapper
+							activeTask={activeTask}
+							projects={projects}
+							onDragStart={handleDragStart}
+							onDragEnd={handleBoardDragEnd}
+						>
+							<div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+								{kanbanColumns.map((col) => (
+									<BoardColumn
+										key={col.id}
+										config={col}
+										tasks={groupedByKanban[col.id as KanbanStatus]}
+										projects={projects}
+										onTaskClick={(task) => router.push(`/tasks/${task.id}`)}
+										minHeight="min-h-[400px]"
+										selected={selection.selected}
+										onToggleSelect={selection.toggle}
+										runningTaskIds={runningTaskIds}
+										onRunTask={runTask}
+										pendingDecisionTaskIds={pendingDecisionTaskIds}
+										onStatusChange={handleStatusChange}
+										onDuplicate={handleDuplicate}
+										onDelete={handleDelete}
+									/>
+								))}
+							</div>
+						</BoardDndWrapper>
+					)}
+
+					<BoardPanels
+						showCreateTask={showCreateTask}
+						onCloseCreate={setShowCreateTask}
+						onSubmitCreate={handleCreateTask}
+					/>
+				</>
+			)}
+		</div>
+	);
+}
