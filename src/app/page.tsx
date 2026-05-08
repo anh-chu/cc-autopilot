@@ -654,7 +654,7 @@ export default function CommandCenterPage() {
 											))}
 
 											{doQuadrantMyTasks.length > 0 && (
-												<Link href="/priority-matrix">
+												<Link href="/work">
 													<div className="flex items-center gap-2 rounded-sm px-3 py-2 hover:bg-accent/50 transition-colors">
 														<ShieldAlert className="h-4 w-4 shrink-0 text-destructive" />
 														<span className="text-foreground text-xs">
@@ -667,7 +667,7 @@ export default function CommandCenterPage() {
 											)}
 
 											{recentCompletions.length > 0 && (
-												<Link href="/priority-matrix">
+												<Link href="/work">
 													<div className="flex items-center gap-2 rounded-sm px-3 py-2 hover:bg-accent/50 transition-colors">
 														<CheckSquare className="h-4 w-4 shrink-0 text-success" />
 														<span className="text-foreground text-xs">

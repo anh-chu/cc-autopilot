@@ -54,19 +54,19 @@ export function KeyboardShortcuts({ onCreateTask }: KeyboardShortcutsProps) {
 						router.push("/");
 						return;
 					case "e":
-						router.push("/priority-matrix");
+						router.push("/work");
 						return;
 					case "k":
-						router.push("/priority-matrix");
+						router.push("/work");
 						return;
 					case "o":
-						router.push("/map");
+						router.push("/work");
 						return;
 					case "b":
 						router.push("/brain-dump");
 						return;
 					case "p":
-						router.push("/map");
+						router.push("/work");
 						return;
 					case "c":
 						router.push("/crew");
@@ -75,7 +75,7 @@ export function KeyboardShortcuts({ onCreateTask }: KeyboardShortcutsProps) {
 						router.push("/skills");
 						return;
 					case "l":
-						router.push("/autopilot");
+						router.push("/ops?tab=autopilot");
 						return;
 				}
 				return;

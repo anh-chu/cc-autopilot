@@ -91,7 +91,7 @@ export function LayoutShell({ children }: LayoutShellProps) {
 					commands={commands}
 					onTaskClick={() => {
 						// Navigate to Priority Matrix view which shows the task in context
-						router.push("/priority-matrix");
+						router.push("/work");
 					}}
 				/>
 

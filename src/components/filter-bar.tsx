@@ -53,6 +53,7 @@ export function FilterBar({
 						value={search.value}
 						onChange={(e) => search.onChange(e.target.value)}
 						className="h-8 pl-8 text-sm w-[200px]"
+						aria-label={search.placeholder ?? "Search"}
 					/>
 				</div>
 			)}
@@ -62,7 +63,10 @@ export function FilterBar({
 					value={filter.value}
 					onValueChange={filter.onChange}
 				>
-					<SelectTrigger className="h-8 w-[140px] text-xs">
+					<SelectTrigger
+						className="h-8 w-[140px] text-xs"
+						aria-label={filter.label}
+					>
 						<SelectValue placeholder={filter.label} />
 					</SelectTrigger>
 					<SelectContent>

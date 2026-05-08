@@ -110,7 +110,7 @@ export function SearchDialog() {
 		setOpen(false);
 		switch (type) {
 			case "task":
-				router.push("/priority-matrix");
+				router.push("/work");
 				break;
 			case "project":
 				router.push("/map");
