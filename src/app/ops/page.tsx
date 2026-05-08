@@ -5,6 +5,7 @@ import { useSearchParams } from "next/navigation";
 import { AutopilotPage } from "@/components/autopilot-page";
 import { BreadcrumbNav } from "@/components/breadcrumb-nav";
 import { HomeLogs } from "@/components/home-logs";
+import { RunsFeed } from "@/components/runs-feed";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 
@@ -54,18 +55,7 @@ export default function OpsPage() {
 
 			{tab === "logs" && <HomeLogs />}
 			{tab === "autopilot" && <AutopilotPage />}
-			{tab === "runs" && (
-				<Card>
-					<CardHeader>
-						<CardTitle>Runs</CardTitle>
-					</CardHeader>
-					<CardContent>
-						<p className="text-sm text-muted-foreground">
-							Coming soon — active and historical runs across all workspaces.
-						</p>
-					</CardContent>
-				</Card>
-			)}
+			{tab === "runs" && <RunsFeed />}
 		</div>
 	);
 }
