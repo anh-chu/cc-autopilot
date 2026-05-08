@@ -1,7 +1,6 @@
 "use client";
 
 import {
-	CheckCircle2,
 	Clock,
 	Pencil,
 	Play,
@@ -13,7 +12,6 @@ import {
 	Timer,
 	Trash2,
 	X,
-	XCircle,
 	Zap,
 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
@@ -1127,66 +1125,6 @@ export function AutopilotPage() {
 					)}
 				</CardContent>
 			</Card>
-
-			{/* Recent History */}
-			{status.history.length > 0 && (
-				<Card>
-					<CardHeader>
-						<CardTitle>Recent History</CardTitle>
-						<CardDescription>
-							Last {Math.min(status.history.length, 20)} sessions
-						</CardDescription>
-					</CardHeader>
-					<CardContent>
-						<div className="space-y-2">
-							{status.history.slice(0, 20).map((entry) => (
-								<div
-									key={entry.id}
-									className="flex items-center justify-between rounded-sm border p-3"
-								>
-									<div className="flex items-center gap-3">
-										{entry.status === "completed" ? (
-											<CheckCircle2 className="h-4 w-4 text-success" />
-										) : entry.status === "timeout" ? (
-											<Clock className="h-4 w-4 text-sunshine-700" />
-										) : (
-											<XCircle className="h-4 w-4 text-destructive" />
-										)}
-										<div>
-											<p className="font-normal text-sm">
-												{entry.command === "task"
-													? `Task: ${entry.taskId}`
-													: `/${entry.command}`}
-											</p>
-											<p className="text-xs text-muted-foreground">
-												Agent: {entry.agentId} &middot;{" "}
-												{formatDuration(entry.durationMinutes)}
-												{entry.costUsd != null &&
-													entry.costUsd > 0 &&
-													` · $${entry.costUsd.toFixed(4)}`}
-												{entry.error && ` \u2014 ${entry.error.slice(0, 80)}`}
-											</p>
-										</div>
-									</div>
-									<div className="flex items-center gap-2">
-										<Badge
-											variant={
-												entry.status === "completed" ? "default" : "destructive"
-											}
-											className="text-xs"
-										>
-											{entry.status}
-										</Badge>
-										<span className="text-xs text-muted-foreground">
-											{formatRelativeTime(entry.completedAt)}
-										</span>
-									</div>
-								</div>
-							))}
-						</div>
-					</CardContent>
-				</Card>
-			)}
 		</div>
 	);
 }
