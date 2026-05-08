@@ -13,7 +13,6 @@ import {
 	Search,
 	ShieldAlert,
 	Sparkles,
-	Square,
 	User,
 	Users,
 	Zap,
@@ -46,9 +45,7 @@ const ProjectDialog = dynamic(
 	{ ssr: false },
 );
 
-import { ErrorState } from "@/components/error-state";
 import type { TaskFormData } from "@/components/task-form";
-import { Tip } from "@/components/ui/tip";
 import { useDaemon } from "@/hooks/use-daemon";
 import { useAgents } from "@/hooks/use-data";
 import { useFastTaskPoll } from "@/hooks/use-fast-task-poll";
@@ -104,13 +101,9 @@ function AttentionRow({
 }
 
 export default function CommandCenterPage() {
-	const { data, loading, error, refetch, hasLoaded } = useHomeData();
+	const { data, error, refetch, hasLoaded } = useHomeData();
 	const { agents } = useAgents();
-	const {
-		isRunning: daemonRunning,
-		status: daemonStatus,
-		updateConfig,
-	} = useDaemon();
+	const { isRunning: daemonRunning, status: daemonStatus } = useDaemon();
 	const {
 		runningTaskIds,
 		isProjectRunning,
