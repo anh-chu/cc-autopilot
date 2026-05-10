@@ -20,7 +20,7 @@ const QUADRANT_LABELS: Record<string, { label: string; className: string }> = {
 	do: { label: "DO", className: "bg-destructive-soft text-destructive" },
 	schedule: {
 		label: "SCHEDULE",
-		className: "bg-sunshine-700/20 text-sunshine-700",
+		className: "bg-primary-soft text-primary",
 	},
 	delegate: {
 		label: "DELEGATE",
@@ -189,11 +189,11 @@ export function SearchDialog() {
 									className={cn(
 										"rounded-sm px-1.5 py-0.5 text-[10px] font-normal",
 										project.status === "active"
-											? "bg-sunshine-700/20 text-sunshine-700"
+											? "bg-warning-soft text-warning"
 											: project.status === "paused"
-												? "bg-accent-soft text-accent"
+												? "bg-warning-soft text-warning"
 												: project.status === "completed"
-													? "bg-sunshine-700/20 text-sunshine-700"
+													? "bg-warning-soft text-warning"
 													: "bg-muted text-muted-foreground",
 									)}
 								>

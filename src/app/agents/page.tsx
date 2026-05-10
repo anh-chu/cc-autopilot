@@ -82,7 +82,7 @@ function AgentCard({
 									className={cn(
 										"h-3 w-3",
 										agent.status === "active"
-											? "text-sunshine-700"
+											? "text-warning"
 											: "text-muted-foreground",
 									)}
 								/>

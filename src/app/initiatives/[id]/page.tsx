@@ -58,7 +58,7 @@ function kanbanBadge(kanban: Task["kanban"]) {
 			);
 		case "in-progress":
 			return (
-				<Badge className="bg-sunshine-500/20 text-sunshine-700 border-sunshine-500/30 text-[10px]">
+				<Badge className="bg-warning-soft text-warning border-warning/30 text-[10px]">
 					In Progress
 				</Badge>
 			);
@@ -484,7 +484,7 @@ export default function InitiativeDetailPage() {
 							className={`text-xs px-2.5 py-1 rounded-sm border transition-all capitalize ${
 								initiative.status === s
 									? s === "active"
-										? "bg-sunshine-500/20 text-sunshine-700 border-sunshine-500/40"
+										? "bg-warning-soft text-warning border-warning/40"
 										: s === "paused"
 											? "bg-muted text-muted-foreground border-border"
 											: s === "completed"
