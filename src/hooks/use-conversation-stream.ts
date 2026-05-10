@@ -584,14 +584,18 @@ export function useConversationStream(
 		seenSeqsRef.current = new Set();
 		retryDelayRef.current = 1000;
 
-		// Initial fetch, then SSE
+		// Initial fetch, then SSE.
+		// Guard against StrictMode double-mount: if the effect is cleaned up
+		// between the refresh() await and connectSSE(), skip the connect.
+		let aborted = false;
 		const init = async () => {
 			await refresh();
-			connectSSE();
+			if (!aborted) connectSSE();
 		};
 		init();
 
 		return () => {
+			aborted = true;
 			esRef.current?.close();
 			esRef.current = null;
 			clearTimeout(retryTimerRef.current);
