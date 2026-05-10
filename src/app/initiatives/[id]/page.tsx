@@ -52,7 +52,7 @@ function kanbanBadge(kanban: Task["kanban"]) {
 	switch (kanban) {
 		case "done":
 			return (
-				<Badge className="bg-success-soft text-success border-success/30 text-[10px]">
+				<Badge className="bg-muted text-success border-success/30 text-[10px]">
 					Done
 				</Badge>
 			);
@@ -488,7 +488,7 @@ export default function InitiativeDetailPage() {
 										: s === "paused"
 											? "bg-muted text-muted-foreground border-border"
 											: s === "completed"
-												? "bg-success-soft text-success border-success/40"
+												? "bg-muted text-success border-success/40"
 												: "bg-muted text-muted-foreground border-border"
 									: "bg-transparent text-muted-foreground border-border hover:border-muted-foreground/50"
 							}`}

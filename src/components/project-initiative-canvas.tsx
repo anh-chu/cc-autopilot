@@ -111,9 +111,9 @@ function gridPosition(
 }
 
 const statusColors: Record<string, string> = {
-	active: "border-success/20 bg-success-soft text-success dark:text-success",
-	paused: "border-primary/20 bg-primary-soft text-primary dark:text-primary",
-	completed: "border-primary/20 bg-primary-soft text-primary dark:text-primary",
+	active: "border-success/20 bg-muted text-success dark:text-success",
+	paused: "border-primary/20 bg-muted text-foreground dark:text-foreground",
+	completed: "border-primary/20 bg-muted text-foreground dark:text-foreground",
 	archived: "border-muted/20 bg-muted text-muted-foreground",
 };
 
