@@ -43,6 +43,7 @@ export function ChatSidebar({ open, onToggle, isMobile }: ChatSidebarProps) {
 	// Conversation state
 	const [currentId, setCurrentId] = useState<string | null>(null);
 	const [conversations, setConversations] = useState<Conversation[]>([]);
+	const [historyOpen, setHistoryOpen] = useState(false);
 
 	// Restore selections from localStorage after hydration
 	useEffect(() => {
@@ -118,6 +119,7 @@ export function ChatSidebar({ open, onToggle, isMobile }: ChatSidebarProps) {
 				// best-effort, don't block the switch
 			}
 		}
+		setHistoryOpen(false);
 		setCurrentId(id);
 	};
 
@@ -196,7 +198,7 @@ export function ChatSidebar({ open, onToggle, isMobile }: ChatSidebarProps) {
 
 					{/* Conversation history popover */}
 					<div className="flex items-center border-b shrink-0">
-						<Popover>
+						<Popover open={historyOpen} onOpenChange={setHistoryOpen}>
 							<PopoverTrigger asChild>
 								<button
 									type="button"
