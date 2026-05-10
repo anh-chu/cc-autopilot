@@ -66,6 +66,8 @@ function startStreamTail(
 	let offset = 0;
 	let buffer = "";
 	let stopped = false;
+	let firstLine = true;
+	let firstAssistant = true;
 
 	const doRead = async (): Promise<void> => {
 		try {
@@ -85,8 +87,22 @@ function startStreamTail(
 			for (const line of lines) {
 				const trimmed = line.trim();
 				if (!trimmed) continue;
+				if (firstLine) {
+					firstLine = false;
+					logger.info(
+						"run-conv",
+						`[TIMING ${_ms()}] first stream line received`,
+					);
+				}
 				try {
 					const parsed = JSON.parse(trimmed);
+					if (firstAssistant && parsed.type === "assistant") {
+						firstAssistant = false;
+						logger.info(
+							"run-conv",
+							`[TIMING ${_ms()}] first assistant event (THINKING visible)`,
+						);
+					}
 					await processStreamLine(ctx, parsed);
 				} catch {
 					// skip malformed line
@@ -158,6 +174,9 @@ function resolveAgentConfig(
 
 // ─── Main ──────────────────────────────────────────────────────────────────
 
+const _t0 = Date.now();
+const _ms = () => `+${Date.now() - _t0}ms`;
+
 async function main() {
 	const conversationId = process.argv[2];
 	if (!conversationId) {
@@ -165,7 +184,7 @@ async function main() {
 		process.exit(1);
 	}
 
-	logger.info("run-conv", `Starting conversation ${conversationId}`);
+	logger.info("run-conv", `[TIMING ${_ms()}] main() start — ${conversationId}`);
 
 	// 1. Read conversation
 	const conversation = await getConversation(conversationId);
@@ -176,6 +195,7 @@ async function main() {
 
 	// 2. Read turns
 	const turns = await readConversationTurns(conversationId);
+	logger.info("run-conv", `[TIMING ${_ms()}] reads done`);
 
 	// 3. Bail if not in an executable state
 	const executable: ConversationStatus[] = ["queued", "idle"];
@@ -193,6 +213,10 @@ async function main() {
 		try {
 			const previousRun = await getConversationRun(conversation.currentRunId);
 			resumeSessionId = previousRun?.sessionHandle ?? null;
+			logger.info(
+				"run-conv",
+				`[TIMING ${_ms()}] sessionHandle: ${resumeSessionId ? "resume" : "fresh"}`,
+			);
 		} catch (err) {
 			logger.warn(
 				"run-conv",
@@ -208,6 +232,7 @@ async function main() {
 	await updateConversation(conversationId, { status: "starting" });
 
 	// 6. Start conversation run (no task linkage)
+	logger.info("run-conv", `[TIMING ${_ms()}] startConversationForTask begin`);
 	let convCtx: { conversationId: string; runId: string } | null = null;
 	try {
 		convCtx = await startConversationForTask({
@@ -242,6 +267,11 @@ async function main() {
 		process.exit(1);
 	}
 
+	logger.info(
+		"run-conv",
+		`[TIMING ${_ms()}] startConversationForTask done (runId: ${convCtx?.runId})`,
+	);
+
 	// 7. Build prompt: latest user turn's content
 	const lastUserTurn = [...turns].reverse().find((t) => t.role === "user");
 	const prompt = lastUserTurn?.content ?? "";
@@ -270,7 +300,7 @@ async function main() {
 	try {
 		logger.info(
 			"run-conv",
-			`Spawning agent for conversation ${conversationId} (run: ${convCtx.runId}, prompt length: ${prompt.length})`,
+			`[TIMING ${_ms()}] spawnAgent begin (prompt: ${prompt.length} chars)`,
 		);
 		taskLogger.info("run-conv", "Spawning agent", {
 			conversationId,
@@ -293,6 +323,10 @@ async function main() {
 				capturedSessionId = sid;
 			},
 			onSpawned: (pid) => {
+				logger.info(
+					"run-conv",
+					`[TIMING ${_ms()}] claude process spawned (pid: ${pid})`,
+				);
 				if (convCtx) {
 					attachPidToRun(convCtx, pid).catch((err) =>
 						logger.error("run-conv", `attachPidToRun failed: ${String(err)}`),
@@ -300,6 +334,10 @@ async function main() {
 				}
 			},
 		});
+		logger.info(
+			"run-conv",
+			`[TIMING ${_ms()}] spawnAgent done (exit: ${spawnResult?.exitCode})`,
+		);
 
 		// 11. Check for decision
 		let pendingDecisionFound = false;
