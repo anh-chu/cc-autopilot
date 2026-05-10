@@ -1,12 +1,18 @@
 "use client";
 
-import { ChevronLeft, MessageSquare, Plus } from "lucide-react";
+import { ChevronDown, ChevronLeft, MessageSquare, Plus } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { ConversationList } from "@/components/conversation/ConversationList";
 import { ConversationView } from "@/components/conversation/ConversationView";
 import { ModelSelect } from "@/components/model-select";
+import {
+	Popover,
+	PopoverContent,
+	PopoverTrigger,
+} from "@/components/ui/popover";
 import { useAgents } from "@/hooks/use-data";
 import { apiFetch } from "@/lib/api-client";
+import type { Conversation } from "@/lib/types";
 import { cn, generateId } from "@/lib/utils";
 
 const DOC_MAINTAINER_AGENT_ID = "doc-maintainer";
@@ -36,7 +42,7 @@ export function ChatSidebar({ open, onToggle, isMobile }: ChatSidebarProps) {
 
 	// Conversation state
 	const [currentId, setCurrentId] = useState<string | null>(null);
-	const [showList, setShowList] = useState(true);
+	const [conversations, setConversations] = useState<Conversation[]>([]);
 
 	// Restore selections from localStorage after hydration
 	useEffect(() => {
@@ -100,6 +106,8 @@ export function ChatSidebar({ open, onToggle, isMobile }: ChatSidebarProps) {
 	}, [activeAgents, selectedAgentId]);
 
 	const handleNewConversation = async () => {
+		const current = conversations.find((c) => c.id === currentId);
+		if (current && current.turnCount === 0) return;
 		try {
 			const res = await apiFetch("/api/conversations", {
 				method: "POST",
@@ -114,6 +122,7 @@ export function ChatSidebar({ open, onToggle, isMobile }: ChatSidebarProps) {
 			if (res.ok) {
 				const data = await res.json();
 				setCurrentId(data.conversation.id);
+				setConversations((prev) => [data.conversation, ...prev]);
 			}
 		} catch (err) {
 			console.error("Failed to create conversation", err);
@@ -169,29 +178,41 @@ export function ChatSidebar({ open, onToggle, isMobile }: ChatSidebarProps) {
 						<ModelSelect value={selectedModel} onChange={setSelectedModel} />
 					</div>
 
-					{/* Conversation list toggle */}
-					<button
-						type="button"
-						onClick={() => setShowList((v) => !v)}
-						className="flex items-center gap-2 px-3 py-1.5 border-b text-xs text-muted-foreground hover:bg-muted/50 transition-colors shrink-0"
-					>
-						<MessageSquare className="h-3 w-3" />
-						<span>Conversations</span>
-						<span className="text-[10px] text-muted-foreground ml-auto">
-							{showList ? "▲" : "▼"}
-						</span>
-					</button>
-
-					{/* Conversation list (collapsible) */}
-					{showList && (
-						<div className="shrink-0 max-h-[200px] overflow-y-auto border-b">
-							<ConversationList
-								currentId={currentId}
-								onSelect={setCurrentId}
-								source="chat"
-							/>
-						</div>
-					)}
+					{/* Conversation history popover */}
+					<div className="flex items-center border-b shrink-0">
+						<Popover>
+							<PopoverTrigger asChild>
+								<button
+									type="button"
+									className="flex flex-1 items-center gap-2 px-3 py-1.5 text-xs text-muted-foreground hover:bg-muted/50 transition-colors"
+								>
+									<MessageSquare className="h-3 w-3" />
+									<span>History</span>
+									<ChevronDown className="h-3 w-3 ml-auto opacity-60" />
+								</button>
+							</PopoverTrigger>
+							<PopoverContent
+								align="start"
+								side="bottom"
+								className="w-[360px] p-0 max-h-[280px] overflow-y-auto"
+							>
+								<ConversationList
+									currentId={currentId}
+									onSelect={setCurrentId}
+									source="chat"
+									onConversationsChange={setConversations}
+								/>
+							</PopoverContent>
+						</Popover>
+						<button
+							type="button"
+							onClick={handleNewConversation}
+							className="px-2 py-1.5 text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-colors shrink-0"
+							title="New conversation"
+						>
+							<Plus className="h-3.5 w-3.5" />
+						</button>
+					</div>
 
 					{/* Chat body */}
 					<div className="flex-1 overflow-hidden min-h-0">

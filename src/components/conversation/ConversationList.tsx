@@ -1,19 +1,17 @@
 "use client";
 
-import { Plus } from "lucide-react";
 import { useEffect, useState } from "react";
 import { apiFetch } from "@/lib/api-client";
 import type { Conversation } from "@/lib/types";
-import { cn, generateId } from "@/lib/utils";
+import { cn } from "@/lib/utils";
 import { ConversationStatusBadge } from "./ConversationStatusBadge";
-
-const DEFAULT_CONVERSATION_MODEL = "haiku";
 
 interface ConversationListProps {
 	currentId?: string | null;
 	onSelect: (id: string) => void;
 	taskId?: string | null;
 	source?: string | null;
+	onConversationsChange?: (convs: Conversation[]) => void;
 }
 
 export function ConversationList({
@@ -21,6 +19,7 @@ export function ConversationList({
 	onSelect,
 	taskId,
 	source,
+	onConversationsChange,
 }: ConversationListProps) {
 	const [conversations, setConversations] = useState<Conversation[]>([]);
 	const [isLoading, setIsLoading] = useState(true);
@@ -37,7 +36,9 @@ export function ConversationList({
 				const res = await apiFetch(url);
 				if (res.ok) {
 					const data = await res.json();
-					setConversations(data.conversations || []);
+					const list = data.conversations || [];
+					setConversations(list);
+					onConversationsChange?.(list);
 				}
 			} catch (err) {
 				console.error("Failed to fetch conversations", err);
@@ -47,29 +48,7 @@ export function ConversationList({
 		};
 
 		fetchConversations();
-	}, [taskId, source]);
-
-	const handleCreate = async () => {
-		try {
-			const res = await apiFetch("/api/conversations", {
-				method: "POST",
-				headers: { "Content-Type": "application/json" },
-				body: JSON.stringify({
-					title: "New Conversation",
-					taskId,
-					model: DEFAULT_CONVERSATION_MODEL,
-					requestId: generateId("req"),
-				}),
-			});
-			if (res.ok) {
-				const data = await res.json();
-				setConversations((prev) => [data.conversation, ...prev]);
-				onSelect(data.conversation.id);
-			}
-		} catch (err) {
-			console.error("Failed to create conversation", err);
-		}
-	};
+	}, [taskId, source, onConversationsChange]);
 
 	const formatDate = (iso: string) => {
 		const d = new Date(iso);
@@ -83,16 +62,6 @@ export function ConversationList({
 
 	return (
 		<div className="flex flex-col h-full border-r">
-			<div className="p-3 border-b flex items-center justify-between">
-				<h3 className="text-sm font-medium">Conversations</h3>
-				<button
-					onClick={handleCreate}
-					className="p-1 hover:bg-muted rounded-sm text-muted-foreground hover:text-foreground"
-					title="New conversation"
-				>
-					<Plus className="h-4 w-4" />
-				</button>
-			</div>
 			<div className="flex-1 overflow-y-auto">
 				{isLoading ? (
 					<div className="p-4 text-xs text-muted-foreground text-center">
