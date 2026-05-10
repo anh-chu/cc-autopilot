@@ -152,7 +152,7 @@ export function TaskCard({
 					<CardHeader
 						className={cn(
 							"p-3 pb-1",
-							isRunning && "bg-primary-soft rounded-t-sm",
+							isRunning && "border-b border-primary/20",
 						)}
 					>
 						<div className="flex items-start justify-between gap-2">

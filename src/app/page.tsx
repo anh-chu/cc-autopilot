@@ -311,7 +311,7 @@ export default function CommandCenterPage() {
 
 				<div className="flex flex-col items-center justify-center py-12 md:py-20">
 					<div className="text-center max-w-lg mx-auto space-y-6">
-						<div className="h-16 w-16 rounded-sm bg-primary-soft flex items-center justify-center mx-auto">
+						<div className="h-16 w-16 rounded-sm bg-muted flex items-center justify-center mx-auto">
 							<Rocket className="h-8 w-8 text-primary" />
 						</div>
 						<div>
@@ -328,7 +328,7 @@ export default function CommandCenterPage() {
 								onClick={() => setShowCreateProject(true)}
 							>
 								<CardContent className="p-4 flex items-start gap-3">
-									<div className="h-9 w-9 rounded-sm bg-primary-soft flex items-center justify-center shrink-0">
+									<div className="h-9 w-9 rounded-sm bg-muted flex items-center justify-center shrink-0">
 										<FolderOpen className="h-4 w-4 text-primary" />
 									</div>
 									<div>
@@ -345,7 +345,7 @@ export default function CommandCenterPage() {
 								onClick={() => setShowCreateTask(true)}
 							>
 								<CardContent className="p-4 flex items-start gap-3">
-									<div className="h-9 w-9 rounded-sm bg-primary-soft flex items-center justify-center shrink-0">
+									<div className="h-9 w-9 rounded-sm bg-muted flex items-center justify-center shrink-0">
 										<Zap className="h-4 w-4 text-primary" />
 									</div>
 									<div>
@@ -359,7 +359,7 @@ export default function CommandCenterPage() {
 
 							<Card className="sm:col-span-2 bg-muted">
 								<CardContent className="p-4 flex items-start gap-3">
-									<div className="h-9 w-9 rounded-sm bg-primary-soft flex items-center justify-center shrink-0">
+									<div className="h-9 w-9 rounded-sm bg-muted flex items-center justify-center shrink-0">
 										<Users className="h-4 w-4 text-primary" />
 									</div>
 									<div>
@@ -422,7 +422,7 @@ export default function CommandCenterPage() {
 						<Card
 							className={cn(
 								"cursor-pointer transition-all hover:shadow-e-3 hover:border-primary/30",
-								daemonRunning && "border-primary/20 bg-primary-soft",
+								daemonRunning && "border-primary/20",
 							)}
 						>
 							<CardContent className="p-4">
@@ -431,7 +431,7 @@ export default function CommandCenterPage() {
 										<div
 											className={cn(
 												"h-9 w-9 rounded-sm flex items-center justify-center",
-												daemonRunning ? "bg-primary-soft" : "bg-muted",
+												daemonRunning ? "bg-muted" : "bg-muted",
 											)}
 										>
 											<Rocket
@@ -466,7 +466,7 @@ export default function CommandCenterPage() {
 										{daemonRunning ? (
 											<Badge
 												variant="outline"
-												className="bg-primary-soft text-primary border-primary/20 text-xs"
+												className="bg-primary text-primary-foreground text-xs"
 											>
 												Active
 											</Badge>
@@ -692,7 +692,7 @@ export default function CommandCenterPage() {
 													agent.status === "overloaded"
 														? "bg-destructive"
 														: agent.status === "awaiting-decision"
-															? "bg-primary"
+															? "bg-warning"
 															: "bg-primary";
 												const statusLabel =
 													agent.status === "overloaded"
@@ -724,9 +724,9 @@ export default function CommandCenterPage() {
 																	className={cn(
 																		"text-[10px] px-1.5 py-0 rounded-sm",
 																		agent.status === "dependencies" &&
-																			"text-primary dark:text-primary bg-primary-soft",
+																			"text-muted-foreground bg-muted",
 																		agent.status === "awaiting-decision" &&
-																			"text-primary dark:text-primary bg-primary-soft",
+																			"text-muted-foreground bg-muted",
 																		agent.status === "overloaded" &&
 																			"text-destructive dark:text-destructive bg-destructive-soft",
 																	)}

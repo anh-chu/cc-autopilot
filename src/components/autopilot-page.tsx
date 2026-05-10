@@ -1094,7 +1094,7 @@ export function AutopilotPage() {
 						</div>
 					)}
 					{config.execution.allowedTools.length > 0 && (
-						<div className="mt-4 flex items-center gap-2 rounded-sm border border-primary/30 bg-primary-soft p-3 text-sm">
+						<div className="mt-4 flex items-center gap-2 rounded-sm border border-primary/30 bg-muted p-3 text-sm">
 							<Zap className="h-4 w-4 text-primary shrink-0" />
 							<span>
 								<strong>Allowed tools:</strong>{" "}
