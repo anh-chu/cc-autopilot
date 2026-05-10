@@ -58,8 +58,8 @@ export function ConversationView({
 					<div className="flex items-center gap-2 text-xs text-muted-foreground">
 						<ConversationStatusBadge status={conversation.status} />
 						{conversation.model && <span>• {conversation.model}</span>}
-						{conversation.tokens && (
-							<span>• {conversation.tokens.total} tokens</span>
+						{conversation.tokens?.total > 0 && (
+							<span>• {conversation.tokens.total.toLocaleString()} tokens</span>
 						)}
 						{!connected && (
 							<span className="text-destructive">• Disconnected</span>

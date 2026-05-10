@@ -114,11 +114,13 @@ export function TurnBlock({ turn, compact }: TurnBlockProps) {
 						</div>
 					)}
 
-					{turn.tokens && !compact && (
-						<div className="text-[10px] text-muted-foreground mt-2">
-							Tokens: {turn.tokens.input} in, {turn.tokens.output} out
-						</div>
-					)}
+					{turn.tokens &&
+						(turn.tokens.input > 0 || turn.tokens.output > 0) &&
+						!compact && (
+							<div className="text-[10px] text-muted-foreground mt-2">
+								Tokens: {turn.tokens.input} in, {turn.tokens.output} out
+							</div>
+						)}
 				</div>
 			</div>
 		</div>
