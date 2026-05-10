@@ -56,7 +56,7 @@ function parseVersionParts(version: string): [number, number, number] {
 	];
 }
 
-function compareVersions(a: string, b: string): number {
+export function compareVersions(a: string, b: string): number {
 	const av = parseVersionParts(a);
 	const bv = parseVersionParts(b);
 	for (let i = 0; i < 3; i += 1) {
@@ -198,7 +198,7 @@ export function ensureWikiPluginInstalledDetailed(
 
 	if (options?.update) {
 		try {
-			runClaude(`claude plugin update ${PKG}`, cwd);
+			runClaude(`claude plugin update ${PKG} --scope project`, cwd);
 			updated = true;
 			plugin = getInstalledPlugin(cwd) ?? plugin;
 		} catch {
@@ -330,4 +330,38 @@ export function reconcileWikiWithPlugin(
 		stdio: ["ignore", "pipe", "pipe"],
 	});
 	return { lintScript };
+}
+
+const MARKETPLACE = PKG.split("@")[1] ?? "anh-chu-plugins";
+
+function getMarketplaceDir(): string {
+	const home = process.env.HOME ?? process.env.USERPROFILE ?? "";
+	return path.join(home, ".claude", "plugins", "marketplaces", MARKETPLACE);
+}
+
+/**
+ * Fetch the latest available version from the marketplace git clone without installing.
+ * Runs `git fetch origin` then reads the version from origin/main:.claude-plugin/plugin.json.
+ */
+export function getLatestAvailableVersion(): string | null {
+	try {
+		const mktDir = getMarketplaceDir();
+		if (!existsSync(mktDir)) return null;
+		execSync("git fetch origin --quiet", {
+			cwd: mktDir,
+			encoding: "utf-8",
+			stdio: ["ignore", "ignore", "ignore"],
+			timeout: 10_000,
+		});
+		const json = execSync("git show origin/main:.claude-plugin/plugin.json", {
+			cwd: mktDir,
+			encoding: "utf-8",
+			stdio: ["ignore", "pipe", "ignore"],
+			timeout: 5_000,
+		});
+		const parsed = JSON.parse(json) as { version?: string };
+		return typeof parsed.version === "string" ? parsed.version : null;
+	} catch {
+		return null;
+	}
 }

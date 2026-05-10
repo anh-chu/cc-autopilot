@@ -43,14 +43,16 @@ function cachePluginPath(wikiDir: string, installPath: string): void {
 	}
 }
 
-export async function POST() {
+export async function POST(request: Request) {
+	const url = new URL(request.url);
+	const forceUpdate = url.searchParams.get("force") === "true";
 	return applyWorkspaceContext(async (workspaceId) => {
 		try {
 			await initWikiDir(workspaceId);
 
 			const wikiDir = getWikiDir(workspaceId);
 			const workspaceDir = getWorkspaceDir(workspaceId);
-			const doUpdate = shouldUpdatePlugin(wikiDir);
+			const doUpdate = forceUpdate || shouldUpdatePlugin(wikiDir);
 			const plugin = ensureWikiPluginInstalledDetailed(workspaceDir, {
 				update: doUpdate,
 			});
