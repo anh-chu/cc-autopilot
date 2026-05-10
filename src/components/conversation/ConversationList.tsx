@@ -1,5 +1,6 @@
 "use client";
 
+import { Trash2 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { apiFetch } from "@/lib/api-client";
 import type { Conversation } from "@/lib/types";
@@ -12,6 +13,7 @@ interface ConversationListProps {
 	taskId?: string | null;
 	source?: string | null;
 	onConversationsChange?: (convs: Conversation[]) => void;
+	onConversationDeleted?: (id: string) => void;
 }
 
 export function ConversationList({
@@ -20,9 +22,11 @@ export function ConversationList({
 	taskId,
 	source,
 	onConversationsChange,
+	onConversationDeleted,
 }: ConversationListProps) {
 	const [conversations, setConversations] = useState<Conversation[]>([]);
 	const [isLoading, setIsLoading] = useState(true);
+	const [deletingId, setDeletingId] = useState<string | null>(null);
 
 	useEffect(() => {
 		const fetchConversations = async () => {
@@ -49,6 +53,26 @@ export function ConversationList({
 
 		fetchConversations();
 	}, [taskId, source, onConversationsChange]);
+
+	const handleDelete = async (e: React.MouseEvent, id: string) => {
+		e.stopPropagation();
+		setDeletingId(id);
+		try {
+			const res = await apiFetch(`/api/conversations/${id}`, {
+				method: "DELETE",
+			});
+			if (res.ok) {
+				const next = conversations.filter((c) => c.id !== id);
+				setConversations(next);
+				onConversationsChange?.(next);
+				onConversationDeleted?.(id);
+			}
+		} catch (err) {
+			console.error("Failed to delete conversation", err);
+		} finally {
+			setDeletingId(null);
+		}
+	};
 
 	const formatDate = (iso: string) => {
 		const d = new Date(iso);
@@ -77,7 +101,7 @@ export function ConversationList({
 							key={conv.id}
 							onClick={() => onSelect(conv.id)}
 							className={cn(
-								"p-3 border-b cursor-pointer hover:bg-muted/50 transition-colors",
+								"group relative p-3 border-b cursor-pointer hover:bg-muted/50 transition-colors",
 								currentId === conv.id && "bg-muted",
 							)}
 						>
@@ -85,9 +109,20 @@ export function ConversationList({
 								<span className="text-sm font-medium truncate flex-1">
 									{conv.title || "Untitled"}
 								</span>
-								<span className="text-[10px] text-muted-foreground whitespace-nowrap">
-									{formatDate(conv.updatedAt)}
-								</span>
+								<div className="flex items-center gap-1 shrink-0">
+									<span className="text-[10px] text-muted-foreground whitespace-nowrap">
+										{formatDate(conv.updatedAt)}
+									</span>
+									<button
+										type="button"
+										onClick={(e) => handleDelete(e, conv.id)}
+										disabled={deletingId === conv.id}
+										className="opacity-0 group-hover:opacity-100 p-0.5 rounded-sm text-muted-foreground hover:text-destructive transition-all"
+										title="Delete conversation"
+									>
+										<Trash2 className="h-3 w-3" />
+									</button>
+								</div>
 							</div>
 							<div className="flex items-center justify-between">
 								<ConversationStatusBadge status={conv.status} />

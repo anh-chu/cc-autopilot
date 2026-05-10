@@ -201,6 +201,10 @@ export function ChatSidebar({ open, onToggle, isMobile }: ChatSidebarProps) {
 									onSelect={setCurrentId}
 									source="chat"
 									onConversationsChange={setConversations}
+									onConversationDeleted={(id) => {
+										setConversations((prev) => prev.filter((c) => c.id !== id));
+										if (id === currentId) setCurrentId(null);
+									}}
 								/>
 							</PopoverContent>
 						</Popover>
