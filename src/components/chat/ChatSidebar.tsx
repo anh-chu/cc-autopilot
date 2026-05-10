@@ -107,6 +107,7 @@ export function ChatSidebar({ open, onToggle, isMobile }: ChatSidebarProps) {
 	}, [activeAgents, selectedAgentId]);
 
 	const handleSelectConversation = async (id: string) => {
+		setHistoryOpen(false);
 		if (id === currentId) return;
 		const outgoing = conversations.find((c) => c.id === currentId);
 		if (outgoing && outgoing.turnCount === 0) {
@@ -119,7 +120,6 @@ export function ChatSidebar({ open, onToggle, isMobile }: ChatSidebarProps) {
 				// best-effort, don't block the switch
 			}
 		}
-		setHistoryOpen(false);
 		setCurrentId(id);
 	};
 
