@@ -2,18 +2,10 @@
  * Node.js-only instrumentation logic.
  * Imported dynamically from instrumentation.ts to avoid Edge bundling.
  */
-import {
-	copyFileSync,
-	cpSync,
-	existsSync,
-	mkdirSync,
-	readFileSync,
-	unlinkSync,
-	writeFileSync,
-} from "node:fs";
+import { existsSync, readdirSync, unlinkSync } from "node:fs";
 import os from "node:os";
 import path from "node:path";
-import { createLogger } from "@/lib/logger";
+import { ensureWorkspaceDir } from "@/lib/data";
 import { DAEMON_PID_FILE } from "@/lib/paths";
 import {
 	runStartupRecovery,
@@ -25,72 +17,27 @@ import {
 const DATA_DIR = process.env.MANDIO_DATA_DIR
 	? path.resolve(process.env.MANDIO_DATA_DIR)
 	: path.join(os.homedir(), ".mandio");
-const appLogger = createLogger("app");
+// ─── Seed/ensure all workspaces ────────────────────────────────────────────
 
-// ─── Seed default workspace on fresh install ────────────────────────────────
+void (async () => {
+	// Ensure default workspace is fully seeded (idempotent, safe to call always)
+	await ensureWorkspaceDir("default");
 
-const wsDir = path.join(DATA_DIR, "workspaces", "default");
-const artifactsDir = path.join(
-	process.cwd(),
-	"artifacts",
-	"workspaces",
-	"default",
-);
-
-if (!existsSync(wsDir)) {
-	appLogger.info("startup", "Initializing workspace", {
-		workspaceId: "default",
-	});
-	mkdirSync(wsDir, { recursive: true });
-
-	if (existsSync(artifactsDir)) {
-		for (const file of [
-			"agents.json",
-			"skills-library.json",
-			"daemon-config.json",
-			"CLAUDE.md",
-		]) {
-			const src = path.join(artifactsDir, file);
-			if (existsSync(src)) {
-				copyFileSync(src, path.join(wsDir, file));
-				appLogger.info("startup", "Seeded workspace artifact", {
-					workspaceId: "default",
-					file,
-				});
+	// Ensure all existing workspace dirs are also seeded
+	const workspacesDir = path.join(DATA_DIR, "workspaces");
+	if (existsSync(workspacesDir)) {
+		const entries = readdirSync(workspacesDir, { withFileTypes: true });
+		for (const entry of entries) {
+			if (
+				entry.isDirectory() &&
+				!entry.name.startsWith(".") &&
+				entry.name !== "default"
+			) {
+				await ensureWorkspaceDir(entry.name);
 			}
 		}
-		const claudeSrc = path.join(artifactsDir, ".claude");
-		if (existsSync(claudeSrc)) {
-			cpSync(claudeSrc, path.join(wsDir, ".claude"), { recursive: true });
-			appLogger.info("startup", "Seeded workspace directory", {
-				workspaceId: "default",
-				directory: ".claude",
-			});
-		}
 	}
-
-	const emptySeeds: Record<string, unknown> = {
-		"tasks.json": { tasks: [] },
-		"tasks-archive.json": { tasks: [] },
-		"initiatives.json": { initiatives: [] },
-		"projects.json": { projects: [] },
-		"brain-dump.json": { entries: [] },
-		"activity-log.json": { events: [] },
-		"inbox.json": { messages: [] },
-		"decisions.json": { decisions: [] },
-		"active-runs.json": { runs: [] },
-	};
-	for (const [file, content] of Object.entries(emptySeeds)) {
-		const dest = path.join(wsDir, file);
-		if (!existsSync(dest)) {
-			writeFileSync(dest, JSON.stringify(content, null, 2), "utf-8");
-			appLogger.info("startup", "Seeded workspace data file", {
-				workspaceId: "default",
-				file,
-			});
-		}
-	}
-}
+})();
 
 // ─── Schedule uploads cleanup + autopilot poller ────────────────────────────
 
