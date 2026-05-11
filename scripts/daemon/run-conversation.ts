@@ -42,6 +42,7 @@ import {
 } from "./conversation-writer";
 import { logger } from "./logger";
 import { AgentRunner } from "./runner";
+import { enforcePromptLimit, fenceWorkspaceData } from "./security";
 import { getWorkspaceEnv } from "./workspace-env";
 
 const taskLogger = createLogger("conv", { sync: true });
@@ -56,6 +57,35 @@ const WORKSPACE_DIR = getWorkspaceDir(
 const STREAMS_DIR = path.join(WORKSPACE_DIR, "agent-streams");
 const AGENTS_FILE = path.join(WORKSPACE_DIR, "agents.json");
 const DECISIONS_FILE = path.join(WORKSPACE_DIR, "decisions.json");
+
+// ─── Workspace Context Preamble ─────────────────────────────────────────────
+
+const WORKSPACE_DATA_FILES = [
+	{ file: "tasks.json", purpose: "Task definitions and assignments" },
+	{ file: "agents.json", purpose: "Agent configurations" },
+	{ file: "projects.json", purpose: "Project definitions" },
+	{ file: "goals.json", purpose: "Goals and initiatives" },
+	{ file: "missions.json", purpose: "Mission run history" },
+	{ file: "inbox.json", purpose: "Inbox messages" },
+	{ file: "decisions.json", purpose: "Decision requests and resolutions" },
+	{ file: "activity-log.json", purpose: "Activity log entries" },
+	{ file: "brain-dump.json", purpose: "Brain dump entries" },
+];
+
+function buildWorkspacePreamble(): string {
+	const lines: string[] = [];
+	lines.push("Workspace directory: " + WORKSPACE_DIR);
+	lines.push("");
+	lines.push("Data files:");
+	for (const { file, purpose } of WORKSPACE_DATA_FILES) {
+		lines.push("  - " + file + " — " + purpose);
+	}
+	lines.push("");
+	lines.push(
+		"Type definitions: src/lib/types.ts contains TypeScript interfaces for all data models.",
+	);
+	return lines.join("\n");
+}
 
 // ─── Stream Tail (inline — refactored from run-task.ts) ────────────────────
 
@@ -272,12 +302,20 @@ async function main() {
 		`[TIMING ${_ms()}] startConversationForTask done (runId: ${convCtx?.runId})`,
 	);
 
-	// 7. Build prompt: latest user turn's content
+	// 7. Build prompt: latest user turn's content + workspace preamble
 	const lastUserTurn = [...turns].reverse().find((t) => t.role === "user");
-	const prompt = lastUserTurn?.content ?? "";
-	if (!prompt) {
-		logger.warn("run-conv", "No user turn found — sending empty prompt");
+	const rawPrompt = lastUserTurn?.content ?? "";
+	if (!rawPrompt) {
+		logger.warn(
+			"run-conv",
+			"No user turn found — sending preamble-only prompt",
+		);
 	}
+
+	const preamble = buildWorkspacePreamble();
+	const prompt = enforcePromptLimit(
+		fenceWorkspaceData(preamble) + "\n\n" + rawPrompt,
+	);
 
 	// 8. Resolve agent config
 	const config = loadConfig();

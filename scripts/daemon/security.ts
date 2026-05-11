@@ -43,6 +43,23 @@ export function fenceTaskData(taskData: string): string {
 }
 
 /**
+ * Escape content that could break out of the workspace-context fence.
+ * Replaces closing fence tags within the content to prevent injection.
+ */
+export function escapeWorkspaceFenceContent(content: string): string {
+	return content.replace(/<\/workspace-context>/gi, "<\\/workspace-context>");
+}
+
+/**
+ * Wrap workspace metadata in delimiters to structurally separate it from
+ * the user's message. Mirrors fenceTaskData() for the workspace context path.
+ */
+export function fenceWorkspaceData(data: string): string {
+	const escaped = escapeWorkspaceFenceContent(data);
+	return `<workspace-context>\n${escaped}\n</workspace-context>`;
+}
+
+/**
  * Enforce maximum prompt length to prevent context stuffing.
  */
 export function enforcePromptLimit(prompt: string): string {
