@@ -241,6 +241,7 @@ export type EventType =
 	| "decision_requested"
 	| "decision_answered"
 	| "brain_dump_triaged"
+	| "milestone_completed"
 	| "agent_checkin";
 
 export interface ActivityEvent {
