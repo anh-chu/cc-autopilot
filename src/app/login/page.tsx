@@ -1,8 +1,8 @@
 "use client";
 
-import { useSearchParams } from "next/navigation";
-import { signIn } from "next-auth/react";
-import { Suspense } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { signIn, useSession } from "next-auth/react";
+import { Suspense, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import {
 	Card,
@@ -21,6 +21,16 @@ const errorMessages: Record<string, string> = {
 function LoginForm() {
 	const searchParams = useSearchParams();
 	const error = searchParams.get("error");
+	const { data: session, status } = useSession();
+	const router = useRouter();
+
+	useEffect(() => {
+		if (session) {
+			router.replace("/");
+		}
+	}, [session, router]);
+
+	if (status === "loading" || session) return null;
 
 	return (
 		<div className="flex flex-col items-center justify-center min-h-screen px-6">

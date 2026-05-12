@@ -55,8 +55,17 @@ export const proxy = auth((req) => {
 		}
 	}
 
-	// Auth.js session is already verified by the auth wrapper.
-	// Session data available at req.auth if needed.
+	// ── Auth check ──
+	if (
+		!req.auth &&
+		pathname !== "/login" &&
+		!pathname.startsWith("/api/auth/") &&
+		pathname !== "/api/server-status"
+	) {
+		return finalize(
+			NextResponse.redirect(new URL("/login", req.nextUrl.origin)),
+		);
+	}
 
 	return finalize(NextResponse.next({ request: { headers: requestHeaders } }));
 });
