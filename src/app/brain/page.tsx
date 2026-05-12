@@ -215,6 +215,7 @@ export default function BrainPage() {
 	const [rootLoaded, setRootLoaded] = useState(false);
 	const [rootLoading, setRootLoading] = useState(false);
 	const rootLoadingRef = useRef(false);
+	const [refreshingTree, setRefreshingTree] = useState(false);
 
 	const [uploading, setUploading] = useState(false);
 	const [uploadError, setUploadError] = useState<string | null>(null);
@@ -234,6 +235,7 @@ export default function BrainPage() {
 		nodeType: "file" | "app";
 	} | null>(null);
 	const [appFullscreen, setAppFullscreen] = useState(false);
+	const [appKey, setAppKey] = useState(0);
 	const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
 	const [fileContent, setFileContent] = useState<string | null>(null);
 	const [fileLoading, setFileLoading] = useState(false);
@@ -319,6 +321,61 @@ export default function BrainPage() {
 			);
 		}
 	}, []);
+
+	// Collect all expanded folder paths from the tree
+	const collectExpandedPaths = useCallback((nodes: TreeNode[]): string[] => {
+		const paths: string[] = [];
+		for (const n of nodes) {
+			if (n.type === "dir" && n.expanded && n.children) {
+				paths.push(n.path);
+				paths.push(...collectExpandedPaths(n.children));
+			}
+		}
+		return paths;
+	}, []);
+
+	// Refresh entire tree: reload root + all expanded folders
+	const refreshTree = useCallback(async () => {
+		setRefreshingTree(true);
+		try {
+			const expandedPaths = collectExpandedPaths(roots);
+			const fresh = await fetchDir("");
+			setRoots(fresh);
+			// Re-expand previously open folders
+			for (const p of expandedPaths) {
+				const dirFresh = await fetchDir(p);
+				setRoots((prev) =>
+					updateNodes(prev, p, (n) => ({
+						...n,
+						children: dirFresh,
+						expanded: true,
+					})),
+				);
+			}
+		} finally {
+			setRefreshingTree(false);
+		}
+	}, [roots, collectExpandedPaths]);
+
+	// Refresh the currently open file in the viewer
+	const refreshViewer = useCallback(async () => {
+		if (!openFile) return;
+		const kind = viewerKindFor(openFile.name, openFile.nodeType);
+		if (!["editor", "text"].includes(kind)) return;
+		setFileLoading(true);
+		try {
+			const res = await fetch(
+				`/api/wiki/content?path=${encodeURIComponent(openFile.path)}`,
+			);
+			if (res.ok) {
+				const d: { content: string } = await res.json();
+				setFileContent(d.content);
+			}
+		} catch {
+			/* ignore */
+		}
+		setFileLoading(false);
+	}, [openFile]);
 
 	async function toggleFolder(node: TreeNode) {
 		if (node.type !== "dir") return;
@@ -831,6 +888,20 @@ export default function BrainPage() {
 									size="sm"
 									variant="ghost"
 									className="h-7 w-7 p-0"
+									title="Refresh tree"
+									onClick={refreshTree}
+									disabled={refreshingTree}
+								>
+									{refreshingTree ? (
+										<Loader2 className="h-3.5 w-3.5 animate-spin" />
+									) : (
+										<RefreshCw className="h-3.5 w-3.5" />
+									)}
+								</Button>
+								<Button
+									size="sm"
+									variant="ghost"
+									className="h-7 w-7 p-0"
 									title="New root folder"
 									onClick={() => {
 										setNewFolderParent("");
@@ -1067,6 +1138,15 @@ export default function BrainPage() {
 											<Button
 												size="sm"
 												variant="ghost"
+												className="h-7 w-7 p-0"
+												title="Refresh app"
+												onClick={() => setAppKey((k) => k + 1)}
+											>
+												<RefreshCw className="h-3.5 w-3.5" />
+											</Button>
+											<Button
+												size="sm"
+												variant="ghost"
 												className="h-7 gap-1.5 text-xs"
 												onClick={() => setAppFullscreen(true)}
 											>
@@ -1083,7 +1163,11 @@ export default function BrainPage() {
 											</Button>
 										</div>
 									</div>
-									<WebsiteViewer path={openFile.path} title={openFile.name} />
+									<WebsiteViewer
+										key={appKey}
+										path={openFile.path}
+										title={openFile.name}
+									/>
 								</Card>
 							)
 						) : (
@@ -1122,6 +1206,24 @@ export default function BrainPage() {
 													}}
 												>
 													<Pencil className="h-3.5 w-3.5" />
+												</Button>
+											)}
+										{isText(openFile.name) &&
+											!editing &&
+											fileContent !== null && (
+												<Button
+													size="sm"
+													variant="ghost"
+													className="h-7 w-7 p-0"
+													title="Refresh"
+													onClick={refreshViewer}
+													disabled={fileLoading}
+												>
+													{fileLoading ? (
+														<Loader2 className="h-3.5 w-3.5 animate-spin" />
+													) : (
+														<RefreshCw className="h-3.5 w-3.5" />
+													)}
 												</Button>
 											)}
 										<Button
