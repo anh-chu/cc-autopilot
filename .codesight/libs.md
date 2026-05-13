@@ -11,10 +11,17 @@
   - function writeActiveRuns: (filePath, data) => void
   - interface ActiveRunEntry
 - `scripts/daemon/config.ts` — function loadConfig: (workspaceId) => DaemonConfig, function saveConfig: (config, workspaceId) => void
+- `scripts/daemon/conversation-writer.ts`
+  - function __resetWriterState: () => void
+  - function startConversationForTask: (params) => Promise<ConversationContext>
+  - function attachPidToRun: (ctx, pid) => Promise<void>
+  - function appendUserTurn: (ctx, content) => Promise<void>
+  - function pauseForDecision: (ctx, decisionId, reason, claudeSessionId) => Promise<void>
+  - function completeConversation: (ctx, result) => Promise<void>
+  - _...5 more_
 - `scripts/daemon/data-io.ts` — function readJSON: (filePath) => T | null
 - `scripts/daemon/prompt-builder.ts`
   - function buildTaskPrompt: (agentId, task, missionId?, workspaceId) => string
-  - function buildScheduledPrompt: (command, workspaceId) => string
   - function getTask: (taskId) => TaskDef | null
   - function getPendingTasks: () => TaskDef[]
   - function isTaskUnblocked: (task) => boolean
@@ -39,6 +46,12 @@
 - `scripts/daemon/workspace-env.ts` — function getWorkspaceEnv: (workspaceId) => Record<string, string>
 - `src/hooks/use-active-runs.ts` — function useActiveRuns: () => void
 - `src/hooks/use-connection.ts` — function useConnection: () => void
+- `src/hooks/use-conversation-stream.ts`
+  - function conversationReducer: (state, action) => ConversationReducerState
+  - function useConversationStream: (conversationId) => ConversationStreamState &
+  - interface ConversationReducerState
+  - interface ConversationStreamState
+  - const initialReducerState: ConversationReducerState
 - `src/hooks/use-daemon.ts` — function useDaemon: () => DaemonData
 - `src/hooks/use-data.ts`
   - function useTasks: () => void
@@ -59,21 +72,9 @@
 - `src/instrumentation.ts` — function register: () => void
 - `src/lib/agent-icons.ts` — function getAgentIcon: (agentId, iconName?) => LucideIcon
 - `src/lib/api-client.ts` — function apiFetch: (url, init?) => Promise<Response>, interface ApiFetchInit
-- `src/lib/cabinets/tree.ts`
-  - function findRootCabinetNode: (nodes) => TreeNode | null
-  - function findNodeByPath: (nodes, path) => TreeNode | null
-  - function findDeepestCabinetNode: (nodes, targetPath) => TreeNode | null
-  - function findParentCabinetNode: (nodes, cabinetPath, cabinetAncestor) => TreeNode | null
-- `src/lib/chat-sessions.ts`
-  - function listSessions: (workspaceId, context?) => SessionEntry[]
-  - function getCurrentSession: (workspaceId, context?) => SessionEntry | null
-  - function createSession: (workspaceId, context?) => SessionEntry
-  - function setCurrentSession: (workspaceId, context, id) => SessionEntry | null
-  - function clearCurrentSession: (workspaceId, context) => void
-  - function updateSession: (workspaceId, context, id, patch) => SessionEntry | null
-  - _...6 more_
+- `src/lib/auth-guards.ts` — function requireSession: () => Promise<Response | null>
+- `src/lib/auth-paths.ts` — function isPublicPath: (pathname) => boolean
 - `src/lib/claude-sdk.ts` — function resolveClaudeExecutable: () => string | null
-- `src/lib/claude-session-log.ts` — function getSessionLogPath: (cwd, sessionId) => string, function readSessionMessages: (cwd, sessionId) => UIMessage[]
 - `src/lib/command-activation.ts`
   - function activateCommand: (workspaceId, commandId) => Promise<void>
   - function deactivateCommand: (workspaceId, commandId) => Promise<void>
@@ -90,24 +91,33 @@
   - function writeCommandFile: (cmdDir, cmd, "createdAt" | "updatedAt">) => Promise<void>
   - function listCommandIds: (baseDir) => Promise<string[]>
   - _...5 more_
+- `src/lib/command-prompt.ts`
+  - function buildScheduledTask: (command, description, agentId?) => void
+  - function loadCommandPrompt: (command, workspaceId) => CommandPromptResult
+  - interface CommandPromptResult
+- `src/lib/conversation-event-bus.ts`
+  - function emitLocal: (event) => void
+  - function subscribeLocal: (conversationId, listener) => void
+  - function subscribe: (conversationId, listener) => void
+  - function publishAndEmit: (event, "ts" | "seq">) => Promise<ConversationEvent>
+  - function _watcherCount: () => number
+  - function _clearWatchers: () => void
+- `src/lib/conversations.ts`
+  - function setConversationsWorkspace: (id) => void
+  - function turnsFilePath: (conversationId) => string
+  - function eventsFilePath: (conversationId) => string
+  - function seqFilePath: (conversationId) => string
+  - function ensureConversationDir: (conversationId) => Promise<void>
+  - function getConversationsFile: () => Promise<ConversationsFile>
+  - _...23 more_
 - `src/lib/data.ts`
-  - function setCurrentWorkspace: (id) => void
   - function ensureSkillsMigrated: (workspaceId) => Promise<void>
   - function getWorkspaceDataDir: (workspaceId) => string
   - function ensureWorkspaceDir: (workspaceId) => Promise<void>
   - function initWikiDir: (workspaceId) => Promise<void>
   - function ensureDocMaintainerAgentForWorkspace: (workspaceId) => Promise<void>
-  - _...33 more_
-- `src/lib/embeds/detect.ts`
-  - function detectEmbed: (raw) => DetectedEmbed | null
-  - function providerLabel: (p) => string
-  - interface DetectedEmbed
-  - type EmbedProvider
-- `src/lib/google/detect.ts`
-  - function detectGoogle: (rawUrl) => GoogleLink | null
-  - function googleKindLabel: (kind) => string
-  - interface GoogleLink
-  - type GoogleKind
+  - function getTasks: () => Promise<TasksFile>
+  - _...32 more_
 - `src/lib/json-io.ts` — function readJSON: (file) => T | null, function writeJSON: (file, data) => void
 - `src/lib/log-reader.ts`
   - function isAllowedLogPath: (filePath) => boolean
@@ -117,9 +127,6 @@
   - function createLogger: (processName, opts) => Logger
   - interface Logger
   - type LogLevel
-- `src/lib/markdown/parse-frontmatter.ts` — function parseFrontmatter: (text) => ParsedFrontmatter, interface ParsedFrontmatter
-- `src/lib/markdown/to-html.ts` — function markdownToHtml: (markdown, pagePath?) => Promise<string>
-- `src/lib/markdown/to-markdown.ts` — function htmlToMarkdown: (html) => string
 - `src/lib/paginate.ts`
   - function parsePaginationParams: (searchParams) => PaginationParams
   - function paginateItems: (items, {...}, offset }, total) => PaginatedResult<T>
@@ -171,7 +178,7 @@
   - interface AgentsFile
   - interface SkillDefinition
   - interface LegacySkillDefinition
-  - _...45 more_
+  - _...75 more_
 - `src/lib/utils.ts`
   - function cn: (...inputs) => void
   - function generateId: (prefix) => string
@@ -186,15 +193,18 @@
   - _...21 more_
 - `src/lib/wiki-helpers.ts` — function isAppFolder: (wikiDir, relPath) => Promise<boolean>
 - `src/lib/wiki-plugin.ts`
+  - function compareVersions: (a, b) => number
   - function getPluginStatus: (cwd) => void
   - function ensureWikiPluginInstalledDetailed: (cwd, options?) => WikiPluginInstall
   - function ensureWikiBootstrappedFromPlugin: (wikiDir, pluginInstallPath, domain, options?) => WikiBootstrapResult
   - function reconcileWikiWithPlugin: (wikiDir, pluginInstallPath) => WikiReconcileResult
-  - interface WikiPluginInstall
-  - interface WikiBootstrapResult
-  - _...3 more_
-- `src/lib/workspace-context.ts` — function applyWorkspaceContext: () => Promise<string>
-- `src/proxy.ts` — function proxy: (request) => void, const config
+  - function getLatestAvailableVersion: () => string | null
+  - _...5 more_
+- `src/lib/workspace-context.ts` — function GET: () => void, function applyWorkspaceContext: (fn) => void
+- `src/lib/workspace-store.ts`
+  - function getWorkspaceId: () => string
+  - function setFallbackWorkspaceId: (id) => void
+  - const workspaceStore
 - `src/stores/editor-store.ts`
   - class FetchPageError
   - type LoadStatus
