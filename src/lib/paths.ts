@@ -13,7 +13,7 @@ let __dirname: string;
 try {
 	__dirname = path.dirname(fileURLToPath(import.meta.url));
 } catch {
-	__dirname = process.cwd();
+	__dirname = /*turbopackIgnore: true*/ process.cwd();
 }
 
 /**
@@ -116,7 +116,7 @@ export function getBaseDir(): string {
 		return packageRoot;
 	}
 	// fallback to current working directory
-	return process.cwd();
+	return /*turbopackIgnore: true*/ process.cwd();
 }
 
 /** Global skills store: ~/.mandio/artifacts/skills/ */
