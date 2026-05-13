@@ -13,7 +13,7 @@
  *   6. Logs an activity event
  */
 
-import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
+import { mkdirSync, readFileSync } from "node:fs";
 import path from "node:path";
 import {
 	mutateActivityLog,
@@ -41,8 +41,6 @@ const WORKSPACE_DIR = getWorkspaceDir(
 const TASKS_FILE = path.join(WORKSPACE_DIR, "tasks.json");
 const AGENTS_FILE = path.join(WORKSPACE_DIR, "agents.json");
 const SKILLS_FILE = path.join(WORKSPACE_DIR, "skills-library.json");
-const INBOX_FILE = path.join(WORKSPACE_DIR, "inbox.json");
-const ACTIVITY_LOG_FILE = path.join(WORKSPACE_DIR, "activity-log.json");
 const ACTIVE_RUNS_FILE = path.join(WORKSPACE_DIR, "active-runs.json");
 const STREAMS_DIR = path.join(WORKSPACE_DIR, "agent-streams");
 

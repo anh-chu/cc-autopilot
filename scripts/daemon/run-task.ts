@@ -26,10 +26,7 @@ import {
 	mutateTasks,
 } from "../../src/lib/data";
 import { createLogger } from "../../src/lib/logger";
-import {
-	setFallbackWorkspaceId,
-	workspaceStore,
-} from "../../src/lib/workspace-store";
+import { setFallbackWorkspaceId } from "../../src/lib/workspace-store";
 
 // ESM shim for __dirname (package.json has "type": "module").
 const __filename = fileURLToPath(import.meta.url);
@@ -78,8 +75,6 @@ const ACTIVE_RUNS_FILE = path.join(WORKSPACE_DIR, "active-runs.json");
 const STREAMS_DIR = path.join(WORKSPACE_DIR, "agent-streams");
 const TASKS_FILE = path.join(WORKSPACE_DIR, "tasks.json");
 const AGENTS_FILE = path.join(WORKSPACE_DIR, "agents.json");
-const INBOX_FILE = path.join(WORKSPACE_DIR, "inbox.json");
-const ACTIVITY_LOG_FILE = path.join(WORKSPACE_DIR, "activity-log.json");
 const MISSIONS_FILE = path.join(WORKSPACE_DIR, "missions.json");
 const DECISIONS_FILE = path.join(WORKSPACE_DIR, "decisions.json");
 
@@ -488,15 +483,8 @@ const MAX_LOOP_ATTEMPTS = 3; // After this many failures, create a decision poin
 /**
  * Post a mission completion/stalled report to inbox.json.
  */
-function postProjectRunReport(mission: ProjectRun): void {
+async function postProjectRunReport(mission: ProjectRun): Promise<void> {
 	try {
-		const inboxRaw = existsSync(INBOX_FILE)
-			? readFileSync(INBOX_FILE, "utf-8")
-			: '{"messages":[]}';
-		const inboxData = JSON.parse(inboxRaw) as {
-			messages: Array<Record<string, unknown>>;
-		};
-
 		const isComplete = mission.status === "completed";
 		const subject = isComplete
 			? `Mission complete: ${mission.completedTasks}/${mission.totalTasks} tasks done`
@@ -555,20 +543,20 @@ function postProjectRunReport(mission: ProjectRun): void {
 			);
 		}
 
-		inboxData.messages.push({
-			id: `msg_${Date.now()}`,
-			from: "system",
-			to: "me",
-			type: "report",
-			taskId: null,
-			subject,
-			body: lines.join("\n"),
-			status: "unread",
-			createdAt: new Date().toISOString(),
-			readAt: null,
+		await mutateInbox(async (data) => {
+			data.messages.push({
+				id: `msg_${Date.now()}`,
+				from: "system",
+				to: "me",
+				type: "report",
+				taskId: null,
+				subject,
+				body: lines.join("\n"),
+				status: "unread",
+				createdAt: new Date().toISOString(),
+				readAt: null,
+			});
 		});
-
-		writeFileSync(INBOX_FILE, JSON.stringify(inboxData, null, 2), "utf-8");
 		logger.info(
 			"run-task",
 			`Posted mission ${isComplete ? "completion" : "stalled"} report to inbox`,
@@ -701,7 +689,7 @@ function checkLoopAndEscalate(
  * After a task finishes (success, fail, or timeout), check if the mission
  * should continue and dispatch the next batch of tasks.
  */
-function handleProjectRunContinuation(
+async function handleProjectRunContinuation(
 	missionId: string,
 	completedTaskId: string,
 	taskResult: {
@@ -711,7 +699,7 @@ function handleProjectRunContinuation(
 		taskTitle: string;
 		errorMsg: string;
 	},
-): void {
+): Promise<void> {
 	const missionsData = readProjectRuns();
 	const mission = missionsData.missions.find((m) => m.id === missionId);
 	if (!mission) return;
@@ -790,7 +778,7 @@ function handleProjectRunContinuation(
 		mission.completedAt = new Date().toISOString();
 		writeProjectRuns(missionsData);
 		logger.info("run-task", `Mission ${missionId} COMPLETED. All tasks done.`);
-		postProjectRunReport(mission);
+		await postProjectRunReport(mission);
 		return;
 	}
 
@@ -908,7 +896,7 @@ function handleProjectRunContinuation(
 				"run-task",
 				`Mission ${missionId}: STALLED — ${remaining.length} tasks remain but none dispatchable (blocked: ${hasBlockedTasks}, decisions: ${hasDecisionTasks}, loop-limit: ${hasLoopLimitTasks})`,
 			);
-			postProjectRunReport(mission);
+			await postProjectRunReport(mission);
 		}
 	}
 }
@@ -1724,29 +1712,20 @@ This is session ${continuationIndex + 1}. Previous session(s) ran out of turns o
 				);
 				const toolName = toolMatch?.[1] ?? "unknown tool";
 				try {
-					const inboxRaw = existsSync(INBOX_FILE)
-						? readFileSync(INBOX_FILE, "utf-8")
-						: '{"messages":[]}';
-					const inboxData = JSON.parse(inboxRaw) as {
-						messages: Array<Record<string, unknown>>;
-					};
-					inboxData.messages.push({
-						id: `msg_${Date.now()}`,
-						from: "system",
-						to: "me",
-						type: "report",
-						taskId,
-						subject: `Tool permission blocked: ${task.title}`,
-						body: `Agent "${task.assignedTo}" was denied permission for tool "${toolName}". Add it to the agent's Allowed Tools at /agents/${task.assignedTo} to prevent this in future runs.`,
-						status: "unread",
-						createdAt: new Date().toISOString(),
-						readAt: null,
+					await mutateInbox(async (data) => {
+						data.messages.push({
+							id: `msg_${Date.now()}`,
+							from: "system",
+							to: "me",
+							type: "report",
+							taskId,
+							subject: `Tool permission blocked: ${task.title}`,
+							body: `Agent "${task.assignedTo}" was denied permission for tool "${toolName}". Add it to the agent's Allowed Tools at /agents/${task.assignedTo} to prevent this in future runs.`,
+							status: "unread",
+							createdAt: new Date().toISOString(),
+							readAt: null,
+						});
 					});
-					writeFileSync(
-						INBOX_FILE,
-						JSON.stringify(inboxData, null, 2),
-						"utf-8",
-					);
 					logger.info(
 						"run-task",
 						`Posted tool permission failure message for task ${taskId} (tool: ${toolName})`,
@@ -1763,7 +1742,7 @@ This is session ${continuationIndex + 1}. Previous session(s) ran out of turns o
 		// Chain dispatch: if this task is part of a mission, continue to next batch
 		if (missionId) {
 			try {
-				handleProjectRunContinuation(missionId, taskId, {
+				await handleProjectRunContinuation(missionId, taskId, {
 					status: finalStatus,
 					summary: extractSummary(result.stdout),
 					agentId: task.assignedTo,
@@ -1818,7 +1797,7 @@ This is session ${continuationIndex + 1}. Previous session(s) ran out of turns o
 		// Still try mission continuation on failure
 		if (missionId) {
 			try {
-				handleProjectRunContinuation(missionId, taskId, {
+				await handleProjectRunContinuation(missionId, taskId, {
 					status: "failed",
 					summary: "(execution error)",
 					agentId: task.assignedTo,
