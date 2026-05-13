@@ -35,9 +35,14 @@ export function assertSafeId(id: string): void {
  * Root directory for all Mandio runtime data.
  * Defaults to ~/.mandio — override with MANDIO_DATA_DIR env var.
  */
+const FALLBACK_DATA_DIR =
+	process.env.NODE_ENV === "test" || process.env.VITEST
+		? path.join(os.tmpdir(), "mandio-vitest")
+		: path.join(os.homedir(), ".mandio");
+
 export const DATA_DIR: string = process.env.MANDIO_DATA_DIR
 	? path.resolve(process.env.MANDIO_DATA_DIR)
-	: path.join(os.homedir(), ".mandio");
+	: FALLBACK_DATA_DIR;
 
 /**
  * Process-global daemon paths.

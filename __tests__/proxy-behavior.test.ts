@@ -42,6 +42,7 @@ function mockRequest(options?: {
 
 	return {
 		method,
+		url: `${origin}${pathname}${search}`,
 		nextUrl: {
 			pathname,
 			search,

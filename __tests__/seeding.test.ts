@@ -1,5 +1,5 @@
 import { existsSync } from "node:fs";
-import { readFile, rm } from "node:fs/promises";
+import { readFile, rm, writeFile } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import { afterAll, describe, expect, it } from "vitest";
@@ -9,7 +9,7 @@ import { ensureWorkspaceDir, getWorkspaceDataDir } from "@/lib/data";
 const TEST_WS_ID = `test-seed-${Date.now()}`;
 const DATA_DIR = process.env.MANDIO_DATA_DIR
 	? path.resolve(process.env.MANDIO_DATA_DIR)
-	: path.join(os.homedir(), ".mandio");
+	: path.join(os.tmpdir(), "mandio-vitest");
 const WS_DIR = path.join(DATA_DIR, "workspaces", TEST_WS_ID);
 
 afterAll(async () => {
@@ -110,8 +110,7 @@ describe("ensureWorkspaceDir", () => {
 		// Write a known value to tasks.json
 		const marker = JSON.stringify({ tasks: [{ id: "marker_task" }] });
 		const fp = path.join(WS_DIR, "tasks.json");
-		const { writeFile: wf } = await import("node:fs/promises");
-		await wf(fp, marker, "utf-8");
+		await writeFile(fp, marker, "utf-8");
 
 		// Re-run seeding
 		await ensureWorkspaceDir(TEST_WS_ID);
@@ -120,6 +119,53 @@ describe("ensureWorkspaceDir", () => {
 		const raw = await readFile(fp, "utf-8");
 		const data = JSON.parse(raw);
 		expect(data.tasks[0].id).toBe("marker_task");
+	});
+
+	it("restores missing default agents without overwriting existing agents", async () => {
+		const partialWsId = `${TEST_WS_ID}-partial-agents`;
+		const partialWsDir = path.join(DATA_DIR, "workspaces", partialWsId);
+		await rm(partialWsDir, { recursive: true, force: true });
+		await ensureWorkspaceDir(partialWsId);
+
+		const fp = path.join(partialWsDir, "agents.json");
+		await writeFile(
+			fp,
+			JSON.stringify(
+				{
+					agents: [
+						{
+							id: "doc-maintainer",
+							name: "Custom Doc Maintainer",
+							icon: "BookOpen",
+							description: "Custom description",
+							instructions: "Custom instructions",
+							skillIds: [],
+							status: "active",
+							createdAt: "2026-05-01T00:00:00.000Z",
+							updatedAt: "2026-05-01T00:00:00.000Z",
+						},
+					],
+				},
+				null,
+				2,
+			),
+			"utf-8",
+		);
+
+		await ensureWorkspaceDir(partialWsId);
+
+		const raw = await readFile(fp, "utf-8");
+		const data = JSON.parse(raw);
+		const ids = data.agents.map((agent: { id: string }) => agent.id);
+		expect(ids).toContain("me");
+		expect(ids).toContain("developer");
+		expect(ids).toContain("researcher");
+		expect(
+			data.agents.find((agent: { id: string }) => agent.id === "doc-maintainer")
+				.name,
+		).toBe("Custom Doc Maintainer");
+
+		await rm(partialWsDir, { recursive: true, force: true });
 	});
 
 	it("getWorkspaceDataDir returns correct path", () => {

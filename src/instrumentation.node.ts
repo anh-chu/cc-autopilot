@@ -14,9 +14,14 @@ import {
 	scheduleUploadsCleanup,
 } from "@/lib/scheduled-jobs";
 
+const FALLBACK_DATA_DIR =
+	process.env.NODE_ENV === "test" || process.env.VITEST
+		? path.join(os.tmpdir(), "mandio-vitest")
+		: path.join(os.homedir(), ".mandio");
+
 const DATA_DIR = process.env.MANDIO_DATA_DIR
 	? path.resolve(process.env.MANDIO_DATA_DIR)
-	: path.join(os.homedir(), ".mandio");
+	: FALLBACK_DATA_DIR;
 // ─── Seed/ensure all workspaces ────────────────────────────────────────────
 
 void (async () => {

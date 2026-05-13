@@ -1,7 +1,8 @@
 import { mkdir, rm, writeFile } from "node:fs/promises";
+import os from "node:os";
 import path from "node:path";
 
-const TEST_DATA_DIR = path.join(__dirname, "..", ".test-data");
+const TEST_DATA_DIR = path.join(os.tmpdir(), "mandio-vitest");
 const WORKSPACE_DIR = path.join(TEST_DATA_DIR, "workspaces", "default");
 
 // Files needed by src/lib/data.ts (workspace-scoped reads)

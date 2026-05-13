@@ -32,7 +32,7 @@
 - `TEMP` **required** — scripts/daemon/security.ts
 - `TMP` **required** — scripts/daemon/security.ts
 - `USERPROFILE` **required** — scripts/daemon/runner.ts
-- `VITEST` **required** — scripts/daemon/runner.ts
+- `VITEST` **required** — bin/bootstrap.ts
 - `WINDIR` **required** — scripts/daemon/security.ts
 
 ## Config Files

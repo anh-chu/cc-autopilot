@@ -124,6 +124,40 @@ async function seedFile(
 	}
 }
 
+async function ensureDefaultAgentsSeeded(workspaceId: string): Promise<void> {
+	const agentsPath = path.join(getWorkspaceDataDir(workspaceId), "agents.json");
+	const artifactPath = path.join(getArtifactsDir(), "agents.json");
+	if (!existsSync(artifactPath)) return;
+
+	await fileMutexes.agents.runExclusive(async () => {
+		let current: AgentsFile;
+		let defaults: AgentsFile;
+		try {
+			const [currentRaw, defaultsRaw] = await Promise.all([
+				readFile(agentsPath, "utf-8"),
+				readFile(artifactPath, "utf-8"),
+			]);
+			current = JSON.parse(currentRaw) as AgentsFile;
+			defaults = JSON.parse(defaultsRaw) as AgentsFile;
+		} catch (err) {
+			console.warn(
+				`[data] Failed to seed default agents for workspace ${workspaceId}:`,
+				err,
+			);
+			return;
+		}
+
+		const existingIds = new Set(current.agents.map((agent) => agent.id));
+		const missingDefaults = defaults.agents.filter(
+			(agent) => !existingIds.has(agent.id),
+		);
+		if (missingDefaults.length === 0) return;
+
+		current.agents.unshift(...missingDefaults);
+		await writeFile(agentsPath, JSON.stringify(current, null, 2), "utf-8");
+	});
+}
+
 export async function ensureWorkspaceDir(workspaceId: string): Promise<void> {
 	const wsDir = getWorkspaceDataDir(workspaceId);
 	await mkdir(wsDir, { recursive: true });
@@ -163,6 +197,7 @@ export async function ensureWorkspaceDir(workspaceId: string): Promise<void> {
 			seedFile(path.join(wsDir, name), artifact ?? null, fallback),
 		),
 	);
+	await ensureDefaultAgentsSeeded(workspaceId);
 
 	// Copy CLAUDE.md from artifacts if available
 	const claudeMdSrc = path.join(getArtifactsDir(), "CLAUDE.md");

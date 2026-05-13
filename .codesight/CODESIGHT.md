@@ -4,7 +4,7 @@
 
 > 102 routes | 0 models | 119 components | 63 lib files | 32 env vars | 7 middleware | 2 events | 15% test coverage
 > **Token savings:** this file is ~9,900 tokens. Without it, AI exploration would cost ~123,600 tokens. **Saves ~113,700 tokens per conversation.**
-> **Last scanned:** 2026-05-13 17:45 — re-run after significant changes
+> **Last scanned:** 2026-05-13 17:58 — re-run after significant changes
 
 ---
 
@@ -474,7 +474,7 @@
 - `TEMP` **required** — scripts/daemon/security.ts
 - `TMP` **required** — scripts/daemon/security.ts
 - `USERPROFILE` **required** — scripts/daemon/runner.ts
-- `VITEST` **required** — scripts/daemon/runner.ts
+- `VITEST` **required** — bin/bootstrap.ts
 - `WINDIR` **required** — scripts/daemon/security.ts
 
 ## Config Files
@@ -558,7 +558,7 @@
 # Test Coverage
 
 > **15%** of routes and models are covered by tests
-> 20 test files found
+> 21 test files found
 
 ## Covered Routes
 

@@ -6,7 +6,7 @@ import path from "node:path";
 // that data.ts reads and writes during tests.
 const MANDIO_DATA_DIR = process.env.MANDIO_DATA_DIR
 	? path.resolve(process.env.MANDIO_DATA_DIR)
-	: path.join(os.homedir(), ".mandio");
+	: path.join(os.tmpdir(), "mandio-vitest");
 const WORKSPACE_DIR = path.join(MANDIO_DATA_DIR, "workspaces", "default");
 
 // Backup and restore data files for test isolation

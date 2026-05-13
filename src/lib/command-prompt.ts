@@ -1,6 +1,6 @@
 import { existsSync, lstatSync, readFileSync } from "node:fs";
 import path from "node:path";
-import { getWorkspaceDir } from "./paths";
+import { getGlobalCommandsDir, getWorkspaceDir } from "./paths";
 import { generateId } from "./utils";
 
 function getFirstActiveAgentId(): string {
@@ -24,12 +24,7 @@ function getFirstActiveAgentId(): string {
 }
 
 const COMMANDS_DIR = path.join(process.cwd(), ".claude", "commands");
-const GLOBAL_COMMANDS_DIR = path.join(
-	process.env.HOME ?? process.env.USERPROFILE ?? "/tmp",
-	".mandio",
-	"artifacts",
-	"commands",
-);
+const GLOBAL_COMMANDS_DIR = getGlobalCommandsDir();
 const MANDIO_COMMAND_PREFIX = "mandio-";
 const VALID_COMMAND_RE = /^[a-zA-Z0-9_-]+$/;
 

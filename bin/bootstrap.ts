@@ -6,9 +6,14 @@ import { fileURLToPath } from "node:url";
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 // Data directory constants (replicated from src/lib/paths.ts to avoid cross-module issues)
+const FALLBACK_DATA_DIR =
+	process.env.NODE_ENV === "test" || process.env.VITEST
+		? path.join(os.tmpdir(), "mandio-vitest")
+		: path.join(os.homedir(), ".mandio");
+
 const DATA_DIR: string = process.env.MANDIO_DATA_DIR
 	? path.resolve(process.env.MANDIO_DATA_DIR)
-	: path.join(os.homedir(), ".mandio");
+	: FALLBACK_DATA_DIR;
 
 function getWorkspaceDir(workspaceId: string): string {
 	return path.join(DATA_DIR, "workspaces", workspaceId);
