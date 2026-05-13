@@ -27,7 +27,7 @@ async function buildCli() {
 		target: "node18",
 		format: "esm",
 		outfile: distPath,
-		external: ["@anthropic-ai/claude-agent-sdk", "tree-kill"],
+		external: ["@anthropic-ai/claude-agent-sdk", "tree-kill", "dotenv"],
 		sourcemap: false,
 		minify: false,
 	});
