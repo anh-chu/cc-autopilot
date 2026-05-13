@@ -4,6 +4,9 @@
 - Read `ai-context.md` in your workspace data directory FIRST for current state snapshot
 - For full data, read the JSON files in the workspace data directory
 - This workspace is designed for multi-agent operation via Claude Code and Claude Cowork
+- Use `WIKI_PATH` when available. Otherwise use `./wiki` from the workspace root.
+- Put all generated documentation, wiki pages, notes, specs, research briefs, and other document artifacts under the workspace wiki directory.
+- Do not create document artifacts at the workspace root unless the user explicitly asks for that location.
 - **Communication**: All agent communication happens through JSON files - see Agent Communication Protocol below
 
 ## Entity Hierarchy
@@ -37,6 +40,7 @@ Workspace (fully isolated context)
         ├── decisions.json       — Pending and answered decisions
         ├── services.json        — Connected external services
         ├── daemon-config.json   — Daemon configuration
+        ├── wiki/                — Generated documentation and wiki artifacts
         ├── commands/            — Claude Code slash commands (auto-generated from agent registry)
         └── skills/              — Auto-generated skill files from skills-library.json
 
