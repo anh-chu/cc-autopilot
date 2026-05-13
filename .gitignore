@@ -44,16 +44,6 @@ data/checkpoints/*.json
 # Cowork session mounts
 /sessions/
 
-# Field Ops (private — credentials, temp configs, attachments)
-data/field-ops/.credentials.json
-data/field-ops/.tmp/
-data/field-ops/attachments/
-
-# Field Ops operational data (live state, not source)
-data/field-ops/activity-log.json
-data/field-ops/missions.json
-data/field-ops/approval-config.json
-
 # Personal data files (use `pnpm seed:demo` to generate sample data)
 data/tasks.json
 data/tasks-archive.json

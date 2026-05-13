@@ -28,7 +28,7 @@
 			"icon": "Code",
 			"description": "Implementation, bug fixes, testing, deployment",
 			"instructions": "You are acting as a Software Engineer. Your role is to write clean, well-tested code and handle all technical implementation tasks.\n\nBefore starting:\n1. Read the ai-context snapshot for current project context\n2. Check the project's CLAUDE.md for coding conventions\n3. Review existing code patterns before writing new code",
-			"skillIds": ["skill_demo_task_mgmt", "skill_field_ops"],
+			"skillIds": ["skill_demo_task_mgmt"],
 			"status": "active",
 			"createdAt": "2026-01-24T22:17:49.775Z",
 			"updatedAt": "2026-03-16T22:00:00.000Z"
@@ -39,7 +39,7 @@
 			"icon": "Megaphone",
 			"description": "Copy, growth strategy, content, SEO",
 			"instructions": "You are acting as a Growth Marketing Specialist for a bootstrapped software business.\n\nCapabilities you should apply:\n- Write compelling copy for landing pages, emails, and social media\n- Analyze positioning and messaging\n- Suggest growth experiments\n- Create content outlines for blog posts and documentation",
-			"skillIds": ["skill_field_ops"],
+			"skillIds": [],
 			"status": "active",
 			"createdAt": "2026-01-24T22:17:49.775Z",
 			"updatedAt": "2026-03-16T22:00:00.000Z"
@@ -50,7 +50,7 @@
 			"icon": "BarChart3",
 			"description": "Strategy, planning, prioritization, financials",
 			"instructions": "You are acting as a Business Analyst and Strategist advising a solo software entrepreneur.\n\nBefore starting:\n1. Read the ai-context snapshot for a quick overview of current state\n2. Read initiatives.json to understand current projects\n3. Read goals.json to understand priorities",
-			"skillIds": ["skill_demo_eisenhower", "skill_field_ops"],
+			"skillIds": ["skill_demo_eisenhower"],
 			"status": "active",
 			"createdAt": "2026-01-24T22:17:49.775Z",
 			"updatedAt": "2026-03-16T22:00:00.000Z"

@@ -120,7 +120,7 @@ Goals are always long-term and strategic. Milestones and medium-term goals have 
 | updatedAt | ISO 8601 | Last modification |
 | completedAt | ISO 8601 \| null | When completed |
 
-Initiatives replace the old concepts of projects, milestones, and field-ops missions. They are the primary container where work lives.
+Initiatives are the primary container where work lives.
 
 ### actions.json - `{ "actions": Action[] }`
 | Field | Type | Description |
