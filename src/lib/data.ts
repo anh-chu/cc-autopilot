@@ -1,3 +1,4 @@
+import { execFileSync } from "node:child_process";
 import { existsSync } from "node:fs";
 import {
 	copyFile,
@@ -227,6 +228,48 @@ export async function ensureWorkspaceDir(workspaceId: string): Promise<void> {
 
 	// Seed and migrate global commands
 	await ensureCommandsMigrated(workspaceId);
+
+	// Git-initialize workspace dir unless settings.git.init === false
+	const wsFile = await getWorkspaces();
+	const wsEntry = wsFile.workspaces.find((w) => w.id === workspaceId);
+	if (wsEntry?.settings?.git?.init !== false) {
+		await gitInitWorkspaceDir(wsDir);
+	}
+}
+
+// ─── Git initialization ───────────────────────────────────────────────────────
+
+const WORKSPACE_GITIGNORE = `# Binary uploads
+uploads/
+`;
+
+/**
+ * Idempotent: runs git init on a workspace dir if not already a git repo.
+ * Writes a .gitignore if one does not exist yet.
+ */
+async function gitInitWorkspaceDir(dir: string): Promise<void> {
+	const gitDir = path.join(dir, ".git");
+	if (!existsSync(gitDir)) {
+		try {
+			execFileSync("git", ["init", "--quiet", dir], { stdio: "pipe" });
+		} catch (err) {
+			console.warn("[data] git init failed for workspace dir:", dir, err);
+			return;
+		}
+	}
+	// Write .gitignore if missing
+	const gitignorePath = path.join(dir, ".gitignore");
+	if (!existsSync(gitignorePath)) {
+		try {
+			await writeFile(gitignorePath, WORKSPACE_GITIGNORE, "utf-8");
+		} catch (err) {
+			console.warn(
+				"[data] Failed to write .gitignore for workspace dir:",
+				dir,
+				err,
+			);
+		}
+	}
 }
 
 // ─── Wiki bootstrap (plugin-first) ──────────────────────────────────────────

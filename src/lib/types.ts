@@ -431,6 +431,10 @@ export function valuesFromQuadrant(quadrant: EisenhowerQuadrant): {
 export interface WorkspaceSettings {
 	daemonEnabled?: boolean; // defaults to true if absent
 	envVars?: Record<string, string>; // injected into agent subprocess env
+	git?: {
+		init?: boolean; // run git init on workspace dir (default: true)
+		initialCommit?: boolean; // create initial commit after init (default: false)
+	};
 }
 
 export interface Workspace {

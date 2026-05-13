@@ -168,6 +168,30 @@ describe("ensureWorkspaceDir", () => {
 		await rm(partialWsDir, { recursive: true, force: true });
 	});
 
+	it("git-inits the workspace dir and writes .gitignore", async () => {
+		const gitDir = path.join(WS_DIR, ".git");
+		const gitignorePath = path.join(WS_DIR, ".gitignore");
+		expect(existsSync(gitDir)).toBe(true);
+		expect(existsSync(gitignorePath)).toBe(true);
+		const content = await readFile(gitignorePath, "utf-8");
+		expect(content).toContain("uploads/");
+	});
+
+	it("git init is idempotent on re-run", async () => {
+		// Re-running should not throw and .git should still be present
+		await expect(ensureWorkspaceDir(TEST_WS_ID)).resolves.not.toThrow();
+		expect(existsSync(path.join(WS_DIR, ".git"))).toBe(true);
+	});
+
+	it("does not overwrite existing .gitignore on re-run", async () => {
+		const gitignorePath = path.join(WS_DIR, ".gitignore");
+		const custom = "# custom\nmy-secrets/\n";
+		await writeFile(gitignorePath, custom, "utf-8");
+		await ensureWorkspaceDir(TEST_WS_ID);
+		const content = await readFile(gitignorePath, "utf-8");
+		expect(content).toBe(custom);
+	});
+
 	it("getWorkspaceDataDir returns correct path", () => {
 		const dir = getWorkspaceDataDir(TEST_WS_ID);
 		expect(dir).toBe(WS_DIR);
