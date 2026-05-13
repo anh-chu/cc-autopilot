@@ -51,7 +51,7 @@ export default function WorkspacesPage() {
 	}
 
 	return (
-		<div className="flex flex-col min-h-screen">
+		<div className="space-y-6">
 			<BreadcrumbNav
 				items={[
 					{ label: "Settings", href: "/settings" },
@@ -59,7 +59,7 @@ export default function WorkspacesPage() {
 				]}
 			/>
 
-			<div className="flex-1 p-6 space-y-6 max-w-2xl">
+			<div className="space-y-6">
 				<div className="flex items-center justify-between">
 					<h2 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
 						Workspaces

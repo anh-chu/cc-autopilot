@@ -87,20 +87,18 @@ export default function SettingsPage() {
 
 	if (loading) {
 		return (
-			<div className="flex flex-col min-h-screen">
+			<div className="space-y-6">
 				<BreadcrumbNav items={[{ label: "Settings" }]} />
-				<div className="flex-1 p-6 text-sm text-muted-foreground">
-					Loading...
-				</div>
+				<div className="text-sm text-muted-foreground">Loading...</div>
 			</div>
 		);
 	}
 
 	return (
-		<div className="flex flex-col min-h-screen">
+		<div className="space-y-6">
 			<BreadcrumbNav items={[{ label: "Settings" }]} />
 
-			<div className="flex-1 p-6 space-y-6 max-w-2xl">
+			<div className="space-y-6">
 				<h2 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mt-2 mb-1">
 					Global
 				</h2>

@@ -140,7 +140,7 @@ export default function WorkspaceSettingsPage() {
 
 	if (loading) {
 		return (
-			<div className="flex flex-col min-h-screen">
+			<div className="space-y-6">
 				<BreadcrumbNav
 					items={[
 						{ label: "Settings", href: "/settings" },
@@ -148,16 +148,14 @@ export default function WorkspaceSettingsPage() {
 						{ label: "..." },
 					]}
 				/>
-				<div className="flex-1 p-6 text-sm text-muted-foreground">
-					Loading...
-				</div>
+				<div className="text-sm text-muted-foreground">Loading...</div>
 			</div>
 		);
 	}
 
 	if (!workspace) {
 		return (
-			<div className="flex flex-col min-h-screen">
+			<div className="space-y-6">
 				<BreadcrumbNav
 					items={[
 						{ label: "Settings", href: "/settings" },
@@ -165,7 +163,7 @@ export default function WorkspaceSettingsPage() {
 						{ label: "Not found" },
 					]}
 				/>
-				<div className="flex-1 p-6 text-sm text-muted-foreground">
+				<div className="text-sm text-muted-foreground">
 					Workspace not found.
 				</div>
 			</div>
@@ -173,7 +171,7 @@ export default function WorkspaceSettingsPage() {
 	}
 
 	return (
-		<div className="flex flex-col min-h-screen">
+		<div className="space-y-6">
 			<BreadcrumbNav
 				items={[
 					{ label: "Settings", href: "/settings" },
@@ -182,7 +180,7 @@ export default function WorkspaceSettingsPage() {
 				]}
 			/>
 
-			<div className="flex-1 p-6 space-y-6 max-w-2xl">
+			<div className="space-y-6">
 				<Card>
 					<CardHeader>
 						<div className="flex items-center justify-between gap-2">
