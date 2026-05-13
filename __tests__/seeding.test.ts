@@ -3,7 +3,12 @@ import { readFile, rm, writeFile } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import { afterAll, describe, expect, it } from "vitest";
-import { ensureWorkspaceDir, getWorkspaceDataDir } from "@/lib/data";
+import {
+	ensureWorkspaceDir,
+	getWorkspaceDataDir,
+	mutateWorkspaces,
+} from "@/lib/data";
+import { gitInit, hasAnyCommit } from "@/lib/workspace-git";
 
 // Use a throwaway workspace ID so we never touch the live "default" workspace.
 const TEST_WS_ID = `test-seed-${Date.now()}`;
@@ -175,6 +180,7 @@ describe("ensureWorkspaceDir", () => {
 		expect(existsSync(gitignorePath)).toBe(true);
 		const content = await readFile(gitignorePath, "utf-8");
 		expect(content).toContain("uploads/");
+		expect(content).toContain("agent-streams/");
 	});
 
 	it("git init is idempotent on re-run", async () => {
@@ -183,13 +189,94 @@ describe("ensureWorkspaceDir", () => {
 		expect(existsSync(path.join(WS_DIR, ".git"))).toBe(true);
 	});
 
-	it("does not overwrite existing .gitignore on re-run", async () => {
+	it("preserves existing .gitignore content on re-run", async () => {
 		const gitignorePath = path.join(WS_DIR, ".gitignore");
 		const custom = "# custom\nmy-secrets/\n";
 		await writeFile(gitignorePath, custom, "utf-8");
 		await ensureWorkspaceDir(TEST_WS_ID);
 		const content = await readFile(gitignorePath, "utf-8");
-		expect(content).toBe(custom);
+		expect(content).toContain(custom);
+		expect(content).toContain("uploads/");
+		expect(content).toContain("agent-streams/");
+	});
+
+	it("creates a HEAD commit by default (initialCommit: true)", async () => {
+		expect(hasAnyCommit(WS_DIR)).toBe(true);
+	});
+
+	it("git.initialCommit: false — .git exists but no HEAD", async () => {
+		const wsId = `${TEST_WS_ID}-no-commit`;
+		const wsDir = path.join(DATA_DIR, "workspaces", wsId);
+		try {
+			// Register workspace with initialCommit: false before seeding
+			await mutateWorkspaces(async (data) => {
+				if (!data.workspaces.find((w) => w.id === wsId)) {
+					data.workspaces.push({
+						id: wsId,
+						name: "Test no-commit",
+						description: "",
+						color: "#000",
+						isDefault: false,
+						settings: { git: { init: true, initialCommit: false } },
+						createdAt: new Date().toISOString(),
+						updatedAt: new Date().toISOString(),
+					});
+				}
+			});
+			await ensureWorkspaceDir(wsId);
+			expect(existsSync(path.join(wsDir, ".git"))).toBe(true);
+			expect(hasAnyCommit(wsDir)).toBe(false);
+		} finally {
+			await rm(wsDir, { recursive: true, force: true });
+			await mutateWorkspaces(async (data) => {
+				data.workspaces = data.workspaces.filter((w) => w.id !== wsId);
+			});
+		}
+	});
+
+	it("git.init: false — no .git and no .gitignore created", async () => {
+		const wsId = `${TEST_WS_ID}-no-git`;
+		const wsDir = path.join(DATA_DIR, "workspaces", wsId);
+		try {
+			await mutateWorkspaces(async (data) => {
+				if (!data.workspaces.find((w) => w.id === wsId)) {
+					data.workspaces.push({
+						id: wsId,
+						name: "Test no-git",
+						description: "",
+						color: "#000",
+						isDefault: false,
+						settings: { git: { init: false } },
+						createdAt: new Date().toISOString(),
+						updatedAt: new Date().toISOString(),
+					});
+				}
+			});
+			await ensureWorkspaceDir(wsId);
+			expect(existsSync(path.join(wsDir, ".git"))).toBe(false);
+			expect(existsSync(path.join(wsDir, ".gitignore"))).toBe(false);
+		} finally {
+			await rm(wsDir, { recursive: true, force: true });
+			await mutateWorkspaces(async (data) => {
+				data.workspaces = data.workspaces.filter((w) => w.id !== wsId);
+			});
+		}
+	});
+
+	it("migration: pre-existing init-only repo gets baseline commit on ensureWorkspaceDir", async () => {
+		const wsId = `${TEST_WS_ID}-migrate`;
+		const wsDir = path.join(DATA_DIR, "workspaces", wsId);
+		try {
+			// Simulate prior state: .git exists but no commits
+			gitInit(wsDir);
+			expect(hasAnyCommit(wsDir)).toBe(false);
+			// Run ensureWorkspaceDir (no special settings — defaults apply)
+			await ensureWorkspaceDir(wsId);
+			// Should now have baseline commit
+			expect(hasAnyCommit(wsDir)).toBe(true);
+		} finally {
+			await rm(wsDir, { recursive: true, force: true });
+		}
 	});
 
 	it("getWorkspaceDataDir returns correct path", () => {

@@ -433,7 +433,10 @@ export interface WorkspaceSettings {
 	envVars?: Record<string, string>; // injected into agent subprocess env
 	git?: {
 		init?: boolean; // run git init on workspace dir (default: true)
-		initialCommit?: boolean; // create initial commit after init (default: false)
+		initialCommit?: boolean; // create initial commit after init (default: true)
+		snapshotBeforeAgentRun?: boolean; // commit dirty changes before agent spawn (default: true)
+		branchPerAgentRun?: boolean; // create a branch per agent run (default: false, scaffolded only)
+		autoCommit?: boolean; // auto-commit after agent run (default: false, scaffolded only)
 	};
 }
 

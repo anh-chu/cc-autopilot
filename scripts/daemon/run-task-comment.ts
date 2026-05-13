@@ -34,6 +34,8 @@ const taskLogger = createLogger("task", { sync: true });
 // ─── Paths ──────────────────────────────────────────────────────────────────
 
 import { getWorkspaceDir } from "../../src/lib/paths";
+import { gitSnapshot, sanitizeGitRef } from "../../src/lib/workspace-git";
+import { readWorkspaceSettingsSync } from "./workspace-settings";
 
 const WORKSPACE_DIR = getWorkspaceDir(
 	process.env.MANDIO_WORKSPACE_ID ?? "default",
@@ -464,6 +466,17 @@ async function main() {
 	const backend: AgentBackend = agent.backend ?? "claude";
 	const runner = new AgentRunner(WORKSPACE_DIR);
 
+	// Pre-spawn snapshot: commit dirty workspace state before agent runs (best-effort)
+	{
+		const _wsId = process.env.MANDIO_WORKSPACE_ID ?? "default";
+		const _gitSettings = readWorkspaceSettingsSync(_wsId)?.git;
+		if (_gitSettings?.snapshotBeforeAgentRun !== false) {
+			const _label = sanitizeGitRef(`pre-run/${runId}`);
+			gitSnapshot(WORKSPACE_DIR, `Pre-run snapshot: ${_label}`);
+		}
+	}
+
+	// TODO(git-risk): wire branchPerAgentRun when UI surfaces dirty/branch state
 	try {
 		const runStartedAtMs = Date.now();
 		const result = await runner.spawnAgent({

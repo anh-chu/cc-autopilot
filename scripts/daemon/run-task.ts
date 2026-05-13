@@ -65,7 +65,9 @@ import type { ProjectRun, ProjectRunsFile } from "./types";
 const taskLogger = createLogger("task", { sync: true });
 
 import { getWorkspaceDir } from "../../src/lib/paths";
+import { gitSnapshot, sanitizeGitRef } from "../../src/lib/workspace-git";
 import { getWorkspaceEnv } from "./workspace-env";
+import { readWorkspaceSettingsSync } from "./workspace-settings";
 
 const WORKSPACE_DIR = getWorkspaceDir(
 	process.env.MANDIO_WORKSPACE_ID ?? "default",
@@ -1322,6 +1324,17 @@ This is session ${continuationIndex + 1}. Previous session(s) ran out of turns o
 		let capturedSessionId: string | null = null;
 		let decisionWatcher: ReturnType<typeof setInterval> | null = null;
 
+		// Pre-spawn snapshot: commit dirty workspace state before agent runs (best-effort)
+		{
+			const _wsId = process.env.MANDIO_WORKSPACE_ID ?? "default";
+			const _gitSettings = readWorkspaceSettingsSync(_wsId)?.git;
+			if (_gitSettings?.snapshotBeforeAgentRun !== false) {
+				const _label = sanitizeGitRef(`pre-run/${runId}`);
+				gitSnapshot(WORKSPACE_DIR, `Pre-run snapshot: ${_label}`);
+			}
+		}
+
+		// TODO(git-risk): wire branchPerAgentRun when UI surfaces dirty/branch state
 		const spawnPromise = runner.spawnAgent({
 			prompt,
 			maxTurns,

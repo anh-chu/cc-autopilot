@@ -44,6 +44,7 @@
   - function preheatSdk: (opts) => Promise<void>
   - function getWarmHandle: (expectedKey) => WarmQuery | null
 - `scripts/daemon/workspace-env.ts` — function getWorkspaceEnv: (workspaceId) => Record<string, string>
+- `scripts/daemon/workspace-settings.ts` — function readWorkspaceSettingsSync: (workspaceId) => WorkspaceSettings | null
 - `src/hooks/use-active-runs.ts` — function useActiveRuns: () => void
 - `src/hooks/use-connection.ts` — function useConnection: () => void
 - `src/hooks/use-conversation-stream.ts`
@@ -219,6 +220,14 @@
   - function getLatestAvailableVersion: () => string | null
   - _...5 more_
 - `src/lib/workspace-context.ts` — function GET: () => void, function applyWorkspaceContext: (fn) => void
+- `src/lib/workspace-git.ts`
+  - function isGitRepo: (dir) => boolean
+  - function gitInit: (dir) => boolean
+  - function writeWorkspaceGitignore: (dir) => Promise<void>
+  - function hasAnyCommit: (dir) => boolean
+  - function gitStatusPorcelain: (dir) => string
+  - function isDirty: (dir) => boolean
+  - _...6 more_
 - `src/lib/workspace-store.ts`
   - function getWorkspaceId: () => string
   - function setFallbackWorkspaceId: (id) => void

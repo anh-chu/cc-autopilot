@@ -6,7 +6,7 @@
 
 ## Scale
 
-102 API routes · 119 UI components · 63 library files · 7 middleware layers · 32 environment variables
+102 API routes · 119 UI components · 65 library files · 7 middleware layers · 32 environment variables
 
 ## Subsystems
 
@@ -14,17 +14,17 @@
 
 **UI:** 119 components (react) — see [ui.md](./ui.md)
 
-**Libraries:** 63 files — see [libraries.md](./libraries.md)
+**Libraries:** 65 files — see [libraries.md](./libraries.md)
 
 ## High-Impact Files
 
 Changes to these files have the widest blast radius across the codebase:
 
 - `src/lib/utils.ts` — imported by **73** files
-- `src/lib/types.ts` — imported by **69** files
+- `src/lib/types.ts` — imported by **70** files
 - `src/lib/auth-guards.ts` — imported by **57** files
+- `src/lib/paths.ts` — imported by **54** files
 - `src/components/ui/button.tsx` — imported by **54** files
-- `src/lib/paths.ts` — imported by **53** files
 - `src/lib/workspace-context.ts` — imported by **40** files
 
 ## Required Environment Variables

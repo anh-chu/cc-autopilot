@@ -31,6 +31,7 @@ import type {
 	ConversationSource,
 	ConversationStatus,
 } from "../../src/lib/types";
+import { gitSnapshot, sanitizeGitRef } from "../../src/lib/workspace-git";
 import { loadConfig } from "./config";
 import {
 	attachPidToRun,
@@ -43,6 +44,7 @@ import {
 import { logger } from "./logger";
 import { AgentRunner } from "./runner";
 import { getWorkspaceEnv } from "./workspace-env";
+import { readWorkspaceSettingsSync } from "./workspace-settings";
 
 const taskLogger = createLogger("conv", { sync: true });
 
@@ -340,6 +342,17 @@ async function main() {
 			promptLength: prompt.length,
 		});
 
+		// Pre-spawn snapshot: commit dirty workspace state before agent runs (best-effort)
+		{
+			const _wsId = process.env.MANDIO_WORKSPACE_ID ?? "default";
+			const _gitSettings = readWorkspaceSettingsSync(_wsId)?.git;
+			if (_gitSettings?.snapshotBeforeAgentRun !== false) {
+				const _label = sanitizeGitRef(`pre-run/${convCtx.runId}`);
+				gitSnapshot(WORKSPACE_DIR, `Pre-run snapshot: ${_label}`);
+			}
+		}
+
+		// TODO(git-risk): wire branchPerAgentRun when UI surfaces dirty/branch state
 		const spawnResult = await runner.spawnAgent({
 			prompt,
 			maxTurns: agentCfg.maxTurns,

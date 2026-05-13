@@ -2,9 +2,9 @@
 
 > **Navigation aid.** Library inventory extracted via AST. Read the source files listed here before modifying exported functions.
 
-**63 library files** across 6 modules
+**65 library files** across 6 modules
 
-## Lib (38 files)
+## Lib (39 files)
 
 - `src/lib/types.ts` — getQuadrant, valuesFromQuadrant, AgentDefinition, AgentsFile, SkillDefinition, LegacySkillDefinition, …
 - `src/lib/data.ts` — ensureSkillsMigrated, getWorkspaceDataDir, ensureWorkspaceDir, initWikiDir, ensureDocMaintainerAgentForWorkspace, getTasks, …
@@ -13,6 +13,7 @@
 - `src/lib/paths.ts` — assertSafeId, getWorkspaceDir, getUploadsDir, getWikiPathFile, getWikiDir, getDefaultWikiDir, …
 - `src/lib/command-activation.ts` — activateCommand, deactivateCommand, listActivatedCommands, listActivatedCommandsSync, isCommandActivated, activateAllCommands, …
 - `src/lib/skill-activation.ts` — activateSkill, deactivateSkill, listActivatedSkills, isSkillActivated, listActivatedSkillsSync, activateAllSkills, …
+- `src/lib/workspace-git.ts` — isGitRepo, gitInit, writeWorkspaceGitignore, hasAnyCommit, gitStatusPorcelain, isDirty, …
 - `src/lib/command-files.ts` — parseCommandFile, serializeCommandFile, readCommandFile, readCommandFileSync, writeCommandFile, listCommandIds, …
 - `src/lib/skill-files.ts` — parseSkillFile, serializeSkillFile, readSkillFile, readSkillFileSync, writeSkillFile, listSkillIds, …
 - `src/lib/wiki-plugin.ts` — compareVersions, getPluginStatus, ensureWikiPluginInstalledDetailed, ensureWikiBootstrappedFromPlugin, reconcileWikiWithPlugin, getLatestAvailableVersion, …
@@ -30,10 +31,9 @@
 - `src/lib/workspace-store.ts` — getWorkspaceId, setFallbackWorkspaceId, workspaceStore
 - `src/lib/api-client.ts` — apiFetch, ApiFetchInit
 - `src/lib/json-io.ts` — readJSON, writeJSON
-- `src/lib/markdown/parse-frontmatter.ts` — parseFrontmatter, ParsedFrontmatter
-- _…and 13 more files_
+- _…and 14 more files_
 
-## Scripts (11 files)
+## Scripts (12 files)
 
 - `scripts/daemon/conversation-writer.ts` — __resetWriterState, startConversationForTask, attachPidToRun, appendUserTurn, pauseForDecision, completeConversation, …
 - `scripts/daemon/security.ts` — validatePathWithinWorkspace, escapeFenceContent, fenceTaskData, enforcePromptLimit, validateBinary, buildSafeEnv
@@ -46,6 +46,7 @@
 - `scripts/daemon/data-io.ts` — readJSON
 - `scripts/daemon/spawn-utils.ts` — extractSummary
 - `scripts/daemon/workspace-env.ts` — getWorkspaceEnv
+- `scripts/daemon/workspace-settings.ts` — readWorkspaceSettingsSync
 
 ## Hooks (10 files)
 

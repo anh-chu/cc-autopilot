@@ -21,7 +21,9 @@ import { AgentRunner } from "./runner";
 // ─── Paths ──────────────────────────────────────────────────────────────────
 
 import { getWorkspaceDir } from "../../src/lib/paths";
+import { gitSnapshot, sanitizeGitRef } from "../../src/lib/workspace-git";
 import { getWorkspaceEnv } from "./workspace-env";
+import { readWorkspaceSettingsSync } from "./workspace-settings";
 
 const WORKSPACE_DIR = getWorkspaceDir(
 	process.env.MANDIO_WORKSPACE_ID ?? "default",
@@ -249,6 +251,19 @@ async function main() {
 
 	// 4. Spawn Claude Code
 	const runner = new AgentRunner(WORKSPACE_DIR);
+
+	// Pre-spawn snapshot: commit dirty workspace state before agent runs (best-effort)
+	{
+		const _wsId = process.env.MANDIO_WORKSPACE_ID ?? "default";
+		const _gitSettings = readWorkspaceSettingsSync(_wsId)?.git;
+		if (_gitSettings?.snapshotBeforeAgentRun !== false) {
+			const _runId = `triage-${Date.now()}`;
+			const _label = sanitizeGitRef(`pre-run/${_runId}`);
+			gitSnapshot(WORKSPACE_DIR, `Pre-run snapshot: ${_label}`);
+		}
+	}
+
+	// TODO(git-risk): wire branchPerAgentRun when UI surfaces dirty/branch state
 	try {
 		const result = await runner.spawnAgent({
 			prompt,
