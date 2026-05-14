@@ -6,29 +6,31 @@
 
 ## Scale
 
-102 API routes · 119 UI components · 65 library files · 7 middleware layers · 32 environment variables
+103 API routes · 119 UI components · 66 library files · 7 middleware layers · 29 environment variables
 
 ## Subsystems
 
+- **[Payments](./payments.md)** — 1 routes — touches: auth, queue, payment
 - **[Route](./route.md)** — 102 routes — touches: auth, cache, upload, db, ai
 
 **UI:** 119 components (react) — see [ui.md](./ui.md)
 
-**Libraries:** 65 files — see [libraries.md](./libraries.md)
+**Libraries:** 66 files — see [libraries.md](./libraries.md)
 
 ## High-Impact Files
 
 Changes to these files have the widest blast radius across the codebase:
 
 - `src/lib/utils.ts` — imported by **73** files
-- `src/lib/types.ts` — imported by **70** files
+- `src/lib/types.ts` — imported by **71** files
 - `src/lib/auth-guards.ts` — imported by **57** files
 - `src/lib/paths.ts` — imported by **54** files
 - `src/components/ui/button.tsx` — imported by **54** files
-- `src/lib/workspace-context.ts` — imported by **40** files
+- `src/lib/workspace-context.ts` — imported by **41** files
 
 ## Required Environment Variables
 
+- `ALLOWED_EMAILS` — `__tests__/auth-signin-callback.test.ts`
 - `API_KEY` — `__tests__/daemon.test.ts`
 - `APPDATA` — `scripts/daemon/runner.ts`
 - `AUTH_ALLOW_ALL_USERS` — `__tests__/auth-signin-callback.test.ts`
@@ -40,8 +42,7 @@ Changes to these files have the widest blast radius across the codebase:
 - `MANDIO_ALLOW_AGENT_IN_TESTS` — `scripts/daemon/runner.ts`
 - `MANDIO_BOOTSTRAP_STANDALONE` — `bin/bootstrap.ts`
 - `MANDIO_DATA_DIR` — `__tests__/helpers.ts`
-- `MANDIO_DEFAULT_MODEL` — `scripts/daemon/runner.ts`
-- _...15 more_
+- _...17 more_
 
 ---
-_Back to [index.md](./index.md) · Generated 2026-05-13_
+_Back to [index.md](./index.md) · Generated 2026-05-14_

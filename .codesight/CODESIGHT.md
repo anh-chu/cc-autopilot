@@ -2,9 +2,9 @@
 
 > **Stack:** next-app | none | react | typescript
 
-> 102 routes | 0 models | 119 components | 65 lib files | 32 env vars | 7 middleware | 2 events | 15% test coverage
-> **Token savings:** this file is ~10,000 tokens. Without it, AI exploration would cost ~124,100 tokens. **Saves ~114,100 tokens per conversation.**
-> **Last scanned:** 2026-05-13 21:51 — re-run after significant changes
+> 103 routes | 0 models | 119 components | 66 lib files | 29 env vars | 7 middleware | 2 events | 15% test coverage
+> **Token savings:** this file is ~10,000 tokens. Without it, AI exploration would cost ~124,500 tokens. **Saves ~114,400 tokens per conversation.**
+> **Last scanned:** 2026-05-14 04:14 — re-run after significant changes
 
 ---
 
@@ -66,6 +66,7 @@
 - `DELETE` `/api/tasks/bulk` → out: { error } [auth]
 - `POST` `/api/upload/[...path]` → out: { error } [auth, upload]
 - `POST` `/api/upload` → out: { error } [auth, upload]
+- `POST` `/api/webhooks` → out: { error } [auth, queue, payment]
 - `GET` `/api/wiki/content` → out: { error } [auth]
 - `PUT` `/api/wiki/content` → out: { error } [auth]
 - `GET` `/api/wiki/file` → out: { error } [auth, cache]
@@ -414,12 +415,13 @@
   - function parseAgentMentions: (text) => string[]
 - `src/lib/validations.ts`
   - function validateBody: (request, schema) => Promise<ValidationResult<T>>
+  - type WebhookTriggerInput
   - const safeId
   - const DEFAULT_LIMIT
   - const LIMITS
   - const commentSchema
-  - const taskCreateSchema
-  - _...21 more_
+  - _...23 more_
+- `src/lib/webhooks/signature.ts` — function verifyHmacSignature: (rawBody, header, secret) => boolean
 - `src/lib/wiki-helpers.ts` — function isAppFolder: (wikiDir, relPath) => Promise<boolean>
 - `src/lib/wiki-plugin.ts`
   - function compareVersions: (a, b) => number
@@ -453,14 +455,10 @@
 
 ## Environment Variables
 
-- `ALLOWED_EMAILS` (has default) — .env.local
+- `ALLOWED_EMAILS` **required** — __tests__/auth-signin-callback.test.ts
 - `API_KEY` **required** — __tests__/daemon.test.ts
 - `APPDATA` **required** — scripts/daemon/runner.ts
 - `AUTH_ALLOW_ALL_USERS` **required** — __tests__/auth-signin-callback.test.ts
-- `AUTH_GOOGLE_ID` (has default) — .env.local
-- `AUTH_GOOGLE_SECRET` (has default) — .env.local
-- `AUTH_SECRET` (has default) — .env.local
-- `AUTH_URL` (has default) — .env.local
 - `CLAUDE_CODE_EXECUTABLE` **required** — src/lib/claude-sdk.ts
 - `CLAUDE_CODE_OAUTH_TOKEN` **required** — scripts/daemon/security.ts
 - `COMSPEC` **required** — scripts/daemon/security.ts
@@ -472,6 +470,7 @@
 - `MANDIO_DEFAULT_MODEL` **required** — scripts/daemon/runner.ts
 - `MANDIO_GLOBAL_MAX_PARALLEL_AGENTS` **required** — src/lib/scheduled-jobs.ts
 - `MANDIO_INSTALL_DIR` **required** — src/lib/paths.ts
+- `MANDIO_WEBHOOK_SECRET` **required** — __tests__/api-webhooks.test.ts
 - `MANDIO_WORKSPACE_ID` **required** — scripts/daemon/config.ts
 - `NEXT_RUNTIME` **required** — src/instrumentation.ts
 - `NODE_ENV` **required** — __tests__/auth-signin-callback.test.ts
@@ -522,11 +521,11 @@
 ## Most Imported Files (change these carefully)
 
 - `src/lib/utils.ts` — imported by **73** files
-- `src/lib/types.ts` — imported by **70** files
+- `src/lib/types.ts` — imported by **71** files
 - `src/lib/auth-guards.ts` — imported by **57** files
 - `src/lib/paths.ts` — imported by **54** files
 - `src/components/ui/button.tsx` — imported by **54** files
-- `src/lib/workspace-context.ts` — imported by **40** files
+- `src/lib/workspace-context.ts` — imported by **41** files
 - `src/components/ui/badge.tsx` — imported by **28** files
 - `src/components/ui/input.tsx` — imported by **23** files
 - `src/hooks/use-data.ts` — imported by **19** files
@@ -536,20 +535,20 @@
 - `src/components/ui/card.tsx` — imported by **14** files
 - `src/lib/toast.ts` — imported by **13** files
 - `src/components/ui/label.tsx` — imported by **13** files
+- `__tests__/helpers.ts` — imported by **10** files
+- `src/lib/conversation-event-bus.ts` — imported by **10** files
 - `scripts/daemon/logger.ts` — imported by **10** files
 - `src/components/ui/textarea.tsx` — imported by **10** files
 - `src/providers/active-runs-provider.tsx` — imported by **10** files
-- `src/components/ui/tip.tsx` — imported by **10** files
-- `src/components/layout/viewer-toolbar.tsx` — imported by **10** files
 
 ## Import Map (who imports what)
 
 - `src/lib/utils.ts` ← `src/app/agents/[id]/page.tsx`, `src/app/agents/page.tsx`, `src/app/api/activity-log/route.ts`, `src/app/api/brain-dump/route.ts`, `src/app/api/commands/route.ts` +68 more
-- `src/lib/types.ts` ← `__tests__/conversation-event-bus.test.ts`, `__tests__/data.test.ts`, `scripts/daemon/run-task.ts`, `scripts/daemon/workspace-settings.ts`, `src/app/agents/[id]/page.tsx` +65 more
+- `src/lib/types.ts` ← `__tests__/conversation-event-bus.test.ts`, `__tests__/data.test.ts`, `scripts/daemon/run-task.ts`, `scripts/daemon/workspace-settings.ts`, `src/app/agents/[id]/page.tsx` +66 more
 - `src/lib/auth-guards.ts` ← `__tests__/auth-oauth-security.test.ts`, `src/app/api/activity-log/route.ts`, `src/app/api/agents/route.ts`, `src/app/api/assets/[...path]/route.ts`, `src/app/api/brain-dump/automate/route.ts` +52 more
 - `src/lib/paths.ts` ← `__tests__/api-projects-stop-conversation.test.ts`, `__tests__/api-tasks-stop-conversation.test.ts`, `__tests__/daemon-multi-workspace.test.ts`, `__tests__/seeding.test.ts`, `bin/cli.ts` +49 more
 - `src/components/ui/button.tsx` ← `src/app/agents/[id]/edit/page.tsx`, `src/app/agents/[id]/page.tsx`, `src/app/agents/page.tsx`, `src/app/brain/page.tsx`, `src/app/error.tsx` +49 more
-- `src/lib/workspace-context.ts` ← `src/app/api/agents/route.ts`, `src/app/api/assets/[...path]/route.ts`, `src/app/api/brain-dump/automate/route.ts`, `src/app/api/commands/activate/route.ts`, `src/app/api/commands/route.ts` +35 more
+- `src/lib/workspace-context.ts` ← `src/app/api/agents/route.ts`, `src/app/api/assets/[...path]/route.ts`, `src/app/api/brain-dump/automate/route.ts`, `src/app/api/commands/activate/route.ts`, `src/app/api/commands/route.ts` +36 more
 - `src/components/ui/badge.tsx` ← `src/app/agents/[id]/page.tsx`, `src/app/agents/page.tsx`, `src/app/initiatives/[id]/page.tsx`, `src/app/page.tsx`, `src/app/settings/page.tsx` +23 more
 - `src/components/ui/input.tsx` ← `src/app/agents/[id]/page.tsx`, `src/app/initiatives/[id]/page.tsx`, `src/app/settings/page.tsx`, `src/app/settings/workspaces/[id]/page.tsx`, `src/app/settings/workspaces/page.tsx` +18 more
 - `src/hooks/use-data.ts` ← `src/app/agents/[id]/edit/page.tsx`, `src/app/agents/new/page.tsx`, `src/app/agents/page.tsx`, `src/app/commands/[id]/page.tsx`, `src/app/page.tsx` +14 more
@@ -567,7 +566,7 @@
 # Test Coverage
 
 > **15%** of routes and models are covered by tests
-> 22 test files found
+> 24 test files found
 
 ## Covered Routes
 

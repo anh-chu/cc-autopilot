@@ -2,14 +2,10 @@
 
 ## Environment Variables
 
-- `ALLOWED_EMAILS` (has default) — .env.local
+- `ALLOWED_EMAILS` **required** — __tests__/auth-signin-callback.test.ts
 - `API_KEY` **required** — __tests__/daemon.test.ts
 - `APPDATA` **required** — scripts/daemon/runner.ts
 - `AUTH_ALLOW_ALL_USERS` **required** — __tests__/auth-signin-callback.test.ts
-- `AUTH_GOOGLE_ID` (has default) — .env.local
-- `AUTH_GOOGLE_SECRET` (has default) — .env.local
-- `AUTH_SECRET` (has default) — .env.local
-- `AUTH_URL` (has default) — .env.local
 - `CLAUDE_CODE_EXECUTABLE` **required** — src/lib/claude-sdk.ts
 - `CLAUDE_CODE_OAUTH_TOKEN` **required** — scripts/daemon/security.ts
 - `COMSPEC` **required** — scripts/daemon/security.ts
@@ -21,6 +17,7 @@
 - `MANDIO_DEFAULT_MODEL` **required** — scripts/daemon/runner.ts
 - `MANDIO_GLOBAL_MAX_PARALLEL_AGENTS` **required** — src/lib/scheduled-jobs.ts
 - `MANDIO_INSTALL_DIR` **required** — src/lib/paths.ts
+- `MANDIO_WEBHOOK_SECRET` **required** — __tests__/api-webhooks.test.ts
 - `MANDIO_WORKSPACE_ID` **required** — scripts/daemon/config.ts
 - `NEXT_RUNTIME` **required** — src/instrumentation.ts
 - `NODE_ENV` **required** — __tests__/auth-signin-callback.test.ts
