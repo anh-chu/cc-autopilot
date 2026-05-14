@@ -113,12 +113,6 @@ export function LayoutShell({ children }: LayoutShellProps) {
 					onTaskClick={() => {
 						router.push("/work");
 					}}
-					onTerminalToggle={
-						isMobile
-							? undefined
-							: () =>
-									setActivePanel((v) => (v === "terminal" ? null : "terminal"))
-					}
 				/>
 
 				{/* Content row: main + optional panel + rail */}

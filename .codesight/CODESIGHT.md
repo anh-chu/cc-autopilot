@@ -3,8 +3,8 @@
 > **Stack:** next-app | none | react | typescript
 
 > 103 routes (3 inferred) + 3 ws | 0 models | 122 components | 71 lib files | 41 env vars | 9 middleware | 5 events | 17% test coverage
-> **Token savings:** this file is ~10,700 tokens. Without it, AI exploration would cost ~130,000 tokens. **Saves ~119,300 tokens per conversation.**
-> **Last scanned:** 2026-05-14 19:54 — re-run after significant changes
+> **Token savings:** this file is ~10,700 tokens. Without it, AI exploration would cost ~130,000 tokens. **Saves ~119,400 tokens per conversation.**
+> **Last scanned:** 2026-05-14 20:08 — re-run after significant changes
 
 ---
 
@@ -138,7 +138,7 @@
 - **BoardDndWrapper** [client] — props: activeTask, projects, onDragStart, onDragEnd — `src/components/board-view.tsx`
 - **BreadcrumbNav** [client] — props: items, className, peers — `src/components/breadcrumb-nav.tsx`
 - **ChatSidebar** [client] — `src/components/chat/ChatSidebar.tsx`
-- **CommandBar** [client] — props: onCapture, tasks, onTaskClick, commands, onTerminalToggle — `src/components/command-bar.tsx`
+- **CommandBar** [client] — props: onCapture, tasks, onTaskClick, commands — `src/components/command-bar.tsx`
 - **CommandForm** [client] — props: mode, initialData, onDelete, activationProps — `src/components/command-form.tsx`
 - **ConditionalShell** [client] — `src/components/conditional-shell.tsx`
 - **ConfirmDialog** [client] — props: open, onOpenChange, title, description, confirmLabel, onConfirm, variant — `src/components/confirm-dialog.tsx`
@@ -211,7 +211,7 @@
 - **TerminalDrawer** [client] — props: enabled — `src/components/terminal-drawer.tsx`
 - **ThemeProvider** [client] — `src/components/theme-provider.tsx`
 - **ThemeToggle** [client] — `src/components/theme-toggle.tsx`
-- **TopNav** [client] — props: onTerminalToggle — `src/components/top-nav.tsx`
+- **TopNav** [client] — `src/components/top-nav.tsx`
 - **FrontmatterHeader** [client] — props: data — `src/components/wiki/frontmatter-header.tsx`
 - **WorkMapView** [client] — `src/components/work-map-view.tsx`
 - **ActiveRunsProvider** [client] — `src/providers/active-runs-provider.tsx`
