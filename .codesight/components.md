@@ -34,6 +34,7 @@
 - **MapPage** [client] — `src/app/work/map/page.tsx`
 - **TasksPage** [client] — `src/app/work/page.tsx`
 - **WorkProjectsPage** [client] — `src/app/work/projects/page.tsx`
+- **ActivityRail** [client] — props: active, onSelect — `src/components/activity-rail.tsx`
 - **AgentForm** [client] — props: mode, initialData, currentStatus, onSave, onDelete, onStatusToggle, onCancel — `src/components/agent-form.tsx`
 - **AgentSkills** [client] — `src/components/agent-skills.tsx`
 - **AuthProvider** [client] — `src/components/auth-provider.tsx`
@@ -43,7 +44,7 @@
 - **BoardPanels** [client] — props: showCreateTask, onCloseCreate, onSubmitCreate — `src/components/board-view.tsx`
 - **BoardDndWrapper** [client] — props: activeTask, projects, onDragStart, onDragEnd — `src/components/board-view.tsx`
 - **BreadcrumbNav** [client] — props: items, className, peers — `src/components/breadcrumb-nav.tsx`
-- **ChatSidebar** [client] — props: open, onToggle, isMobile — `src/components/chat/ChatSidebar.tsx`
+- **ChatSidebar** [client] — `src/components/chat/ChatSidebar.tsx`
 - **CommandBar** [client] — props: onCapture, tasks, onTaskClick, commands, onTerminalToggle — `src/components/command-bar.tsx`
 - **CommandForm** [client] — props: mode, initialData, onDelete, activationProps — `src/components/command-form.tsx`
 - **ConditionalShell** [client] — `src/components/conditional-shell.tsx`
@@ -103,6 +104,7 @@
 - **ProjectDetailPage** [client] — props: parentLabel, parentHref — `src/components/project-detail-page.tsx`
 - **ProjectDialog** [client] — props: open, onOpenChange, agents, onSubmit — `src/components/project-dialog.tsx`
 - **ProjectInitiativeCanvas** [client] — `src/components/project-initiative-canvas.tsx`
+- **RightPanel** [client] — props: activePanel, isMobile, onClose — `src/components/right-panel.tsx`
 - **RunButton** [client] — props: isRunning, onClick, size, disabled, title, isProjectRunActive, onStop — `src/components/run-button.tsx`
 - **RunsFeed** [client] — `src/components/runs-feed.tsx`
 - **SearchDialog** [client] — `src/components/search-dialog.tsx`
@@ -113,7 +115,7 @@
 - **SkillForm** [client] — props: mode, initialData, onDelete, activationProps — `src/components/skill-form.tsx`
 - **TaskCard** [client] — props: task, project, agents, className, isDragging, onClick, allTasks, pendingDecisionTaskIds, isRunning, onRun — `src/components/task-card.tsx`
 - **TaskForm** [client] — props: initial, allTasks, currentTaskId, onSubmit, onCancel, submitLabel — `src/components/task-form.tsx`
-- **TerminalDrawer** [client] — props: open, onOpenChange — `src/components/terminal-drawer.tsx`
+- **TerminalDrawer** [client] — props: enabled — `src/components/terminal-drawer.tsx`
 - **ThemeProvider** [client] — `src/components/theme-provider.tsx`
 - **ThemeToggle** [client] — `src/components/theme-toggle.tsx`
 - **TopNav** [client] — props: onTerminalToggle — `src/components/top-nav.tsx`

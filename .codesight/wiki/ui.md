@@ -2,7 +2,7 @@
 
 > **Navigation aid.** Component inventory and prop signatures extracted via AST. Read the source files before adding props or modifying component logic.
 
-**120 components** (react)
+**122 components** (react)
 
 ## Client Components
 
@@ -29,6 +29,7 @@
 - **MapPage** — `src/app/work/map/page.tsx`
 - **TasksPage** — `src/app/work/page.tsx`
 - **WorkProjectsPage** — `src/app/work/projects/page.tsx`
+- **ActivityRail** — props: active, onSelect — `src/components/activity-rail.tsx`
 - **AgentForm** — props: mode, initialData, currentStatus, onSave, onDelete, onStatusToggle, onCancel — `src/components/agent-form.tsx`
 - **AgentSkills** — `src/components/agent-skills.tsx`
 - **AuthProvider** — `src/components/auth-provider.tsx`
@@ -38,7 +39,7 @@
 - **BoardPanels** — props: showCreateTask, onCloseCreate, onSubmitCreate — `src/components/board-view.tsx`
 - **BoardDndWrapper** — props: activeTask, projects, onDragStart, onDragEnd — `src/components/board-view.tsx`
 - **BreadcrumbNav** — props: items, className, peers — `src/components/breadcrumb-nav.tsx`
-- **ChatSidebar** — props: open, onToggle, isMobile — `src/components/chat/ChatSidebar.tsx`
+- **ChatSidebar** — `src/components/chat/ChatSidebar.tsx`
 - **CommandBar** — props: onCapture, tasks, onTaskClick, commands, onTerminalToggle — `src/components/command-bar.tsx`
 - **CommandForm** — props: mode, initialData, onDelete, activationProps — `src/components/command-form.tsx`
 - **ConditionalShell** — `src/components/conditional-shell.tsx`
@@ -95,13 +96,14 @@
 - **ProjectDetailPage** — props: parentLabel, parentHref — `src/components/project-detail-page.tsx`
 - **ProjectDialog** — props: open, onOpenChange, agents, onSubmit — `src/components/project-dialog.tsx`
 - **ProjectInitiativeCanvas** — `src/components/project-initiative-canvas.tsx`
+- **RightPanel** — props: activePanel, isMobile, onClose — `src/components/right-panel.tsx`
 - **RunButton** — props: isRunning, onClick, size, disabled, title, isProjectRunActive, onStop — `src/components/run-button.tsx`
 - **RunsFeed** — `src/components/runs-feed.tsx`
 - **SearchDialog** — `src/components/search-dialog.tsx`
 - **SkillForm** — props: mode, initialData, onDelete, activationProps — `src/components/skill-form.tsx`
 - **TaskCard** — props: task, project, agents, className, isDragging, onClick, allTasks, pendingDecisionTaskIds, isRunning, onRun — `src/components/task-card.tsx`
 - **TaskForm** — props: initial, allTasks, currentTaskId, onSubmit, onCancel, submitLabel — `src/components/task-form.tsx`
-- **TerminalDrawer** — props: open, onOpenChange — `src/components/terminal-drawer.tsx`
+- **TerminalDrawer** — props: enabled — `src/components/terminal-drawer.tsx`
 - **ThemeProvider** — `src/components/theme-provider.tsx`
 - **ThemeToggle** — `src/components/theme-toggle.tsx`
 - **TopNav** — props: onTerminalToggle — `src/components/top-nav.tsx`

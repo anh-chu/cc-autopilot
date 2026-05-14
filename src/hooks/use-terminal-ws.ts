@@ -142,7 +142,7 @@ export function useTerminalWS(enabled: boolean): UseTerminalWSResult {
 			termRef.current = term;
 			fitRef.current = fitAddon;
 
-			// Defer fit() so the Sheet animation has finished and the container
+			// Defer fit() so the panel's flex layout has settled and the container
 			// has real pixel dimensions before xterm measures it
 			await new Promise<void>((resolve) =>
 				requestAnimationFrame(() => resolve()),

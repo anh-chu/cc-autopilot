@@ -1,11 +1,12 @@
 "use client";
 
-import dynamic from "next/dynamic";
 import { usePathname, useRouter } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
-import { ChatSidebar } from "@/components/chat/ChatSidebar";
+import type { ActivePanel } from "@/components/activity-rail";
+import { ActivityRail } from "@/components/activity-rail";
 import { CommandBar } from "@/components/command-bar";
 import { KeyboardShortcuts } from "@/components/keyboard-shortcuts";
+import { RightPanel } from "@/components/right-panel";
 import { SearchDialog } from "@/components/search-dialog";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { useConnection } from "@/hooks/use-connection";
@@ -14,21 +15,16 @@ import { useSidebar } from "@/hooks/use-sidebar";
 import { useWorkspace } from "@/hooks/use-workspace";
 import { apiFetch } from "@/lib/api-client";
 import { showError, showSuccess } from "@/lib/toast";
-import { cn } from "@/lib/utils";
 import { ActiveRunsProvider } from "@/providers/active-runs-provider";
 
-const TerminalDrawer = dynamic(
-	() => import("@/components/terminal-drawer").then((m) => m.TerminalDrawer),
-	{ ssr: false },
-);
+const ACTIVE_PANEL_KEY = "mandio.right-panel.active";
 
 interface LayoutShellProps {
 	children: React.ReactNode;
 }
 
 export function LayoutShell({ children }: LayoutShellProps) {
-	const [chatOpen, setChatOpen] = useState(false);
-	const [terminalOpen, setTerminalOpen] = useState(false);
+	const [activePanel, setActivePanel] = useState<ActivePanel>(null);
 	const [isMobile, setIsMobile] = useState(false);
 	const _pathname = usePathname();
 	const router = useRouter();
@@ -37,24 +33,30 @@ export function LayoutShell({ children }: LayoutShellProps) {
 	const { currentId: workspaceId } = useWorkspace();
 	const { commands } = useCommands(workspaceId);
 
-	// Restore chat sidebar state from localStorage
+	// Restore panel state from localStorage
 	useEffect(() => {
 		try {
-			const stored = localStorage.getItem("mandio.chat-sidebar.open");
-			if (stored === "true") setChatOpen(true);
+			const stored = localStorage.getItem(ACTIVE_PANEL_KEY);
+			if (stored === "chat" || stored === "terminal") {
+				setActivePanel(stored);
+			}
 		} catch {
 			// localStorage unavailable
 		}
 	}, []);
 
-	// Persist chat sidebar state
+	// Persist panel state
 	useEffect(() => {
 		try {
-			localStorage.setItem("mandio.chat-sidebar.open", String(chatOpen));
+			if (activePanel) {
+				localStorage.setItem(ACTIVE_PANEL_KEY, activePanel);
+			} else {
+				localStorage.removeItem(ACTIVE_PANEL_KEY);
+			}
 		} catch {
 			// localStorage unavailable
 		}
-	}, [chatOpen]);
+	}, [activePanel]);
 
 	// Detect mobile viewport
 	useEffect(() => {
@@ -66,11 +68,15 @@ export function LayoutShell({ children }: LayoutShellProps) {
 
 	// Listen for terminal toggle custom event (dispatched by KeyboardShortcuts)
 	useEffect(() => {
-		if (isMobile) return;
-		const handler = () => setTerminalOpen((v) => !v);
+		const handler = () =>
+			setActivePanel((v) => (v === "terminal" ? null : "terminal"));
 		window.addEventListener("mandio:terminal-toggle", handler);
 		return () => window.removeEventListener("mandio:terminal-toggle", handler);
-	}, [isMobile]);
+	}, []);
+
+	const handleRailSelect = useCallback((panel: "chat" | "terminal") => {
+		setActivePanel((v) => (v === panel ? null : panel));
+	}, []);
 
 	const handleCapture = useCallback(async (content: string) => {
 		try {
@@ -94,7 +100,7 @@ export function LayoutShell({ children }: LayoutShellProps) {
 
 	return (
 		<TooltipProvider delayDuration={300}>
-			<div className="min-h-screen bg-background">
+			<div className="min-h-screen bg-background flex flex-col">
 				<a href="#main-content" className="skip-to-content">
 					Skip to content
 				</a>
@@ -105,37 +111,39 @@ export function LayoutShell({ children }: LayoutShellProps) {
 					tasks={tasks}
 					commands={commands}
 					onTaskClick={() => {
-						// Navigate to Priority Matrix view which shows the task in context
 						router.push("/work");
 					}}
 					onTerminalToggle={
-						isMobile ? undefined : () => setTerminalOpen((v) => !v)
+						isMobile
+							? undefined
+							: () =>
+									setActivePanel((v) => (v === "terminal" ? null : "terminal"))
 					}
 				/>
 
-				<main
-					id="main-content"
-					className={cn(
-						"min-h-[calc(100vh-3.5rem)] transition-all duration-200 p-4 md:p-6",
-						!isMobile && (chatOpen ? "mr-[380px]" : "mr-10"),
-					)}
-				>
-					{!online && (
-						<div className="mb-4 rounded-sm bg-destructive-soft border border-destructive/20 text-destructive text-xs text-center py-2 px-3 flex items-center justify-center gap-2">
-							<span className="inline-block h-1.5 w-1.5 rounded-full bg-destructive animate-pulse" />
-							Connection lost — changes may not save. Retrying automatically...
-						</div>
-					)}
-					<ActiveRunsProvider>{children}</ActiveRunsProvider>
-				</main>
-				<ChatSidebar
-					open={chatOpen}
-					onToggle={() => setChatOpen((v) => !v)}
-					isMobile={isMobile}
-				/>
-				{!isMobile && (
-					<TerminalDrawer open={terminalOpen} onOpenChange={setTerminalOpen} />
-				)}
+				{/* Content row: main + optional panel + rail */}
+				<div className="flex flex-1 overflow-hidden">
+					<main
+						id="main-content"
+						className="flex-1 min-w-0 overflow-y-auto p-4 md:p-6"
+					>
+						{!online && (
+							<div className="mb-4 rounded-sm bg-destructive-soft border border-destructive/20 text-destructive text-xs text-center py-2 px-3 flex items-center justify-center gap-2">
+								<span className="inline-block h-1.5 w-1.5 rounded-full bg-destructive animate-pulse" />
+								Connection lost — changes may not save. Retrying
+								automatically...
+							</div>
+						)}
+						<ActiveRunsProvider>{children}</ActiveRunsProvider>
+					</main>
+
+					<RightPanel
+						activePanel={activePanel}
+						isMobile={isMobile}
+						onClose={() => setActivePanel(null)}
+					/>
+					<ActivityRail active={activePanel} onSelect={handleRailSelect} />
+				</div>
 			</div>
 		</TooltipProvider>
 	);

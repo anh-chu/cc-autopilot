@@ -6,14 +6,14 @@
 
 ## Scale
 
-105 API routes · 120 UI components · 70 library files · 9 middleware layers · 40 environment variables
+105 API routes · 122 UI components · 70 library files · 9 middleware layers · 40 environment variables
 
 ## Subsystems
 
 - **[Route](./route.md)** — 102 routes — touches: auth, cache, upload, db, ai
 - **[Ws-bridge](./ws-bridge.md)** — 3 routes
 
-**UI:** 120 components (react) — see [ui.md](./ui.md)
+**UI:** 122 components (react) — see [ui.md](./ui.md)
 
 **Libraries:** 70 files — see [libraries.md](./libraries.md)
 
