@@ -1,5 +1,6 @@
 "use client";
 
+import dynamic from "next/dynamic";
 import { usePathname, useRouter } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 import { ChatSidebar } from "@/components/chat/ChatSidebar";
@@ -16,12 +17,18 @@ import { showError, showSuccess } from "@/lib/toast";
 import { cn } from "@/lib/utils";
 import { ActiveRunsProvider } from "@/providers/active-runs-provider";
 
+const TerminalDrawer = dynamic(
+	() => import("@/components/terminal-drawer").then((m) => m.TerminalDrawer),
+	{ ssr: false },
+);
+
 interface LayoutShellProps {
 	children: React.ReactNode;
 }
 
 export function LayoutShell({ children }: LayoutShellProps) {
 	const [chatOpen, setChatOpen] = useState(false);
+	const [terminalOpen, setTerminalOpen] = useState(false);
 	const [isMobile, setIsMobile] = useState(false);
 	const _pathname = usePathname();
 	const router = useRouter();
@@ -56,6 +63,14 @@ export function LayoutShell({ children }: LayoutShellProps) {
 		window.addEventListener("resize", checkMobile);
 		return () => window.removeEventListener("resize", checkMobile);
 	}, []);
+
+	// Listen for terminal toggle custom event (dispatched by KeyboardShortcuts)
+	useEffect(() => {
+		if (isMobile) return;
+		const handler = () => setTerminalOpen((v) => !v);
+		window.addEventListener("mandio:terminal-toggle", handler);
+		return () => window.removeEventListener("mandio:terminal-toggle", handler);
+	}, [isMobile]);
 
 	const handleCapture = useCallback(async (content: string) => {
 		try {
@@ -93,6 +108,9 @@ export function LayoutShell({ children }: LayoutShellProps) {
 						// Navigate to Priority Matrix view which shows the task in context
 						router.push("/work");
 					}}
+					onTerminalToggle={
+						isMobile ? undefined : () => setTerminalOpen((v) => !v)
+					}
 				/>
 
 				<main
@@ -115,6 +133,9 @@ export function LayoutShell({ children }: LayoutShellProps) {
 					onToggle={() => setChatOpen((v) => !v)}
 					isMobile={isMobile}
 				/>
+				{!isMobile && (
+					<TerminalDrawer open={terminalOpen} onOpenChange={setTerminalOpen} />
+				)}
 			</div>
 		</TooltipProvider>
 	);

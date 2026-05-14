@@ -2,9 +2,9 @@
 
 > **Navigation aid.** Library inventory extracted via AST. Read the source files listed here before modifying exported functions.
 
-**65 library files** across 6 modules
+**70 library files** across 6 modules
 
-## Lib (39 files)
+## Lib (43 files)
 
 - `src/lib/types.ts` — getQuadrant, valuesFromQuadrant, AgentDefinition, AgentsFile, SkillDefinition, LegacySkillDefinition, …
 - `src/lib/data.ts` — ensureSkillsMigrated, getWorkspaceDataDir, ensureWorkspaceDir, initWikiDir, ensureDocMaintainerAgentForWorkspace, getTasks, …
@@ -17,6 +17,7 @@
 - `src/lib/command-files.ts` — parseCommandFile, serializeCommandFile, readCommandFile, readCommandFileSync, writeCommandFile, listCommandIds, …
 - `src/lib/skill-files.ts` — parseSkillFile, serializeSkillFile, readSkillFile, readSkillFileSync, writeSkillFile, listSkillIds, …
 - `src/lib/wiki-plugin.ts` — compareVersions, getPluginStatus, ensureWikiPluginInstalledDetailed, ensureWikiBootstrappedFromPlugin, reconcileWikiWithPlugin, getLatestAvailableVersion, …
+- `src/lib/terminal/session-manager.ts` — detectShell, buildEnv, TerminalSessionManager, TerminalSession, IDLE_MS, MAX_AGE_MS, …
 - `src/lib/conversation-event-bus.ts` — emitLocal, subscribeLocal, subscribe, publishAndEmit, _watcherCount, _clearWatchers
 - `src/lib/paginate.ts` — parsePaginationParams, paginateItems, PaginationParams, PaginatedResult, CACHE_HEADERS
 - `src/lib/cabinets/tree.ts` — findRootCabinetNode, findNodeByPath, findDeepestCabinetNode, findParentCabinetNode
@@ -30,8 +31,7 @@
 - `src/lib/utils.ts` — cn, generateId, parseAgentMentions
 - `src/lib/workspace-store.ts` — getWorkspaceId, setFallbackWorkspaceId, workspaceStore
 - `src/lib/api-client.ts` — apiFetch, ApiFetchInit
-- `src/lib/json-io.ts` — readJSON, writeJSON
-- _…and 14 more files_
+- _…and 18 more files_
 
 ## Scripts (12 files)
 
@@ -48,11 +48,12 @@
 - `scripts/daemon/workspace-env.ts` — getWorkspaceEnv
 - `scripts/daemon/workspace-settings.ts` — readWorkspaceSettingsSync
 
-## Hooks (10 files)
+## Hooks (11 files)
 
 - `src/hooks/use-data.ts` — useTasks, useInitiativeTasks, useProjects, useBrainDump, useActivityLog, useInbox, …
 - `src/hooks/use-conversation-stream.ts` — conversationReducer, useConversationStream, ConversationReducerState, ConversationStreamState, initialReducerState
 - `src/hooks/use-home-data.ts` — useHomeData, HomeStats, HomeData
+- `src/hooks/use-terminal-ws.ts` — useTerminalWS, UseTerminalWSResult, TerminalStatus
 - `src/hooks/use-active-runs.ts` — useActiveRuns
 - `src/hooks/use-connection.ts` — useConnection
 - `src/hooks/use-daemon.ts` — useDaemon

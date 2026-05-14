@@ -8,6 +8,7 @@ import {
 	Home,
 	Plus,
 	Settings2,
+	Terminal,
 	Users,
 } from "lucide-react";
 import Link from "next/link";
@@ -225,12 +226,29 @@ function WorkspaceSwitcherCompact() {
 	);
 }
 
-export function TopNav() {
+interface TopNavProps {
+	onTerminalToggle?: () => void;
+}
+
+export function TopNav({ onTerminalToggle }: TopNavProps = {}) {
 	const pathname = usePathname();
 
 	return (
 		<nav aria-label="Primary" className="flex shrink-0 items-center gap-0.5">
 			<WorkspaceSwitcherCompact />
+			{onTerminalToggle && (
+				<button
+					type="button"
+					onClick={onTerminalToggle}
+					title="Toggle terminal (Ctrl+`)"
+					className={cn(
+						"group flex items-center gap-0 rounded-md px-2 py-1.5 text-sm font-medium transition-all duration-200",
+						"text-muted-foreground hover:bg-accent/60 hover:text-foreground",
+					)}
+				>
+					<Terminal className="h-4 w-4 shrink-0" />
+				</button>
+			)}
 			{navItems.map((item) => {
 				const active = isItemActive(item, pathname);
 				const Icon = item.icon;

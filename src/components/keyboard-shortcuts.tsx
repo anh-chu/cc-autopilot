@@ -22,6 +22,7 @@ const shortcuts = [
 	{ key: "G C", label: "Go to Agents" },
 	{ key: "G S", label: "Go to Skills" },
 	{ key: "G L", label: "Go to Automation" },
+	{ key: "Ctrl `", label: "Toggle terminal" },
 ];
 
 interface KeyboardShortcutsProps {
@@ -35,6 +36,14 @@ export function KeyboardShortcuts({ onCreateTask }: KeyboardShortcutsProps) {
 
 	const handleKeyDown = useCallback(
 		(e: KeyboardEvent) => {
+			// Ctrl+` toggles terminal — checked before the input guard so it works
+			// even when focus is inside an editor or input field.
+			if (e.ctrlKey && e.key === "`") {
+				e.preventDefault();
+				window.dispatchEvent(new CustomEvent("mandio:terminal-toggle"));
+				return;
+			}
+
 			// Ignore if typing in an input/textarea/select
 			const target = e.target as HTMLElement;
 			if (

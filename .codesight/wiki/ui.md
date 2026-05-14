@@ -2,7 +2,7 @@
 
 > **Navigation aid.** Component inventory and prop signatures extracted via AST. Read the source files before adding props or modifying component logic.
 
-**119 components** (react)
+**120 components** (react)
 
 ## Client Components
 
@@ -39,7 +39,7 @@
 - **BoardDndWrapper** — props: activeTask, projects, onDragStart, onDragEnd — `src/components/board-view.tsx`
 - **BreadcrumbNav** — props: items, className, peers — `src/components/breadcrumb-nav.tsx`
 - **ChatSidebar** — props: open, onToggle, isMobile — `src/components/chat/ChatSidebar.tsx`
-- **CommandBar** — props: onCapture, tasks, onTaskClick, commands — `src/components/command-bar.tsx`
+- **CommandBar** — props: onCapture, tasks, onTaskClick, commands, onTerminalToggle — `src/components/command-bar.tsx`
 - **CommandForm** — props: mode, initialData, onDelete, activationProps — `src/components/command-form.tsx`
 - **ConditionalShell** — `src/components/conditional-shell.tsx`
 - **ConfirmDialog** — props: open, onOpenChange, title, description, confirmLabel, onConfirm, variant — `src/components/confirm-dialog.tsx`
@@ -101,9 +101,10 @@
 - **SkillForm** — props: mode, initialData, onDelete, activationProps — `src/components/skill-form.tsx`
 - **TaskCard** — props: task, project, agents, className, isDragging, onClick, allTasks, pendingDecisionTaskIds, isRunning, onRun — `src/components/task-card.tsx`
 - **TaskForm** — props: initial, allTasks, currentTaskId, onSubmit, onCancel, submitLabel — `src/components/task-form.tsx`
+- **TerminalDrawer** — props: open, onOpenChange — `src/components/terminal-drawer.tsx`
 - **ThemeProvider** — `src/components/theme-provider.tsx`
 - **ThemeToggle** — `src/components/theme-toggle.tsx`
-- **TopNav** — `src/components/top-nav.tsx`
+- **TopNav** — props: onTerminalToggle — `src/components/top-nav.tsx`
 - **FrontmatterHeader** — props: data — `src/components/wiki/frontmatter-header.tsx`
 - **WorkMapView** — `src/components/work-map-view.tsx`
 - **ActiveRunsProvider** — `src/providers/active-runs-provider.tsx`

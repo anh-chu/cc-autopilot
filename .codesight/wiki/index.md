@@ -1,6 +1,6 @@
 # mandio — Wiki
 
-_Generated 2026-05-13 — re-run `npx codesight --wiki` if the codebase has changed._
+_Generated 2026-05-14 — re-run `npx codesight --wiki` if the codebase has changed._
 
 Structural map compiled from source code via AST. No LLM — deterministic, 200ms.
 
@@ -10,15 +10,16 @@ Structural map compiled from source code via AST. No LLM — deterministic, 200m
 
 - [Overview](./overview.md)
 - [Route](./route.md)
+- [Ws-bridge](./ws-bridge.md)
 - [Ui](./ui.md)
 - [Libraries](./libraries.md)
 
 ## Quick Stats
 
-- Routes: **102**
+- Routes: **105**
 - Models: **0**
-- Components: **119**
-- Env vars: **27** required, **5** with defaults
+- Components: **120**
+- Env vars: **34** required, **6** with defaults
 
 ## How to Use
 
@@ -44,4 +45,4 @@ These exist in your codebase but are **not** reflected in wiki articles:
 When in doubt, search the source. The wiki is a starting point, not a complete inventory.
 
 ---
-_Last compiled: 2026-05-13 · 5 articles · [codesight](https://github.com/Houseofmvps/codesight)_
+_Last compiled: 2026-05-14 · 6 articles · [codesight](https://github.com/Houseofmvps/codesight)_

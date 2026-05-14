@@ -2,7 +2,7 @@
 
 ## Most Imported Files (change these carefully)
 
-- `src/lib/utils.ts` — imported by **73** files
+- `src/lib/utils.ts` — imported by **74** files
 - `src/lib/types.ts` — imported by **70** files
 - `src/lib/auth-guards.ts` — imported by **57** files
 - `src/lib/paths.ts` — imported by **54** files
@@ -25,7 +25,7 @@
 
 ## Import Map (who imports what)
 
-- `src/lib/utils.ts` ← `src/app/agents/[id]/page.tsx`, `src/app/agents/page.tsx`, `src/app/api/activity-log/route.ts`, `src/app/api/brain-dump/route.ts`, `src/app/api/commands/route.ts` +68 more
+- `src/lib/utils.ts` ← `src/app/agents/[id]/page.tsx`, `src/app/agents/page.tsx`, `src/app/api/activity-log/route.ts`, `src/app/api/brain-dump/route.ts`, `src/app/api/commands/route.ts` +69 more
 - `src/lib/types.ts` ← `__tests__/conversation-event-bus.test.ts`, `__tests__/data.test.ts`, `scripts/daemon/run-task.ts`, `scripts/daemon/workspace-settings.ts`, `src/app/agents/[id]/page.tsx` +65 more
 - `src/lib/auth-guards.ts` ← `__tests__/auth-oauth-security.test.ts`, `src/app/api/activity-log/route.ts`, `src/app/api/agents/route.ts`, `src/app/api/assets/[...path]/route.ts`, `src/app/api/brain-dump/automate/route.ts` +52 more
 - `src/lib/paths.ts` ← `__tests__/api-projects-stop-conversation.test.ts`, `__tests__/api-tasks-stop-conversation.test.ts`, `__tests__/daemon-multi-workspace.test.ts`, `__tests__/seeding.test.ts`, `bin/cli.ts` +49 more

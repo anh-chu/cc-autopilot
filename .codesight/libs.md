@@ -69,10 +69,15 @@
   - interface HomeData
 - `src/hooks/use-processing-entries.ts` — function useProcessingEntries: (entries) => void
 - `src/hooks/use-sidebar.ts` — function useSidebar: () => void
+- `src/hooks/use-terminal-ws.ts`
+  - function useTerminalWS: (enabled) => UseTerminalWSResult
+  - interface UseTerminalWSResult
+  - type TerminalStatus
 - `src/hooks/use-workspace.ts` — function useWorkspace: () => void
 - `src/instrumentation.ts` — function register: () => void
 - `src/lib/agent-icons.ts` — function getAgentIcon: (agentId, iconName?) => LucideIcon
 - `src/lib/api-client.ts` — function apiFetch: (url, init?) => Promise<Response>, interface ApiFetchInit
+- `src/lib/auth-email-allowlist.ts` — function isEmailAllowed: (email) => boolean
 - `src/lib/auth-guards.ts` — function requireSession: () => Promise<Response | null>
 - `src/lib/auth-paths.ts` — function isPublicPath: (pathname) => boolean
 - `src/lib/cabinets/tree.ts`
@@ -189,6 +194,16 @@
   - function generateAgentCommandMarkdown: (agent, linkedSkills) => string
   - function syncAgentCommand: (agent, workspaceId) => Promise<void>
   - function syncAllAgentCommands: (workspaceId) => Promise<void>
+- `src/lib/terminal/session-manager.ts`
+  - function detectShell: () => void
+  - function buildEnv: () => NodeJS.ProcessEnv
+  - class TerminalSessionManager
+  - interface TerminalSession
+  - const IDLE_MS
+  - const MAX_AGE_MS
+  - _...2 more_
+- `src/lib/terminal/upgrade-handler.ts` — function attachTerminalUpgrade: (server, wss) => void
+- `src/lib/terminal/ws-bridge.ts` — function attachWebSocketToSession: (ws, session) => void
 - `src/lib/toast.ts` — function showSuccess: (message, options?) => void, function showError: (message, options?) => void
 - `src/lib/types.ts`
   - function getQuadrant: (task) => EisenhowerQuadrant

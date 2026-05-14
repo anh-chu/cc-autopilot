@@ -88,7 +88,11 @@ function isProcessAlive(pid: number): boolean {
 // --- Server Functions ---
 
 function findServerScript(): string {
-	// Next.js standalone output may be nested under the project directory name
+	// Prefer the custom server bundle (with WebSocket terminal support)
+	const customServer = path.join(rootDir, "dist", "server.js");
+	if (existsSync(customServer)) return customServer;
+
+	// Fall back to Next.js standalone output for back-compat
 	const directPath = path.join(rootDir, ".next", "standalone", "server.js");
 	const nestedPath = path.join(
 		rootDir,
@@ -99,7 +103,7 @@ function findServerScript(): string {
 	);
 	if (existsSync(directPath)) return directPath;
 	if (existsSync(nestedPath)) return nestedPath;
-	return directPath; // fall back to original path for error message
+	return customServer; // fall back to original path for error message
 }
 
 function startServerProcess(port: number): ChildProcess {

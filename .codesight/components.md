@@ -44,7 +44,7 @@
 - **BoardDndWrapper** [client] — props: activeTask, projects, onDragStart, onDragEnd — `src/components/board-view.tsx`
 - **BreadcrumbNav** [client] — props: items, className, peers — `src/components/breadcrumb-nav.tsx`
 - **ChatSidebar** [client] — props: open, onToggle, isMobile — `src/components/chat/ChatSidebar.tsx`
-- **CommandBar** [client] — props: onCapture, tasks, onTaskClick, commands — `src/components/command-bar.tsx`
+- **CommandBar** [client] — props: onCapture, tasks, onTaskClick, commands, onTerminalToggle — `src/components/command-bar.tsx`
 - **CommandForm** [client] — props: mode, initialData, onDelete, activationProps — `src/components/command-form.tsx`
 - **ConditionalShell** [client] — `src/components/conditional-shell.tsx`
 - **ConfirmDialog** [client] — props: open, onOpenChange, title, description, confirmLabel, onConfirm, variant — `src/components/confirm-dialog.tsx`
@@ -113,9 +113,10 @@
 - **SkillForm** [client] — props: mode, initialData, onDelete, activationProps — `src/components/skill-form.tsx`
 - **TaskCard** [client] — props: task, project, agents, className, isDragging, onClick, allTasks, pendingDecisionTaskIds, isRunning, onRun — `src/components/task-card.tsx`
 - **TaskForm** [client] — props: initial, allTasks, currentTaskId, onSubmit, onCancel, submitLabel — `src/components/task-form.tsx`
+- **TerminalDrawer** [client] — props: open, onOpenChange — `src/components/terminal-drawer.tsx`
 - **ThemeProvider** [client] — `src/components/theme-provider.tsx`
 - **ThemeToggle** [client] — `src/components/theme-toggle.tsx`
-- **TopNav** [client] — `src/components/top-nav.tsx`
+- **TopNav** [client] — props: onTerminalToggle — `src/components/top-nav.tsx`
 - **FrontmatterHeader** [client] — props: data — `src/components/wiki/frontmatter-header.tsx`
 - **WorkMapView** [client] — `src/components/work-map-view.tsx`
 - **ActiveRunsProvider** [client] — `src/providers/active-runs-provider.tsx`

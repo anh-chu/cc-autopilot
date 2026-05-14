@@ -6,21 +6,22 @@
 
 ## Scale
 
-102 API routes · 119 UI components · 65 library files · 7 middleware layers · 32 environment variables
+105 API routes · 120 UI components · 70 library files · 9 middleware layers · 40 environment variables
 
 ## Subsystems
 
 - **[Route](./route.md)** — 102 routes — touches: auth, cache, upload, db, ai
+- **[Ws-bridge](./ws-bridge.md)** — 3 routes
 
-**UI:** 119 components (react) — see [ui.md](./ui.md)
+**UI:** 120 components (react) — see [ui.md](./ui.md)
 
-**Libraries:** 65 files — see [libraries.md](./libraries.md)
+**Libraries:** 70 files — see [libraries.md](./libraries.md)
 
 ## High-Impact Files
 
 Changes to these files have the widest blast radius across the codebase:
 
-- `src/lib/utils.ts` — imported by **73** files
+- `src/lib/utils.ts` — imported by **74** files
 - `src/lib/types.ts` — imported by **70** files
 - `src/lib/auth-guards.ts` — imported by **57** files
 - `src/lib/paths.ts` — imported by **54** files
@@ -29,19 +30,19 @@ Changes to these files have the widest blast radius across the codebase:
 
 ## Required Environment Variables
 
+- `ANTHROPIC_API_KEY` — `__tests__/terminal-session-manager.test.ts`
 - `API_KEY` — `__tests__/daemon.test.ts`
 - `APPDATA` — `scripts/daemon/runner.ts`
-- `AUTH_ALLOW_ALL_USERS` — `__tests__/auth-signin-callback.test.ts`
+- `AUTH_ALLOW_ALL_USERS` — `__tests__/auth-email-allowlist.test.ts`
 - `CLAUDE_CODE_EXECUTABLE` — `src/lib/claude-sdk.ts`
 - `CLAUDE_CODE_OAUTH_TOKEN` — `scripts/daemon/security.ts`
 - `COMSPEC` — `scripts/daemon/security.ts`
-- `HOME` — `scripts/daemon/runner.ts`
+- `DB_PASSWORD` — `__tests__/terminal-session-manager.test.ts`
+- `HOME` — `__tests__/terminal-session-manager.test.ts`
+- `HOSTNAME` — `src/server.ts`
 - `LOCALAPPDATA` — `scripts/daemon/runner.ts`
 - `MANDIO_ALLOW_AGENT_IN_TESTS` — `scripts/daemon/runner.ts`
-- `MANDIO_BOOTSTRAP_STANDALONE` — `bin/bootstrap.ts`
-- `MANDIO_DATA_DIR` — `__tests__/helpers.ts`
-- `MANDIO_DEFAULT_MODEL` — `scripts/daemon/runner.ts`
-- _...15 more_
+- _...22 more_
 
 ---
-_Back to [index.md](./index.md) · Generated 2026-05-13_
+_Back to [index.md](./index.md) · Generated 2026-05-14_

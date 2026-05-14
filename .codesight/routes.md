@@ -71,3 +71,9 @@
 - `GET` `/api/wiki/status` → out: { installed, version } [auth]
 - `POST` `/api/wiki/upload` → out: { error } [auth]
 - `GET` `/uploads/[filename]` params(filename) → out: { error } [auth, cache, upload]
+
+## WebSocket Events
+
+- `WS` `pong` — `src/lib/terminal/ws-bridge.ts`
+- `WS` `message` — `src/lib/terminal/ws-bridge.ts`
+- `WS` `close` — `src/lib/terminal/ws-bridge.ts`

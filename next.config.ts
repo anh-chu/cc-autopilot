@@ -75,7 +75,7 @@ const nextConfig: NextConfig = {
 	// The Claude Agent SDK uses runtime path resolution and child processes.
 	// Bundling it via webpack/turbopack breaks model and slash-command discovery,
 	// so keep it as an external dependency at runtime.
-	serverExternalPackages: ["@anthropic-ai/claude-agent-sdk"],
+	serverExternalPackages: ["@anthropic-ai/claude-agent-sdk", "node-pty", "ws"],
 	experimental: {
 		// lucide-react ships individual icon files and a barrel re-export;
 		// optimizePackageImports tells Next.js to import icons directly

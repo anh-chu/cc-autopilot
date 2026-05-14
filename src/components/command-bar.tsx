@@ -14,6 +14,7 @@ interface CommandBarProps {
 	tasks?: Task[];
 	onTaskClick?: (task: Task) => void;
 	commands?: CommandDefinition[];
+	onTerminalToggle?: () => void;
 }
 
 export function CommandBar({
@@ -21,6 +22,7 @@ export function CommandBar({
 	tasks = [],
 	onTaskClick,
 	commands = [],
+	onTerminalToggle,
 }: CommandBarProps) {
 	const [value, setValue] = useState("");
 	const [focused, setFocused] = useState(false);
@@ -120,7 +122,7 @@ export function CommandBar({
 				<div className="flex-1 bg-neutral-600" />
 				<div className="flex-1 bg-neutral-700" />
 			</div>
-			<TopNav />
+			<TopNav onTerminalToggle={onTerminalToggle} />
 
 			<div
 				className={cn(

@@ -2,9 +2,9 @@
 
 > **Stack:** next-app | none | react | typescript
 
-> 102 routes | 0 models | 119 components | 65 lib files | 32 env vars | 7 middleware | 2 events | 15% test coverage
-> **Token savings:** this file is ~10,000 tokens. Without it, AI exploration would cost ~124,100 tokens. **Saves ~114,100 tokens per conversation.**
-> **Last scanned:** 2026-05-13 22:27 — re-run after significant changes
+> 102 routes (3 inferred) + 3 ws | 0 models | 120 components | 70 lib files | 40 env vars | 9 middleware | 5 events | 18% test coverage
+> **Token savings:** this file is ~10,600 tokens. Without it, AI exploration would cost ~128,400 tokens. **Saves ~117,900 tokens per conversation.**
+> **Last scanned:** 2026-05-14 18:27 — re-run after significant changes
 
 ---
 
@@ -82,6 +82,12 @@
 - `POST` `/api/wiki/upload` → out: { error } [auth]
 - `GET` `/uploads/[filename]` params(filename) → out: { error } [auth, cache, upload]
 
+## WebSocket Events
+
+- `WS` `pong` — `src/lib/terminal/ws-bridge.ts`
+- `WS` `message` — `src/lib/terminal/ws-bridge.ts`
+- `WS` `close` — `src/lib/terminal/ws-bridge.ts`
+
 ---
 
 # Components
@@ -130,7 +136,7 @@
 - **BoardDndWrapper** [client] — props: activeTask, projects, onDragStart, onDragEnd — `src/components/board-view.tsx`
 - **BreadcrumbNav** [client] — props: items, className, peers — `src/components/breadcrumb-nav.tsx`
 - **ChatSidebar** [client] — props: open, onToggle, isMobile — `src/components/chat/ChatSidebar.tsx`
-- **CommandBar** [client] — props: onCapture, tasks, onTaskClick, commands — `src/components/command-bar.tsx`
+- **CommandBar** [client] — props: onCapture, tasks, onTaskClick, commands, onTerminalToggle — `src/components/command-bar.tsx`
 - **CommandForm** [client] — props: mode, initialData, onDelete, activationProps — `src/components/command-form.tsx`
 - **ConditionalShell** [client] — `src/components/conditional-shell.tsx`
 - **ConfirmDialog** [client] — props: open, onOpenChange, title, description, confirmLabel, onConfirm, variant — `src/components/confirm-dialog.tsx`
@@ -199,9 +205,10 @@
 - **SkillForm** [client] — props: mode, initialData, onDelete, activationProps — `src/components/skill-form.tsx`
 - **TaskCard** [client] — props: task, project, agents, className, isDragging, onClick, allTasks, pendingDecisionTaskIds, isRunning, onRun — `src/components/task-card.tsx`
 - **TaskForm** [client] — props: initial, allTasks, currentTaskId, onSubmit, onCancel, submitLabel — `src/components/task-form.tsx`
+- **TerminalDrawer** [client] — props: open, onOpenChange — `src/components/terminal-drawer.tsx`
 - **ThemeProvider** [client] — `src/components/theme-provider.tsx`
 - **ThemeToggle** [client] — `src/components/theme-toggle.tsx`
-- **TopNav** [client] — `src/components/top-nav.tsx`
+- **TopNav** [client] — props: onTerminalToggle — `src/components/top-nav.tsx`
 - **FrontmatterHeader** [client] — props: data — `src/components/wiki/frontmatter-header.tsx`
 - **WorkMapView** [client] — `src/components/work-map-view.tsx`
 - **ActiveRunsProvider** [client] — `src/providers/active-runs-provider.tsx`
@@ -279,10 +286,15 @@
   - interface HomeData
 - `src/hooks/use-processing-entries.ts` — function useProcessingEntries: (entries) => void
 - `src/hooks/use-sidebar.ts` — function useSidebar: () => void
+- `src/hooks/use-terminal-ws.ts`
+  - function useTerminalWS: (enabled) => UseTerminalWSResult
+  - interface UseTerminalWSResult
+  - type TerminalStatus
 - `src/hooks/use-workspace.ts` — function useWorkspace: () => void
 - `src/instrumentation.ts` — function register: () => void
 - `src/lib/agent-icons.ts` — function getAgentIcon: (agentId, iconName?) => LucideIcon
 - `src/lib/api-client.ts` — function apiFetch: (url, init?) => Promise<Response>, interface ApiFetchInit
+- `src/lib/auth-email-allowlist.ts` — function isEmailAllowed: (email) => boolean
 - `src/lib/auth-guards.ts` — function requireSession: () => Promise<Response | null>
 - `src/lib/auth-paths.ts` — function isPublicPath: (pathname) => boolean
 - `src/lib/cabinets/tree.ts`
@@ -399,6 +411,16 @@
   - function generateAgentCommandMarkdown: (agent, linkedSkills) => string
   - function syncAgentCommand: (agent, workspaceId) => Promise<void>
   - function syncAllAgentCommands: (workspaceId) => Promise<void>
+- `src/lib/terminal/session-manager.ts`
+  - function detectShell: () => void
+  - function buildEnv: () => NodeJS.ProcessEnv
+  - class TerminalSessionManager
+  - interface TerminalSession
+  - const IDLE_MS
+  - const MAX_AGE_MS
+  - _...2 more_
+- `src/lib/terminal/upgrade-handler.ts` — function attachTerminalUpgrade: (server, wss) => void
+- `src/lib/terminal/ws-bridge.ts` — function attachWebSocketToSession: (ws, session) => void
 - `src/lib/toast.ts` — function showSuccess: (message, options?) => void, function showError: (message, options?) => void
 - `src/lib/types.ts`
   - function getQuadrant: (task) => EisenhowerQuadrant
@@ -454,9 +476,10 @@
 ## Environment Variables
 
 - `ALLOWED_EMAILS` (has default) — .env.local
+- `ANTHROPIC_API_KEY` **required** — __tests__/terminal-session-manager.test.ts
 - `API_KEY` **required** — __tests__/daemon.test.ts
 - `APPDATA` **required** — scripts/daemon/runner.ts
-- `AUTH_ALLOW_ALL_USERS` **required** — __tests__/auth-signin-callback.test.ts
+- `AUTH_ALLOW_ALL_USERS` **required** — __tests__/auth-email-allowlist.test.ts
 - `AUTH_GOOGLE_ID` (has default) — .env.local
 - `AUTH_GOOGLE_SECRET` (has default) — .env.local
 - `AUTH_SECRET` (has default) — .env.local
@@ -464,21 +487,28 @@
 - `CLAUDE_CODE_EXECUTABLE` **required** — src/lib/claude-sdk.ts
 - `CLAUDE_CODE_OAUTH_TOKEN` **required** — scripts/daemon/security.ts
 - `COMSPEC` **required** — scripts/daemon/security.ts
-- `HOME` **required** — scripts/daemon/runner.ts
+- `DB_PASSWORD` **required** — __tests__/terminal-session-manager.test.ts
+- `HOME` **required** — __tests__/terminal-session-manager.test.ts
+- `HOSTNAME` **required** — src/server.ts
 - `LOCALAPPDATA` **required** — scripts/daemon/runner.ts
 - `MANDIO_ALLOW_AGENT_IN_TESTS` **required** — scripts/daemon/runner.ts
 - `MANDIO_BOOTSTRAP_STANDALONE` **required** — bin/bootstrap.ts
-- `MANDIO_DATA_DIR` **required** — __tests__/helpers.ts
+- `MANDIO_DATA_DIR` (has default) — .env.local
 - `MANDIO_DEFAULT_MODEL` **required** — scripts/daemon/runner.ts
+- `MANDIO_ENABLE_TERMINAL` **required** — src/server.ts
 - `MANDIO_GLOBAL_MAX_PARALLEL_AGENTS` **required** — src/lib/scheduled-jobs.ts
 - `MANDIO_INSTALL_DIR` **required** — src/lib/paths.ts
 - `MANDIO_WORKSPACE_ID` **required** — scripts/daemon/config.ts
+- `MY_API_KEY` **required** — __tests__/terminal-session-manager.test.ts
 - `NEXT_RUNTIME` **required** — src/instrumentation.ts
-- `NODE_ENV` **required** — __tests__/auth-signin-callback.test.ts
+- `NODE_ENV` **required** — __tests__/auth-email-allowlist.test.ts
 - `P` **required** — scripts/daemon/security.ts
 - `PATH` **required** — scripts/daemon/security.ts
 - `PATHEXT` **required** — scripts/daemon/security.ts
+- `PORT` **required** — src/server.ts
 - `S` **required** — scripts/daemon/security.ts
+- `SHELL` **required** — __tests__/terminal-session-manager.test.ts
+- `SOME_TOKEN` **required** — __tests__/terminal-session-manager.test.ts
 - `SYSTEMROOT` **required** — scripts/daemon/security.ts
 - `TEMP` **required** — scripts/daemon/security.ts
 - `TMP` **required** — scripts/daemon/security.ts
@@ -505,9 +535,11 @@
 # Middleware
 
 ## auth
+- auth-email-allowlist.test — `__tests__/auth-email-allowlist.test.ts`
 - auth-oauth-security.test — `__tests__/auth-oauth-security.test.ts`
 - auth-signin-callback.test — `__tests__/auth-signin-callback.test.ts`
 - auth-provider — `src/components/auth-provider.tsx`
+- auth-email-allowlist — `src/lib/auth-email-allowlist.ts`
 - auth-guards — `src/lib/auth-guards.ts`
 - auth-paths — `src/lib/auth-paths.ts`
 - auth — `src/lib/auth.ts`
@@ -521,7 +553,7 @@
 
 ## Most Imported Files (change these carefully)
 
-- `src/lib/utils.ts` — imported by **73** files
+- `src/lib/utils.ts` — imported by **74** files
 - `src/lib/types.ts` — imported by **70** files
 - `src/lib/auth-guards.ts` — imported by **57** files
 - `src/lib/paths.ts` — imported by **54** files
@@ -544,7 +576,7 @@
 
 ## Import Map (who imports what)
 
-- `src/lib/utils.ts` ← `src/app/agents/[id]/page.tsx`, `src/app/agents/page.tsx`, `src/app/api/activity-log/route.ts`, `src/app/api/brain-dump/route.ts`, `src/app/api/commands/route.ts` +68 more
+- `src/lib/utils.ts` ← `src/app/agents/[id]/page.tsx`, `src/app/agents/page.tsx`, `src/app/api/activity-log/route.ts`, `src/app/api/brain-dump/route.ts`, `src/app/api/commands/route.ts` +69 more
 - `src/lib/types.ts` ← `__tests__/conversation-event-bus.test.ts`, `__tests__/data.test.ts`, `scripts/daemon/run-task.ts`, `scripts/daemon/workspace-settings.ts`, `src/app/agents/[id]/page.tsx` +65 more
 - `src/lib/auth-guards.ts` ← `__tests__/auth-oauth-security.test.ts`, `src/app/api/activity-log/route.ts`, `src/app/api/agents/route.ts`, `src/app/api/assets/[...path]/route.ts`, `src/app/api/brain-dump/automate/route.ts` +52 more
 - `src/lib/paths.ts` ← `__tests__/api-projects-stop-conversation.test.ts`, `__tests__/api-tasks-stop-conversation.test.ts`, `__tests__/daemon-multi-workspace.test.ts`, `__tests__/seeding.test.ts`, `bin/cli.ts` +49 more
@@ -559,15 +591,18 @@
 
 # Events & Queues
 
+- `exit` [event] — `__tests__/terminal-session-manager.test.ts`
+- `message` [event] — `__tests__/terminal-ws-bridge.test.ts`
 - `event` [event] — `src/lib/conversation-event-bus.ts`
 - `conversation:${event.conversationId}` [event] — `src/lib/conversation-event-bus.ts`
+- `upgrade` [event] — `src/lib/terminal/upgrade-handler.ts`
 
 ---
 
 # Test Coverage
 
-> **15%** of routes and models are covered by tests
-> 22 test files found
+> **18%** of routes and models are covered by tests
+> 25 test files found
 
 ## Covered Routes
 
@@ -586,6 +621,9 @@
 - POST:/api/tasks
 - PUT:/api/tasks
 - DELETE:/api/tasks
+- WS:pong
+- WS:message
+- WS:close
 
 ---
 

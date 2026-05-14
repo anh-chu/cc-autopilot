@@ -1,7 +1,7 @@
 # Test Coverage
 
-> **15%** of routes and models are covered by tests
-> 22 test files found
+> **18%** of routes and models are covered by tests
+> 25 test files found
 
 ## Covered Routes
 
@@ -20,3 +20,6 @@
 - POST:/api/tasks
 - PUT:/api/tasks
 - DELETE:/api/tasks
+- WS:pong
+- WS:message
+- WS:close
