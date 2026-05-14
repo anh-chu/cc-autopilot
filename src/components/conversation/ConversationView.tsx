@@ -48,7 +48,7 @@ export function ConversationView({
 	].includes(conversation.status);
 
 	return (
-		<div className="flex flex-col h-full w-full bg-background">
+		<div className="flex flex-col h-full w-full">
 			{/* Header */}
 			<div className="flex items-center justify-between px-4 py-3 border-b shrink-0">
 				<div className="flex flex-col gap-1">

@@ -1,6 +1,13 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import {
+	Select,
+	SelectContent,
+	SelectItem,
+	SelectTrigger,
+	SelectValue,
+} from "@/components/ui/select";
 import { cn } from "@/lib/utils";
 
 interface ModelInfo {
@@ -65,31 +72,22 @@ export function ModelSelect({ value, onChange, className }: ModelSelectProps) {
 			!m.displayName.startsWith("Default") && !m.value.startsWith("default"),
 	);
 
-	const selectOptions = loading
-		? [{ value: "", displayName: "Loading..." }]
-		: filtered;
-
 	return (
-		<select
+		<Select
 			value={value}
-			onChange={(e) => onChange(e.target.value)}
-			disabled={mounted && loading ? true : undefined}
-			suppressHydrationWarning
-			className={cn(
-				"h-7 rounded-sm border bg-secondary px-2 text-xs",
-				className,
-			)}
+			onValueChange={onChange}
+			disabled={mounted && loading}
 		>
-			{!loading && error && (
-				<option value="" disabled>
-					Default
-				</option>
-			)}
-			{selectOptions.map((model) => (
-				<option key={model.value} value={model.value}>
-					{model.displayName}
-				</option>
-			))}
-		</select>
+			<SelectTrigger className={cn("h-7 text-xs", className)}>
+				<SelectValue placeholder={loading ? "Loading..." : "Select model"} />
+			</SelectTrigger>
+			<SelectContent>
+				{filtered.map((model) => (
+					<SelectItem key={model.value} value={model.value}>
+						{model.displayName}
+					</SelectItem>
+				))}
+			</SelectContent>
+		</Select>
 	);
 }

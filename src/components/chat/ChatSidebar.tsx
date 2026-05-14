@@ -5,11 +5,19 @@ import { useEffect, useRef, useState } from "react";
 import { ConversationList } from "@/components/conversation/ConversationList";
 import { ConversationView } from "@/components/conversation/ConversationView";
 import { ModelSelect } from "@/components/model-select";
+import { Button } from "@/components/ui/button";
 import {
 	Popover,
 	PopoverContent,
 	PopoverTrigger,
 } from "@/components/ui/popover";
+import {
+	Select,
+	SelectContent,
+	SelectItem,
+	SelectTrigger,
+	SelectValue,
+} from "@/components/ui/select";
 import { useAgents } from "@/hooks/use-data";
 import { apiFetch } from "@/lib/api-client";
 import type { Conversation } from "@/lib/types";
@@ -23,7 +31,9 @@ const CONVERSATION_ID_KEY = "cmc:lastConversationId";
 
 export function ChatSidebar() {
 	const { agents } = useAgents();
-	const activeAgents = agents.filter((a) => a.status === "active");
+	const activeAgents = agents.filter(
+		(a) => a.status === "active" && a.id !== "me",
+	);
 	const hasDocMaintainer = activeAgents.some(
 		(a) => a.id === DOC_MAINTAINER_AGENT_ID,
 	);
@@ -149,24 +159,37 @@ export function ChatSidebar() {
 			</div>
 
 			{/* Controls: agent + model selectors */}
-			<div className="flex items-center gap-2 px-3 py-2 border-b shrink-0">
-				<select
-					className="h-7 rounded-sm border bg-secondary px-2 text-xs flex-1 min-w-0"
+			<div className="grid grid-cols-2 gap-2 px-3 py-2 border-b shrink-0">
+				<Select
 					value={selectedAgentId}
-					onChange={(e) => {
+					onValueChange={(val) => {
 						agentChangedByUser.current = true;
-						setSelectedAgentId(e.target.value);
+						setSelectedAgentId(val);
 					}}
 				>
-					{!hasDocMaintainer && (
-						<option value={DOC_MAINTAINER_AGENT_ID}>Doc Maintainer</option>
-					)}
-					{activeAgents.map((a) => (
-						<option key={a.id} value={a.id}>
-							{a.name}
-						</option>
-					))}
-				</select>
+					<SelectTrigger className="h-7 text-xs flex-1 min-w-0">
+						<SelectValue placeholder="Select agent" />
+					</SelectTrigger>
+					<SelectContent>
+						{/* Ghost item: guarantees SelectValue can resolve the label while agents load async */}
+						{!activeAgents.some((a) => a.id === selectedAgentId) &&
+							selectedAgentId !== DOC_MAINTAINER_AGENT_ID && (
+								<SelectItem value={selectedAgentId} className="hidden">
+									{selectedAgentId}
+								</SelectItem>
+							)}
+						{!hasDocMaintainer && (
+							<SelectItem value={DOC_MAINTAINER_AGENT_ID}>
+								Doc Maintainer
+							</SelectItem>
+						)}
+						{activeAgents.map((a) => (
+							<SelectItem key={a.id} value={a.id}>
+								{a.name}
+							</SelectItem>
+						))}
+					</SelectContent>
+				</Select>
 				<ModelSelect value={selectedModel} onChange={setSelectedModel} />
 			</div>
 
@@ -174,19 +197,21 @@ export function ChatSidebar() {
 			<div className="flex items-center border-b shrink-0">
 				<Popover open={historyOpen} onOpenChange={setHistoryOpen}>
 					<PopoverTrigger asChild>
-						<button
+						<Button
 							type="button"
-							className="flex flex-1 items-center gap-2 px-3 py-1.5 text-xs text-muted-foreground hover:bg-muted/50 transition-colors"
+							variant="ghost"
+							size="sm"
+							className="flex flex-1 items-center gap-2 px-3 text-xs text-muted-foreground"
 						>
 							<MessageSquare className="h-3 w-3" />
 							<span>History</span>
 							<ChevronDown className="h-3 w-3 ml-auto opacity-60" />
-						</button>
+						</Button>
 					</PopoverTrigger>
 					<PopoverContent
 						align="start"
 						side="bottom"
-						className="w-[360px] p-0 max-h-[280px] overflow-y-auto"
+						className="w-[min(360px,calc(100vw-2rem))] p-0 max-h-[280px] overflow-y-auto"
 					>
 						<ConversationList
 							currentId={currentId}
@@ -200,14 +225,16 @@ export function ChatSidebar() {
 						/>
 					</PopoverContent>
 				</Popover>
-				<button
+				<Button
 					type="button"
+					variant="ghost"
+					size="icon"
 					onClick={handleNewConversation}
-					className="px-2 py-1.5 text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-colors shrink-0"
-					title="New conversation"
+					aria-label="New conversation"
+					className="h-7 w-7 shrink-0"
 				>
 					<Plus className="h-3.5 w-3.5" />
-				</button>
+				</Button>
 			</div>
 
 			{/* Chat body */}
@@ -220,14 +247,16 @@ export function ChatSidebar() {
 						<p className="text-sm text-muted-foreground">
 							No conversation selected
 						</p>
-						<button
+						<Button
 							type="button"
+							variant="default"
+							size="sm"
 							onClick={handleNewConversation}
-							className="inline-flex items-center gap-1.5 rounded-sm bg-primary px-3 py-1.5 text-xs font-medium text-primary-foreground hover:bg-primary/90 transition-colors"
+							className="w-full gap-1.5"
 						>
 							<Plus className="h-3.5 w-3.5" />
 							Start new conversation
-						</button>
+						</Button>
 					</div>
 				)}
 			</div>

@@ -26,7 +26,7 @@ Changes to these files have the widest blast radius across the codebase:
 - `src/lib/types.ts` — imported by **71** files
 - `src/lib/auth-guards.ts` — imported by **57** files
 - `src/lib/paths.ts` — imported by **55** files
-- `src/components/ui/button.tsx` — imported by **54** files
+- `src/components/ui/button.tsx` — imported by **55** files
 - `src/lib/workspace-context.ts` — imported by **41** files
 
 ## Required Environment Variables
