@@ -12,10 +12,11 @@
 ## Entity Hierarchy
 ```
 Workspace (fully isolated context)
-└── Goals (strategic, long-term only)
-    └── Initiatives (replaces: milestones + projects + missions)
-        ├── Tasks (open-ended work, agent executes with discretion)
-        └── Actions (typed, approval-gated, touches external services)
+├── Goals (strategic, long-term only)
+├── Projects (grouping container for initiatives and tasks)
+│   └── Initiatives (scoped work programs, link to a project)
+│       └── Tasks (open-ended work items, link to project + initiative)
+└── Actions (typed, approval-gated, touches external services)
 ```
 
 ## Workspace Map
@@ -29,8 +30,9 @@ Workspace (fully isolated context)
         ├── CLAUDE.md            — This file (workspace-scoped agent manual)
         ├── ai-context.md        — Generated context snapshot
         ├── tasks.json           — Tasks (open-ended work items)
+        ├── projects.json        — Projects (grouping containers)
         ├── goals.json           — Strategic long-term goals
-        ├── initiatives.json     — Initiatives (projects + milestones + missions combined)
+        ├── initiatives.json     — Initiatives (scoped work programs)
         ├── actions.json         — Actions (typed, approval-gated external operations)
         ├── agents.json          — Agent definitions
         ├── skills-library.json  — Skill definitions
@@ -66,16 +68,32 @@ templates/                       — Project templates
 | createdAt | ISO 8601 | When created |
 | updatedAt | ISO 8601 | Last modification |
 
+### projects.json - `{ "projects": Project[] }`
+| Field | Type | Description |
+|-------|------|-------------|
+| id | string | `"proj_"` + 12 random chars, e.g. `proj_aBcDeFgHiJkL` |
+| name | string | Project display name |
+| description | string | What this project covers |
+| status | `"active"` \| `"paused"` \| `"completed"` \| `"archived"` | Lifecycle |
+| color | string | Hex color for UI |
+| teamMembers | string[] | Assigned agent IDs |
+| tags | string[] | Freeform labels |
+| createdAt | ISO 8601 | When created |
+| deletedAt | ISO 8601 \| null | Soft-delete timestamp (null = active) |
+
+Projects are lightweight grouping containers. Initiatives and tasks reference a project via `projectId`.
+
 ### tasks.json - `{ "tasks": Task[] }`
 | Field | Type | Description |
 |-------|------|-------------|
-| id | string | `"task_{timestamp}"` |
+| id | string | `"task_"` + 12 random chars, e.g. `task_aBcDeFgHiJkL` |
 | title | string | Short, action-oriented |
 | description | string | What needs to be done |
 | importance | `"important"` \| `"not-important"` | Eisenhower Y-axis |
 | urgency | `"urgent"` \| `"not-urgent"` | Eisenhower X-axis |
 | kanban | `"not-started"` \| `"in-progress"` \| `"done"` | Workflow status |
-| initiativeId | string \| null | Links to initiative |
+| projectId | string \| null | Links to parent project |
+| initiativeId | string \| null | Links to parent initiative |
 | assignedTo | AgentRole \| null | Lead agent assignment |
 | collaborators | string[] | Additional team members (agent IDs) |
 | subtasks | `Subtask[]` | Checkable sub-items: `{ id, title, done }` |
@@ -85,9 +103,11 @@ templates/                       — Project templates
 | acceptanceCriteria | string | Definition of done (newline-separated) |
 | tags | string[] | Freeform labels |
 | notes | string | Additional context |
+| dueDate | ISO 8601 \| null | Optional deadline |
 | createdAt | ISO 8601 | When created |
 | updatedAt | ISO 8601 | Last modification |
 | completedAt | ISO 8601 \| null | When marked done |
+| deletedAt | ISO 8601 \| null | Soft-delete timestamp (null = active) |
 
 ### goals.json - `{ "goals": Goal[] }`
 | Field | Type | Description |
@@ -105,22 +125,21 @@ Goals are always long-term and strategic. Milestones and medium-term goals have 
 ### initiatives.json - `{ "initiatives": Initiative[] }`
 | Field | Type | Description |
 |-------|------|-------------|
-| id | string | `"init_{timestamp}"` |
+| id | string | Descriptive slug, e.g. `init_my_initiative` or `init_` + timestamp |
 | title | string | Initiative name |
 | description | string | What this initiative covers |
 | status | `"active"` \| `"paused"` \| `"completed"` \| `"archived"` | Lifecycle |
-| parentGoalId | string \| null | Links to parent goal |
+| projectId | string \| null | Links to parent project |
 | color | string | Hex color for UI |
 | teamMembers | string[] | Assigned agent IDs |
-| autonomyLevel | `"approve-all"` \| `"approve-high-risk"` \| `"auto"` \| null | Override workspace default (null = inherit) |
 | taskIds | string[] | Task IDs in this initiative |
-| actionIds | string[] | Action IDs in this initiative |
 | tags | string[] | Freeform labels |
 | createdAt | ISO 8601 | When created |
 | updatedAt | ISO 8601 | Last modification |
 | completedAt | ISO 8601 \| null | When completed |
+| deletedAt | ISO 8601 \| null | Soft-delete timestamp (null = active) |
 
-Initiatives are the primary container where work lives.
+Initiatives are scoped work programs that group tasks under a project.
 
 ### actions.json - `{ "actions": Action[] }`
 | Field | Type | Description |

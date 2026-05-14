@@ -304,6 +304,7 @@ export function useProjects() {
 		"projects",
 		"projects",
 		"Project",
+		15_000,
 	);
 	return { projects, ...rest };
 }
@@ -503,6 +504,7 @@ export function useInitiatives() {
 		"initiatives",
 		"initiatives",
 		"Initiative",
+		15_000,
 	);
 	return { initiatives, ...rest };
 }
