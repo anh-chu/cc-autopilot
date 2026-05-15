@@ -22,6 +22,9 @@ import { DATA_DIR } from "../src/lib/paths";
 
 // Load runtime env vars from ~/.mandio/env (if present) so the spawned
 // Next.js standalone server inherits them automatically.
+// Note: MANDIO_DATA_DIR must be set in the shell environment (e.g. .zshenv)
+// before running mandio — setting it inside ~/.mandio/env is a chicken-and-egg
+// problem because DATA_DIR is already resolved before this dotenv call runs.
 dotenv.config({ path: path.join(DATA_DIR, "env") });
 
 import { bootstrapDataDir } from "./bootstrap";
@@ -116,6 +119,9 @@ function startServerProcess(port: number): ChildProcess {
 			NODE_ENV: "production",
 			PORT: String(port),
 			MANDIO_INSTALL_DIR: rootDir,
+			// Explicitly forward the resolved DATA_DIR so Next.js .env.local
+			// cannot override it when app.prepare() loads dotenv files.
+			MANDIO_DATA_DIR: DATA_DIR,
 		},
 		cwd: rootDir,
 	});
@@ -133,6 +139,7 @@ function startMandioDaemon(env: NodeJS.ProcessEnv): number | null {
 	const pid = forkDaemon(process.execPath, [daemonScript, "start"], {
 		...env,
 		MANDIO_INSTALL_DIR: rootDir,
+		MANDIO_DATA_DIR: DATA_DIR,
 	});
 	return pid;
 }
@@ -257,6 +264,9 @@ async function start(options: CliOptions = {}) {
 			NODE_ENV: "production",
 			PORT: String(port),
 			MANDIO_INSTALL_DIR: rootDir,
+			// Explicitly forward the resolved DATA_DIR so Next.js .env.local
+			// cannot override it when app.prepare() loads dotenv files.
+			MANDIO_DATA_DIR: DATA_DIR,
 		});
 
 		const daemonPid = startMandioDaemon(process.env) ?? undefined;
