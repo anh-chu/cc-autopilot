@@ -11,7 +11,7 @@ import {
 	useSensor,
 	useSensors,
 } from "@dnd-kit/core";
-import { Plus, Users, X } from "lucide-react";
+import { Plus, Sparkles, Users, X, Zap } from "lucide-react";
 import { useParams, useRouter } from "next/navigation";
 import { useRef, useState } from "react";
 import { BreadcrumbNav } from "@/components/breadcrumb-nav";
@@ -172,6 +172,21 @@ export function ProjectDetailPage({
 
 	const [activeTask, setActiveTask] = useState<Task | null>(null);
 	const [showCreateTask, setShowCreateTask] = useState(false);
+	const [planningProject, setPlanningProject] = useState(false);
+
+	async function planProject(autoRun = false) {
+		if (planningProject) return;
+		setPlanningProject(true);
+		try {
+			await fetch(`/api/projects/${projectId}/plan`, {
+				method: "POST",
+				headers: { "Content-Type": "application/json" },
+				body: JSON.stringify({ autoRun }),
+			});
+		} finally {
+			setTimeout(() => setPlanningProject(false), 3000);
+		}
+	}
 
 	const [editingTitle, setEditingTitle] = useState(false);
 	const [titleDraft, setTitleDraft] = useState("");
@@ -184,6 +199,9 @@ export function ProjectDetailPage({
 	const project = projects.find((p) => p.id === projectId);
 	const projectTasks = tasks.filter(
 		(t) => t.projectId === projectId && !t.isScheduled,
+	);
+	const hasEligibleTasks = projectTasks.some(
+		(t) => t.kanban !== "done" && t.assignedTo && t.assignedTo !== "me",
 	);
 
 	if (!project) {
@@ -504,16 +522,47 @@ export function ProjectDetailPage({
 			</div>
 
 			<div className="flex items-center gap-2">
+				{!hasEligibleTasks && !isProjectRunning(projectId) && (
+					<>
+						<Button
+							variant="ghost"
+							size="icon"
+							className="h-8 w-8 text-muted-foreground hover:text-primary"
+							title="Plan project — decompose goal into tasks"
+							disabled={planningProject}
+							onClick={() => planProject()}
+						>
+							<Sparkles
+								className={cn("h-4 w-4", planningProject && "animate-pulse")}
+							/>
+						</Button>
+						<Button
+							variant="ghost"
+							size="icon"
+							className="h-8 w-8 text-muted-foreground hover:text-accent"
+							title="Plan & Run — decompose goal into tasks, then execute immediately"
+							disabled={planningProject}
+							onClick={() => planProject(true)}
+						>
+							<Zap
+								className={cn("h-4 w-4", planningProject && "animate-pulse")}
+							/>
+						</Button>
+					</>
+				)}
 				<RunButton
 					isRunning={isProjectRunning(projectId)}
 					isProjectRunActive={isProjectRunActive(projectId)}
 					onClick={() => runProject(projectId)}
 					onStop={() => stopProject(projectId)}
 					size="md"
+					disabled={!hasEligibleTasks && !isProjectRunActive(projectId)}
 					title={
 						isProjectRunActive(projectId)
 							? "Project running — click to stop"
-							: "Run all project tasks"
+							: !hasEligibleTasks
+								? "No eligible tasks to run"
+								: "Run all project tasks"
 					}
 				/>
 				<Button

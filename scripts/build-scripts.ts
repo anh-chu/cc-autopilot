@@ -22,6 +22,10 @@ const scripts = [
 		src: "scripts/daemon/wiki-processor.ts",
 		dist: "dist/wiki-processor.js",
 	},
+	{
+		src: "scripts/daemon/run-plan-project.ts",
+		dist: "dist/run-plan-project.js",
+	},
 ];
 
 async function buildScripts() {

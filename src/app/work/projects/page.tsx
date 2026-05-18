@@ -1,6 +1,13 @@
 "use client";
 
-import { Archive, MoreHorizontal, Plus, Trash2 } from "lucide-react";
+import {
+	Archive,
+	MoreHorizontal,
+	Plus,
+	Sparkles,
+	Trash2,
+	Zap,
+} from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
@@ -71,6 +78,9 @@ export default function WorkProjectsPage() {
 	const [filterStatus, setFilterStatus] = useState<string>("all");
 	const [showCreateDialog, setShowCreateDialog] = useState(false);
 	const [deleteTarget, setDeleteTarget] = useState<string | null>(null);
+	const [planningProjectIds, setPlanningProjectIds] = useState<Set<string>>(
+		new Set(),
+	);
 
 	const filteredProjects = useMemo(() => {
 		let list = projects.filter((p) => !p.deletedAt);
@@ -127,6 +137,28 @@ export default function WorkProjectsPage() {
 	async function handleDelete(projectId: string) {
 		await remove(projectId);
 		setDeleteTarget(null);
+	}
+
+	async function planProject(projectId: string, autoRun = false) {
+		if (planningProjectIds.has(projectId)) return;
+		setPlanningProjectIds((prev) => new Set(prev).add(projectId));
+		try {
+			await fetch(`/api/projects/${projectId}/plan`, {
+				method: "POST",
+				headers: { "Content-Type": "application/json" },
+				body: JSON.stringify({ autoRun }),
+			});
+		} finally {
+			// Planning runs as a background process — clear spinner after a short delay
+			// so the user can see it started
+			setTimeout(() => {
+				setPlanningProjectIds((prev) => {
+					const next = new Set(prev);
+					next.delete(projectId);
+					return next;
+				});
+			}, 3000);
+		}
 	}
 
 	return (
@@ -236,24 +268,71 @@ export default function WorkProjectsPage() {
 												</CardTitle>
 											</div>
 											<div className="flex items-center gap-1.5 shrink-0">
-												{hasEligibleTasks && (
-													<RunButton
-														isRunning={isProjectRunning(project.id)}
-														isProjectRunActive={isProjectRunActive(project.id)}
-														onClick={() => runProject(project.id)}
-														onStop={
-															isProjectRunActive(project.id)
-																? () => stopProject(project.id)
-																: undefined
-														}
-														size="md"
-														title={
-															isProjectRunActive(project.id)
-																? "Project running — click to stop"
-																: "Run all project tasks"
-														}
-													/>
+												{!hasEligibleTasks && !isProjectRunning(project.id) && (
+													<>
+														<Button
+															variant="ghost"
+															size="icon"
+															className="h-7 w-7 text-muted-foreground hover:text-primary"
+															title="Plan project — decompose goal into tasks"
+															disabled={planningProjectIds.has(project.id)}
+															onClick={(e) => {
+																e.preventDefault();
+																e.stopPropagation();
+																planProject(project.id);
+															}}
+														>
+															<Sparkles
+																className={cn(
+																	"h-3.5 w-3.5",
+																	planningProjectIds.has(project.id) &&
+																		"animate-pulse",
+																)}
+															/>
+														</Button>
+														<Button
+															variant="ghost"
+															size="icon"
+															className="h-7 w-7 text-muted-foreground hover:text-accent"
+															title="Plan & Run — decompose goal into tasks, then execute immediately"
+															disabled={planningProjectIds.has(project.id)}
+															onClick={(e) => {
+																e.preventDefault();
+																e.stopPropagation();
+																planProject(project.id, true);
+															}}
+														>
+															<Zap
+																className={cn(
+																	"h-3.5 w-3.5",
+																	planningProjectIds.has(project.id) &&
+																		"animate-pulse",
+																)}
+															/>
+														</Button>
+													</>
 												)}
+												<RunButton
+													isRunning={isProjectRunning(project.id)}
+													isProjectRunActive={isProjectRunActive(project.id)}
+													onClick={() => runProject(project.id)}
+													onStop={
+														isProjectRunActive(project.id)
+															? () => stopProject(project.id)
+															: undefined
+													}
+													size="md"
+													disabled={
+														!hasEligibleTasks && !isProjectRunActive(project.id)
+													}
+													title={
+														isProjectRunActive(project.id)
+															? "Project running — click to stop"
+															: !hasEligibleTasks
+																? "No eligible tasks to run"
+																: "Run all project tasks"
+													}
+												/>
 												<Badge variant="outline" className="text-xs capitalize">
 													{project.status}
 												</Badge>

@@ -7,7 +7,8 @@ export type ScriptName =
 	| "run-conversation"
 	| "wiki-processor"
 	| "run-brain-dump-triage"
-	| "run-task-comment";
+	| "run-task-comment"
+	| "run-plan-project";
 
 /**
  * Resolve the entrypoint for a daemon script.
