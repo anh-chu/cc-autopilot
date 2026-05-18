@@ -13,3 +13,7 @@
 
 ## Tests
 - [ ] Prune low-value tests (remaining candidates) <!-- pi-todo-md:id=7 -->
+
+## Memory
+- [ ] Auto wiki write-back on task completion (memory loop) <!-- pi-todo-md:id=8 -->
+  - note: task completes → agent writes summary page to wiki → doc-maintainer consolidates. SOP instruction change in run-task.ts prompt, not a new architecture. Closes the pseudo-memory gap vs hermes-agent.
